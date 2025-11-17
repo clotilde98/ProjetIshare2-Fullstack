@@ -17,7 +17,6 @@ const Dashboard = () => {
       <div className="main-col">
         <Header toggleSidebar={() => setIsSidebarOpen((s) => !s)} />
         <main className="main-content">
-         
           <Outlet />
         </main>
       </div>

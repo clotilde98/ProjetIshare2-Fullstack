@@ -2,6 +2,7 @@ import React from "react";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { logout } from "../redux/authSlice";
+import { FaBars } from "react-icons/fa"; 
 
 const Header = ({ toggleSidebar, isSidebarOpen }) => {
   const dispatch = useDispatch();
@@ -19,7 +20,7 @@ const Header = ({ toggleSidebar, isSidebarOpen }) => {
         onClick={toggleSidebar}
         aria-label={isSidebarOpen ? "Fermer la sidebar" : "Ouvrir la sidebar"}
       >
-        ☰
+        <FaBars />
       </button>
 
       <div style={{ marginLeft: 12 }}>
