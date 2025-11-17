@@ -22,10 +22,116 @@ const router = Router();
 
 
 router.post("/", clientValidatorMiddleware.addClientValidator, uploadPhoto, createUser); 
+/**
+ * @swagger
+ * /me:
+ *   get:
+ *     security:
+ *       - bearerAuth: []
+ *     tags:
+ *       - Customer
+ *     responses:
+ *       '200':
+ *         description: User profile returned
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Client'
+ *       '401':
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       '404':
+ *         $ref: '#/components/responses/UserAccount'
+ *       '500':
+ *         description: Server error
+ */
+
 router.get("/me", checkJWT, getOwnUser);    
+
+/**
+ * @swagger
+ * /{id}:
+ *   get:
+ *     parameters: 
+ *       - name: id 
+ *         in: path
+ *         required: true 
+ *         schema: 
+ *           type: integer
+ *     security:
+ *       - bearerAuth: []
+ *     tags:
+ *       - Customer
+ *     responses:
+ *       200:
+ *         $ref: '#/components/responses/ReadedUser'
+ *       400:
+ *         $ref: '#/components/responses/InvalidRole'
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       403:
+ *         $ref: '#/components/responses/mustBeAdmin'
+ *       500:
+ *         description: Server error
+ */
+
 router.get("/", checkJWT,mustBeAdmin, getUsers);      
-router.patch("/", checkJWT, isSameUser, clientValidatorMiddleware.updateClientValidator , updateUser);     
+/**
+ * @swagger
+ * /{id}:
+ *   delete:
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Numeric ID of the user to delete
+ *     security:
+ *       - bearerAuth: []
+ *     tags:
+ *       - Customer
+ *     responses:
+ *       400:
+ *         $ref: '#/components/responses/ValidationError'
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       403:
+ *         $ref: '#/components/responses/AccessDeniedError'
+ *       404:
+ *         $ref: '#/components/responses/UserNotFound'
+ *       500:
+ *         description: Server error
+ */
+
 router.delete("/:id", checkJWT, isSameUser, deleteUser);       
+
+/**
+  * @swagger 
+  * /:
+  *  patch: 
+  *   security: 
+  *    - bearerAuth: []
+  *   tags:
+  *    - Customer 
+  *   responses: 
+  *     400: 
+  *       $ref: '#/components/responses/ValidationError'
+  *     401: 
+  *       $ref: '#/components/responses/UnauthorizedError' 
+  *     403: 
+  *       $ref: '#/components/responses/AccessDeniedError'
+  *     404:
+  *       $ref: '#/components/responses/UserNotFound'
+  *     500: 
+  *       description: Error server 
+  *    
+  */
+ 
+
+router.patch("/", checkJWT, isSameUser, clientValidatorMiddleware.updateClientValidator , updateUser);  
+
+
+
 
 export default router;
 

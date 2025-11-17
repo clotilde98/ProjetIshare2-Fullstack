@@ -15,8 +15,61 @@ const router = Router();
 router.use('/users', userRouter);
 router.use('/posts', checkJWT, postRouter);
 router.use('/reservations', checkJWT, reservationRouter);
+/**
+ * @swagger
+ * /login:
+ *   post:
+ *     summary: Authenticates a customer
+ *     tags: 
+ *       - Niveau principal
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/loginSchema'
+ *     responses:
+ *       400:
+ *          $ref: '#/components/responses/ValidationError'
+ *       401:
+ *          $ref: '#/components/responses/InvalidInput'
+ *       500:
+ *         description: Error server
+ */
+
 router.post('/login',clientValidatorMiddleware.loginValidator, login)
 router.get('/stats',checkJWT, mustBeAdmin , getAllStats)
+/**
+ * @swagger
+ * /getAllCities: 
+ *    get: 
+ *      tags:
+ *        - Niveau principal
+ *      responses:
+ *        200: 
+ *          $ref: '#/components/responses/ReadAllCities'
+ *        500:
+ *          description: Error server
+ *      
+ */
+
 router.get('/getAllCities', getAllCities);
+/**
+ * @swagger
+ * /productType:
+ *   get:
+ *     tags:
+ *        - Niveau principal
+ *     responses:
+ *       200 :
+ *         description: Read all the successful cities
+ *         content:
+ *           text/plain:
+ *             schema:
+ *               type: string 
+ *       500 :
+ *         description: Error server 
+ */
 router.use('/productType', productTypeRouter);
 export default router;

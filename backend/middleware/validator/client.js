@@ -19,6 +19,22 @@ const updateClientSchema =  vine.object({
     isAdmin:vine.boolean().optional()
 }); 
 
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     loginSchema:
+ *       type: object
+ *       properties:
+ *         email:
+ *           type: string
+ *         password:
+ *           type: string
+ *       required:
+ *         - email
+ *         - password
+ */
+
 const loginSchema = vine.object({
     email: vine.string().email(),
     password: vine.string()

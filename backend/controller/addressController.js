@@ -31,6 +31,34 @@ export const importPostalData = async (req, res) => {
   }
 };
 
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     Address:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *         city:
+ *           type: string
+ *         postal_code:
+ *           type: string
+ */
+
+
+/**
+ * @swagger
+ * components:
+ *  responses: 
+ *    ReadAllCities:
+ *        description: all cities read from the extern API
+ *        content: 
+ *          application/json:
+ *            schema:   
+ *              $ref: '#/components/schemas/Address'
+ *  
+ */
 
 export const getAllCities = async (req, res) => {
   try {

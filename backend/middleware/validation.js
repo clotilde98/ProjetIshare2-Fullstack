@@ -4,6 +4,18 @@ import { createPostValidator, updatePostValidator } from "./validator/post.js";
 import { createReservationValidator, updateReservationValidator } from "./validator/reservation.js";
 import { createCategoryProductValidator, updateCategoryProductValidator } from "./validator/categoryProduct.js";
 
+/**
+ * @swagger
+ * components:
+ *  responses:
+ *      ValidationError:
+ *          description: the error(s) described
+ *          content:
+ *              text/plain:
+ *                  schema:
+ *                      type: string
+ */
+
 
 export const clientValidatorMiddleware = {
     addClientValidator: async (req, res, next) => {

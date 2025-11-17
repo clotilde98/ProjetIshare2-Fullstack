@@ -2,6 +2,8 @@ import { readPost } from "../../model/postDB.js";
 import { getUserById } from "../../model/client.js";
 import { pool } from "../../database/database.js";
 
+
+
 export const postOwner = async (req, res, next) => {
     try {
         const postClientID = await readPost(pool, {id:(parseInt(req.params.id) || req.body.id)});

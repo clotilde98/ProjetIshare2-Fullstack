@@ -3,6 +3,45 @@ import * as userModel from "../model/client.js";
 import argon2 from "argon2";
 import 'dotenv/config';
 
+
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     Client:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *         username:
+ *           type: string
+ *         street:
+ *           type: string
+ *         streetNumber:
+ *           type: integer
+ *         photo:
+ *           type: string
+ *         email:
+ *           type: string
+ *         password:
+ *           type: string
+ */
+
+/**
+ * @swagger
+ * components:
+ *   responses:
+ *     UserAdded:
+ *       description: The user added at the database
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               id:
+ *                 type: integer
+ */
+
 export const createUser = async (req, res) => {
   try {
     
@@ -14,6 +53,37 @@ const photo = req.file ? `${req.protocol}://${req.get('host')}/images/${req.file
     res.status(400).send(err.message);
   }
 };
+
+
+/**
+ * @swagger
+ * components:
+ *   responses:
+ *     UpdatedUser:
+ *       description: The user updated in the database
+ *       content:
+ *         text/plain:
+ *           schema:
+ *             type: string
+ *     InvalidOldPassword:
+ *       description: Incorrect old password
+ *       content:
+ *         text/plain:
+ *           schema:
+ *             type: string
+ *     UserNotFound:
+ *       description: User not found
+ *       content:
+ *         text/plain:
+ *           schema:
+ *             type: string
+ *     InternalServerError:
+ *       description: Server error
+ *       content:
+ *         text/plain:
+ *           schema:
+ *             type: string
+ */
 
 
 export const updateUser = async (req, res) => {
@@ -66,6 +136,23 @@ export const updateUser = async (req, res) => {
     }
 };
 
+/**
+ * @swagger
+ * components:
+ *   responses:
+ *     DeletedUser:
+ *       description: The user is deleted from the database
+ *       content:
+ *         text/plain:
+ *           schema:
+ *             type: string
+ *     UserNotFound:
+ *       description: User not found
+ *       content:
+ *         text/plain:
+ *           schema:
+ *             type: string
+ */
 
 export const deleteUser = async (req, res) => {
   try {
@@ -82,6 +169,17 @@ export const deleteUser = async (req, res) => {
   }
 };
 
+/**
+ * @swagger
+ * components:
+ *   responses:
+ *     UserAccount:
+ *       description: The user want see his account
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Client'
+ */
 
 export const getOwnUser = async (req, res) => {
     try {
@@ -99,6 +197,24 @@ export const getOwnUser = async (req, res) => {
     }
 };
 
+
+/**
+ * @swagger
+ * components:
+ *   responses:
+ *     ReadedUser:
+ *       description: The user wants to read the existing users 
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Client'
+ *     InvalidRole:
+ *       description: The role is invalid
+ *       content:
+ *         text/plain:
+ *           schema:
+ *             type: string
+ */
 
 export const getUsers = async (req, res) => {
   try {

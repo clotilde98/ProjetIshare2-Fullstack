@@ -4,6 +4,18 @@ import argon2 from "argon2";
 import 'dotenv/config';
 import jwt from "jsonwebtoken";
 
+/**
+ * @swagger
+ * components: 
+ *   responses: 
+ *      InvalidInput:
+ *        description: User/password incorrect
+ *        content:
+ *          text/plain:
+ *             schema: 
+ *                type: string
+ */
+
 export const login = async (req, res) => {
     try {
         const { email, password } = req.body;

@@ -1,4 +1,17 @@
 
+/**
+ * @swagger
+ * components:
+ *   responses:
+ *     mustBeAdmin:
+ *       description: User verification requires administrator privileges
+ *       content:
+ *         text/plain:
+ *           schema:
+ *             type: string
+ *             example: Admin privileges required
+ */
+
 export const mustBeAdmin = (req, res, next) => {
     try {
         if (!req.user) {
