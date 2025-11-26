@@ -30,36 +30,56 @@ export const getPosts = async (req, res) => {
 }
 
 
+
 export const createPost = async (req, res) => {
     let client;
     try {
-        const {categoriesProduct} = req.body;
-        if (!categoriesProduct || categoriesProduct.length == 0){
+        
+        const { categoriesProduct, clientID: providedClientID } = req.body; 
+        
+        if (!categoriesProduct || categoriesProduct.length === 0){
             return res.status(400).send("Missing product category to create a post");
         }
+        
         client = await pool.connect();
+        await client.query('BEGIN'); 
+        
+        let clientIDToUse;
+                
+        if (req.user && req.user.isAdmin && providedClientID) {
+            clientIDToUse = providedClientID;
+        } else if (req.user) {
+            clientIDToUse = req.user.id;
+        }
 
-        await client.query('BEGIN'); 
-        const clientID = req.user.id; 
-        const post = await postModel.createPost(client, clientID, req.body);
+        if (!clientIDToUse) {
+             await client.query('ROLLBACK');
+             return res.status(401).send("Client ID is missing or unauthorized.");
+        }
+
+
+        const post = await postModel.createPost(client, clientIDToUse, req.body);
         const postID = post.id;
 
-
         for (const categoryID of categoriesProduct) {
-            await createPostCategory(client, { IDCategory: categoryID, IDPost: postID });
+            await createPostCategory(client, { IDCategory :categoryID, IDPost: postID });
         }
 
         await client.query('COMMIT');
 
-
         res.status(201).send("Post created");
     } catch (err){
-        await client.query('ROLLBACK'); 
-        res.status(500).send(err.message);
+        
+            await client.query('ROLLBACK'); 
+    
+        console.error("Erreur lors de la création du post:", err);
+        res.status(500).send(err.message || "Erreur interne du serveur.");
     } finally {
         if (client) client.release();
     }
 }
+
+
 
 
 export const updatePost = async (req, res) => {
