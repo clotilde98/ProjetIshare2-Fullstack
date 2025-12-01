@@ -2,6 +2,7 @@ import Router  from 'express';
 import userRouter from './clientRoute.js';
 import postRouter from './postRoute.js';
 import reservationRouter from './reservationRoute.js';
+import commentRouter from './commentRoute.js';
 import {getAllCities} from '../controller/addressController.js';
 import {login} from '../controller/loginController.js'
 import {checkJWT} from '../middleware/identification/jwt.js'
@@ -15,6 +16,8 @@ const router = Router();
 router.use('/users', checkJWT,userRouter);
 router.use('/posts', checkJWT, postRouter);
 router.use('/reservations', checkJWT, reservationRouter);
+router.use('/comments', checkJWT, commentRouter);
+
 /**
  * @swagger
  * /login:
@@ -72,4 +75,5 @@ router.get('/getAllCities', getAllCities);
  *         description: Error server 
  */
 router.use('/productType',checkJWT, productTypeRouter);
+
 export default router;

@@ -10,7 +10,8 @@ import {
 
 import {checkJWT} from '../middleware/identification/jwt.js'
 import {postValidatorMiddleware} from '../middleware/validation.js';
-import { mustBeAdmin } from '../middleware/identification/mustBeAdmin.js'; 
+import { mustBeAdmin } from '../middleware/identification/mustBeAdmin.js';
+import { orMiddleware } from '../middleware/utils/orMiddleware.js';
 
 import {postOwner} from '../middleware/identification/postOwner.js';
 
@@ -18,10 +19,10 @@ import {postOwner} from '../middleware/identification/postOwner.js';
 const router = Router();
 
 router.post("/", checkJWT, postValidatorMiddleware.createPostValidator, createPost);           
-router.get("/byCategory", searchPostByCategory);  
+router.get("/byCategory", searchPostByCategory); 
+router.get("/",mustBeAdmin, getPosts);      
 router.get("/:id", getPost);     
-router.get("/", getPosts);      
-router.patch("/:id", checkJWT, postOwner, postValidatorMiddleware.updatePostValidator, updatePost);     
-router.delete("/:id", checkJWT, postOwner, deletePost);      
+router.patch("/:id", checkJWT, orMiddleware(postOwner, mustBeAdmin), postValidatorMiddleware.updatePostValidator, updatePost);     
+router.delete("/:id", checkJWT, orMiddleware(postOwner, mustBeAdmin), deletePost);      
 
 export default router;

@@ -15,6 +15,8 @@ import {isSameUser} from '../middleware/identification/user.js'
 
 import {mustBeAdmin} from '../middleware/identification/mustBeAdmin.js'
 
+import { orMiddleware } from '../middleware/utils/orMiddleware.js';
+
 
 const router = Router();
 
@@ -45,7 +47,7 @@ router.post("/", clientValidatorMiddleware.addClientValidator, uploadPhoto, crea
  *         description: Server error
  */
 
-router.get("/me", checkJWT, getOwnUser);    
+router.get("/me", checkJWT,isSameUser, getOwnUser);    
 
 /**
  * @swagger
@@ -103,7 +105,7 @@ router.get("/", checkJWT,mustBeAdmin, getUsers);
  *         description: Server error
  */
 
-router.delete("/:id", checkJWT, isSameUser, deleteUser);       
+router.delete("/:id", checkJWT,orMiddleware(isSameUser, mustBeAdmin) , deleteUser);       
 
 /**
   * @swagger 
@@ -128,7 +130,7 @@ router.delete("/:id", checkJWT, isSameUser, deleteUser);
   */
 
 
-router.patch("/id", checkJWT, isSameUser, clientValidatorMiddleware.updateClientValidator , updateUser);  
+router.patch("/id", checkJWT, orMiddleware(isSameUser, mustBeAdmin), clientValidatorMiddleware.updateClientValidator , updateUser);  
 
 
 

@@ -118,38 +118,31 @@ export const deleteUser = async (SQLClient, id) => {
 };
 
 
-// /model/client.js (Version corrigée et complète)
 
 export const getUsers = async (SQLClient, { name, role, page = 1, limit = 10 }) => {
     const offset = (page - 1) * limit;
     const conditions = [];
     const values = [];
 
-    // 1. GESTION DE LA RECHERCHE PAR NOM
     if (name) {
-        // Le $1 est crucial pour éviter l'injection SQL
         conditions.push(`LOWER(c.username) LIKE LOWER($${values.length + 1})`);
         values.push(`%${name}%`);
     }
 
-    // 2. GESTION DU FILTRE PAR ROLE
     if (role === 'admin') {
         conditions.push(`c.is_admin = true`);
     } else if (role === 'user') {
         conditions.push(`c.is_admin = false`);
     }
 
-    // 💡 Ajout de l'espace initial si la clause WHERE est présente
     const whereClause = conditions.length ? ` WHERE ${conditions.join(' AND ')}` : '';
 
-    // 3. Requête COUNT pour le total
     const countQuery = `
         SELECT COUNT(c.id) AS total
         FROM Client c
         JOIN Address a ON c.address_id = a.id${whereClause}
     `;
     
-    // 4. Requête DATA pour les données paginées
     const dataQuery = `
     SELECT c.id, c.username, c.email, c.registration_date,
            c.is_admin, a.city, a.postal_code,c.street,c.street_number

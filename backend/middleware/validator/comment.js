@@ -3,8 +3,8 @@ import vine from '@vinejs/vine';
 
 export const createCommentSchema = vine.object({
     content: vine.string().trim(), 
-    id_post: vine.number().positive(),
-    id_costumer: vine.number().positive(), 
+    idPost: vine.number().positive(),
+    idCostumer: vine.number().positive(), 
     
 }); 
 
