@@ -50,7 +50,7 @@ export const createUser = async (req, res) => {
     const googleId = req.body.googleId ? req.body.googleId : null;
     
     if (!user){
-      user = await userModel.createUser(pool, {googleId: googleId, username:req.body.username, email: req.body.email, streetNumber: req.body.streetNumber, street:req.body.street, photo:req.body.photo, isAdmin:req.body.isAdmin, addressID:req.body.addressID});
+      user = await userModel.createUser(pool, {googleId: googleId, username:req.body.username, email: req.body.email, streetNumber: req.body.streetNumber, street:req.body.street, photo:req.body.photo, isAdmin:req.body.isAdmin, addressID:req.body.addressID, password:req.body.password});
       const token = jwt.sign(
                   { 
                       id: user.id, 

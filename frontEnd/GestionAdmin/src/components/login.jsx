@@ -27,7 +27,7 @@ const Login = () => {
 
     try {
       const response = await Axios.post("/login", { email, password });
-      
+      console.log(response.data.token);
       dispatch(loginSuccess(response.data.token));
 
       if (response.data.token) {

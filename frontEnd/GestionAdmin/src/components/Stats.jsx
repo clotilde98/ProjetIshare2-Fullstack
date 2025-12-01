@@ -22,7 +22,8 @@ const Stats = () => {
     const fetchStats = async () => {
       try {
         setLoading(true);
-        const response = await Axios.get('/stats');
+        const token = localStorage.getItem('token');
+        const response = await Axios.get("/stats");
         setStats(response.data); 
         
       } catch (err) {

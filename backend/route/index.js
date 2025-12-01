@@ -43,7 +43,7 @@ router.use('/comments', commentRouter);
 
 router.post('/login',clientValidatorMiddleware.loginValidator, login)
 router.post('/loginWithGoogle', clientValidatorMiddleware.loginValidator, loginWithGoogle)
-router.get('/stats',checkJWT, mustBeAdmin , getAllStats)
+router.get('/stats', checkJWT, mustBeAdmin , getAllStats)
 /**
  * @swagger
  * /getAllCities: 

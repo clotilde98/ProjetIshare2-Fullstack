@@ -8,7 +8,7 @@ const app = express();
 const port = 3002;
 
 app.use(cors({
-    origin: 'http://localhost:5175',
+    origin: 'http://localhost:5173',
     methods: ['GET', 'POST', 'PATCH', 'DELETE'],
     credentials: true
 }));
