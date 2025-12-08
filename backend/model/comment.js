@@ -43,44 +43,52 @@ export const updateComment = async (SQLClient, { id, content }) => {
 
 
 export const getComments = async (SQLClient, { commentDate, page = 1, limit = 10 }) => {
-    const offset = (page - 1) * limit;
+    const pageNum = parseInt(page);
+    const limitNum = parseInt(limit);
+    
+    const offset = (pageNum - 1) * limitNum;
     const conditions = [];
     const values = [];
 
+    
     if (commentDate) {
         values.push(`%${commentDate}%`); 
         conditions.push(`TO_CHAR(c.date, 'YYYY-MM-DD') LIKE $${values.length}`);
     }
 
-    const whereClause = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
+    const whereClause = conditions.length ? ` WHERE ${conditions.join(' AND ')}` : '';
 
-    const dataQuery = `
-        SELECT
-          c.id,              
-          c.content,
-          c.date,
-          c.id_post,         
-          c.id_costumer,     
-          p.title AS post_title,
-          cl.username AS username
+    const countQuery = `SELECT COUNT(c.id) AS total
+    FROM Comment c
+    JOIN Post p ON c.id_post = p.id
+    JOIN Client cl ON c.id_costumer = cl.id${whereClause}`; 
+
+    try {
+        const countResult = await SQLClient.query(countQuery, values);
+        const total = Number(countResult.rows[0].total) || 0;
+
+        const limitIndex = values.length + 1;
+        const offsetIndex = values.length + 2; 
+
+        const dataQuery = `SELECT 
+            c.id, c.content, c.date, c.id_post, c.id_costumer,
+            p.title AS post_title,
+            cl.username AS username
         FROM Comment c
         JOIN Post p ON c.id_post = p.id
-        JOIN Client cl ON c.id_costumer = cl.id
-        ${whereClause}
+        JOIN Client cl ON c.id_costumer = cl.id${whereClause}
         ORDER BY c.date DESC, c.id DESC
-        LIMIT ${Number(limit)} OFFSET ${Number(offset)}
-    `;
+        LIMIT $${limitIndex} OFFSET $${offsetIndex}`;
 
-    const countQuery = `
-        SELECT COUNT(c.id) AS total
-        FROM Comment c
-        ${whereClause}
-    `;
+        values.push(limitNum);
+        values.push(offset);
+        
+        const dataResult = await SQLClient.query(dataQuery, values);
+        const rows = dataResult.rows;
 
-    const { rows } = await SQLClient.query(dataQuery, values);
-    const countResult = await SQLClient.query(countQuery, values);
-    
-    const total = Number(countResult.rows[0].total) || 0;
+        return { rows, total };
 
-    return { rows, total };
+    } catch (err) {
+        throw new Error(`Erreur SQL dans getComments : ${err.message}`); 
+    }
 };

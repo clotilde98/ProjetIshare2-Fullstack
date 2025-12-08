@@ -126,13 +126,17 @@ export const deleteUser = async (SQLClient, id) => {
 
 
 export const getUsers = async (SQLClient, { name, role, page = 1, limit = 10 }) => {
-    const offset = (page - 1) * limit;
+    const pageNum = parseInt(page);
+    const limitNum = parseInt(limit);
+    
+    const offset = (pageNum - 1) * limitNum;
+    
     const conditions = [];
-    const values = [];
+    const values = []; 
 
     if (name) {
-        conditions.push(`LOWER(c.username) LIKE LOWER($${values.length + 1})`);
         values.push(`%${name}%`);
+        conditions.push(`LOWER(c.username) LIKE LOWER($${values.length})`);
     }
 
     if (role === 'admin') {
@@ -143,29 +147,31 @@ export const getUsers = async (SQLClient, { name, role, page = 1, limit = 10 }) 
 
     const whereClause = conditions.length ? ` WHERE ${conditions.join(' AND ')}` : '';
 
-    const countQuery = `
-        SELECT COUNT(c.id) AS total
-        FROM Client c
-        JOIN Address a ON c.address_id = a.id${whereClause}
-    `;
-    
-    const dataQuery = `
-    SELECT c.id, c.username, c.email, c.registration_date,
-           c.is_admin, a.city, a.postal_code,c.street,c.street_number
+    const countQuery = `SELECT COUNT(c.id) AS total
     FROM Client c
-    JOIN Address a ON c.address_id = a.id
-    ${whereClause}
-    ORDER BY c.registration_date DESC
-    LIMIT ${limit} OFFSET ${offset}
-  `;
+    JOIN Address a ON c.address_id = a.id${whereClause}`;
 
     try {
-        const [countResult, dataResult] = await Promise.all([
-            SQLClient.query(countQuery, values),
-            SQLClient.query(dataQuery, values),
-        ]);
         
+        const countResult = await SQLClient.query(countQuery, values); 
         const total = parseInt(countResult.rows[0].total, 10);
+        
+        const limitIndex = values.length + 1; 
+        const offsetIndex = values.length + 2; 
+
+        const dataQuery = `SELECT c.id, c.username, c.email, c.registration_date,
+                c.is_admin, a.city, a.postal_code, c.street, c.street_number
+        FROM Client c
+        JOIN Address a ON c.address_id = a.id
+        ${whereClause}
+        ORDER BY c.registration_date DESC
+        LIMIT $${limitIndex} OFFSET $${offsetIndex}`; 
+
+        
+        values.push(limitNum);
+        values.push(offset);
+        
+        const dataResult = await SQLClient.query(dataQuery, values);
         const rows = dataResult.rows;
 
         return { rows, total }; 

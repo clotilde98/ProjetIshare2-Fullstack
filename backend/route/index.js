@@ -9,6 +9,8 @@ import {checkJWT} from '../middleware/identification/jwt.js'
 import { mustBeAdmin } from '../middleware/identification/mustBeAdmin.js';
 import {clientValidatorMiddleware} from '../middleware/validation.js';
 import { getAllStats } from '../controller/dashboardController.js';
+import { orMiddleware } from '../middleware/utils/orMiddleware.js';
+
 import productTypeRouter from './productTypeRoute.js'
 
 const router = Router();
@@ -43,7 +45,7 @@ router.use('/comments',checkJWT, commentRouter);
 
 router.post('/login',clientValidatorMiddleware.loginValidator, login)
 router.post('/loginWithGoogle', clientValidatorMiddleware.loginValidator, loginWithGoogle)
-router.get('/stats', checkJWT, mustBeAdmin , getAllStats)
+router.get('/stats', checkJWT, orMiddleware(mustBeAdmin) , getAllStats)
 /**
  * @swagger
  * /getAllCities: 
@@ -58,7 +60,7 @@ router.get('/stats', checkJWT, mustBeAdmin , getAllStats)
  *      
  */
 
-router.get('/getAllCities',checkJWT, getAllCities);
+router.get('/getAllCities',checkJWT,orMiddleware(mustBeAdmin), getAllCities);
 /**
  * @swagger
  * /productType:

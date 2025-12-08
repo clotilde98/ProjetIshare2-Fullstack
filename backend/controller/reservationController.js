@@ -7,6 +7,38 @@ import {getUserById} from '../model/client.js'
 import * as reservationModel from '../model/reservationDB.js';
 
 
+
+const VALID_STATUSES = ['confirmed', 'cancelled', 'withdrawal']; 
+
+export const getReservations = async (req, res) => { 
+    try {
+        const { username, status, page, limit } = req.query;
+
+        if (status && !VALID_STATUSES.includes(status)) {
+            return res.status(400).json({ 
+                message: `Le statut de réservation doit être l'un des suivants : "${VALID_STATUSES.join('", "')}".` 
+            });
+        }
+
+        const args = {
+            username: username,
+            reservationStatus: status, 
+             page: parseInt(page) || 1, 
+            limit: parseInt(limit) || 10   
+        };
+
+       
+        const result = await reservationModel.getReservations(pool, args);
+
+        res.status(200).json(result); 
+        
+    } catch (err) {
+        console.error('Erreur récupération réservations :', err.message);
+        
+    }
+};
+
+
 export const getReservation = async (req, res) => {
     try {
         const id = parseInt(req.params.id);
@@ -24,19 +56,7 @@ export const getReservation = async (req, res) => {
     }
 }
 
-export const getReservationsByUsername = async (req, res) => {
-    try {
-        const {username} = req.query;
-        const reservations = await reservationModel.getReservationsByUsername(pool, {username});
-        if (reservations){
-            res.send(reservations);
-        } else {
-            res.status(404).send("Reservations not found for user " + username);
-        }
-    } catch (err) {
-        res.status(500).send(err.message);
-    }
-}
+
 
 export const getMyReservations = async (req, res) => {
     try {
@@ -92,7 +112,21 @@ export const getReservationsByPostID = async (req, res) => {
 
 export const createReservation = async (req, res) => {
     try {
-        const clientID  = req.user.id;
+        const currentUserID =  req.user.id ; 
+        const providedClientID = req.body.clientID;
+        const isAdmin = req.user.isAdmin ; 
+
+        let reservationClientID;
+        
+        if (req.user && isAdmin && providedClientID) {
+            reservationClientID = providedClientID;
+        } else if (req.user) {
+            reservationClientID = currentUserID;
+        } else {
+            return res.status(401).send("Authentication required to create a reservation.");
+        }
+
+        const clientID = reservationClientID;         
         const { postID } = req.body;
         
         const post = await readPost(pool, {id : postID});
@@ -105,7 +139,7 @@ export const createReservation = async (req, res) => {
             }
             const countCurrentReservationsForPost = await reservationModel.readReservationsByPostID(pool, {id:postID});
             if (post.number_of_places > countCurrentReservationsForPost.length){
-                const client = await getUserById(pool, clientID);
+                const client = await getUserById(pool, clientID); 
                 if (!client){
                     return res.status(404).send("User not found");
                 } else {
@@ -118,7 +152,7 @@ export const createReservation = async (req, res) => {
                         return res.status(401).send("You can't make a reservation for a post that you posted");
                     }
 
-                    const newReservation = await reservationModel.createReservation(pool, clientID, req.body);
+                    const newReservation = await reservationModel.createReservation(pool, clientID, req.body); // Utilise l'ID résolu
                     res.status(201).send(newReservation.id);
                 }
             } else {
