@@ -50,7 +50,7 @@ CREATE TABLE Reservation (
     id SERIAL PRIMARY KEY,
     reservation_date DATE DEFAULT NOW(),
     reservation_status VARCHAR(20) NOT NULL DEFAULT 'confirmed',
-    CHECK (reservation_status IN ('confirmed', 'cancelled')),
+    CHECK (reservation_status IN ('confirmed', 'cancelled','withdrawal')),
     post_id INT NOT NULL REFERENCES Post(id) ON DELETE CASCADE,
     client_id INT NOT NULL REFERENCES Client(id) ON DELETE CASCADE
 );
