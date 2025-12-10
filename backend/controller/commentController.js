@@ -14,7 +14,8 @@ import * as commentModel from "../model/comment.js";
  *         content:
  *           type: string
  *         date:
- *           type: date
+ *           type: string 
+ *           format: date
  *         id_post:
  *           type: integer
  *         id_costumer:
@@ -46,12 +47,10 @@ export const createComment = async (req, res) => {
         if (commentCreated) {
             res.status(201).send(commentCreated);
         } else {
-            res.status(400).send({ message: "Échec de la création du commentaire. Vérifiez l'ID de l'annonce." }); 
+            res.status(400).send("Échec de la création du commentaire. Vérifiez l'ID de l'annonce."); 
         } 
-    } catch (e) {
-        console.error("Erreur lors de la création du commentaire:", e.message);
-        
-        res.status(500).send({ message: "Erreur interne du serveur." });
+    } catch (err) {
+            res.status(500).send(err.message);
     }
 };
 
@@ -59,71 +58,80 @@ export const createComment = async (req, res) => {
  * @swagger
  * components:
  *   responses:
- *     UpdatedUser:
+ *     CommentUpdated:
  *       description: The Comment updated in the database
  *       content:
  *         text/plain:
  *           schema:
  *             type: string
- *     InvalidOldPassword:
- *       description: Incorrect old password
+ *     CommentNotFound:
+ *       description: Comment not found
  *       content:
- *         text/plain:
+ *         application/json:
  *           schema:
  *             type: string
- *     UserNotFound:
- *       description: User not found
- *       content:
- *         text/plain:
- *           schema:
- *             type: string
- *     InternalServerError:
- *       description: Server error
- *       content:
- *         text/plain:
- *           schema:
- *             type: string
+ * 
  */
-
-
 
 export const updateComment = async (req, res) => {
     try {
         const updateData = {...req.body, id: req.params.id  };
 
-        
         const updated = await commentModel.updateComment(pool, updateData);
         
         if (updated) {
-            return res.status(200).json({ message: "Commentaire mis à jour avec succès." });
+            return res.status(200).send("Commentaire mis à jour avec succès.");
         } else {
-            return res.status(404).json({ message: "Commentaire non trouvé ou aucune modification effectuée." });
+            return res.status(404).send("Commentaire non trouvé ou aucune modification effectuée.");
         }
 
-    } catch (err) {        
-        console.error('Erreur lors de la mise à jour du commentaire :', err.message);
-        
-        if (err.message.includes("Missing field") || err.message.includes("No updateable field")) {
-            return res.status(400).json({ message: err.message });
-        }
-        
-        return res.status(500).json({ message: 'Erreur serveur lors de la mise à jour du commentaire.' });
+    } catch (err) {      
+        return res.status(500).send(err.message);
     }
 };
 
+
+/**
+ * @swagger
+ * components:
+ *   responses:
+ *     CommentDeleted:
+ *       description: The comment has been deleted from the database
+ *       content:
+ *         text/plain:
+ *           schema:
+ *             type: string
+ *
+ */
+
+
 export const deleteComment = async(req, res) =>{
     try{
-        const commentDeleted= await commentModel.deleteComment(pool, req.body);
-        if(!commentDeleted){
-            res.status(404).send(`Comment with ID ${commentDeleted.id} not found`);
-        }else{
-             res.status(200).send(`Comment ${commentDeleted.id} deleted successfully`);
+        const commentDeleted = await commentModel.deleteComment(pool, {id:req.params.id});
+        if (!commentDeleted) {
+            res.status(404).send(`Comment with ID ${req.params.id} not found`);
+        } else {
+            res.status(204).send(`Comment ${req.params.id} deleted successfully`);
         }
+
     }catch (err){
-        console.log(err); 
         res.sendStatus(500);
     }
 }
+/**
+ * @swagger
+ * components:
+ *   responses:
+ *     CommentsReaded:
+ *       description: All the comments that correspond to the given date
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: array
+ *             items:
+ *               $ref: '#/components/schemas/Comment'
+ */
+
 
 export const getComments = async (req, res) => {
   try {
@@ -139,8 +147,7 @@ export const getComments = async (req, res) => {
     res.status(200).json(comments);
     
   } catch (err) {
-    console.error('Erreur récupération des commentaires :', err.message);
-    res.status(500).json({ message: 'Erreur serveur lors de la récupération des commentaires.' });
+    res.status(500).send('Erreur serveur lors de la récupération des commentaires.');
   }
 };
 

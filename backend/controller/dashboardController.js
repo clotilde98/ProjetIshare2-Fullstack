@@ -2,7 +2,34 @@ import {pool} from "../database/database.js";
 import * as dashboardModel from "../model/dashboardModel.js";
  
 
-
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     DashboardStats:
+ *       type: object
+ *       properties:
+ *         totalAnnonces:
+ *           type: integer
+ *           description: Total number of posts
+ *         totalReservation:
+ *           type: integer
+ *           description: Total number of reservations
+ *         totalRetraits:
+ *           type: integer
+ *           description: Total number of withdrawals
+ *         utilisateursActifs:
+ *           type: integer
+ *           description: Total number of active users
+ *
+ *   responses:
+ *     AllStatReaded:
+ *       description: All stats are obtained
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: "#/components/schemas/DashboardStats"
+ */
 
 export const getAllStats = async (req, res) => {
     try {
@@ -26,7 +53,6 @@ export const getAllStats = async (req, res) => {
         });
 
     } catch (err) {
-        console.error("Erreur serveur lors de la récupération des statistiques complètes:", err);
         res.status(500).json({ message: "Erreur serveur lors de l'agrégation des statistiques." });
     }
 };

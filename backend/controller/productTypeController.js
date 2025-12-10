@@ -1,6 +1,29 @@
 import {pool} from "../database/database.js";
 import * as typeProductModel from "../model/productType.js";
 
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     Category:
+ *       type: object
+ *       properties:
+ *         idCategory:
+ *           type: integer
+ *         nameCategory:
+ *           type: string
+ * 
+ *   responses:
+ *     CategoryReaded:
+ *       description: Category successfully retrieved
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Category'
+ */
+
+
+
 export const getCategories = async (req, res) => {
   try {
    
@@ -14,10 +37,40 @@ export const getCategories = async (req, res) => {
 
     res.status(200).json(categories);
   } catch (err) {
-    console.error('Erreur récupération des catégories :', err.message);
-    res.status(500).json({ message: 'Erreur serveur lors de la récupération des catégories.' });
+    
+    res.status(500).send(err.message); 
   }
 };
+
+
+/**
+ * @swagger
+ * components:
+ *   responses:
+ *     CategoryProductCreated:
+ *       description: The requested category of product has been created successfully.
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Category'
+ *     
+ *     ExistingType:
+ *       description: The requested category already exists (duplicates are not allowed).
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               error:
+ *                 type: string
+ *                 example: "Conflict"
+ *               message:
+ *                 type: string
+ *                 example: "Category already exists"
+ *               code:
+ *                 type: string
+ *                 example: "DUPLICATE_CATEGORY"
+ */
 
 export const createTypeProduct = async (req, res) => {
     try {
@@ -44,10 +97,30 @@ export const createTypeProduct = async (req, res) => {
         return res.status(500).send("Échec de la création de la catégorie.");
 
     } catch(err) {
-        console.error("Erreur création catégorie :", err);
-        res.status(500).send(err.message || "Erreur interne du serveur");
+        
+        res.status(500).send(err.message);
     }
 };
+
+/**
+ * @swagger
+ * components:
+ *   responses:
+ *     TypeProductUpdated:
+ *       description: The requested type of product is successfully updated
+ *       content:
+ *         text/plain:
+ *           schema:
+ *             type: string
+ *             example: "Type product updated successfully"
+ *     TypeProductNotFound:
+ *       description: The requested type of product was not found
+ *       content:
+ *         text/plain:
+ *           schema:
+ *             type: string
+ *             example: "Type product not found"
+ */
 
 export const updateTypeProduct = async (req, res) => {
     try {
@@ -68,14 +141,30 @@ export const updateTypeProduct = async (req, res) => {
            
             return res.sendStatus(204); 
         } else {
-            return res.status(404).json({ message: "Catégorie non trouvée." });
+            return res.status(404).send("Catégorie non trouvée.");
         }
 
     } catch (err) {
-        console.error('Erreur lors de la mise à jour de la catégorie:', err);
-        return res.status(500).json({ message: "Erreur interne du serveur." });
+        
+        return res.status(500).send(err.message); 
     }
 };
+
+
+/**
+ * @swagger
+ * components: 
+ *     responses: 
+ *          TypeProductDeleted: 
+ *                  description: The requested type of product is deleted. 
+ *                  content: 
+ *                      text/plain: 
+ *                          schema: 
+ *                              type: string
+ *                          
+ *                      
+ */
+
 
 
 export const deleteTypeProduct = async (req, res) => {
@@ -95,8 +184,8 @@ export const deleteTypeProduct = async (req, res) => {
         }
 
     }catch(err){
-        console.error('Erreur suppression catégorie :', err);
-        res.status(500).send(err.message || "Erreur interne du serveur");
+        
+        res.status(500).send(err.message);
     }
 }
 

@@ -33,15 +33,16 @@ import jwt from "jsonwebtoken";
  * components:
  *   responses:
  *     UserAdded:
- *       description: The user added at the database
+ *       description: The user has been added to the database
  *       content:
  *         application/json:
  *           schema:
  *             type: object
  *             properties:
- *               id:
- *                 type: integer
+ *               token:
+ *                 type: string
  */
+
 
 export const createUser = async (req, res) => {
   try {
@@ -60,9 +61,9 @@ export const createUser = async (req, res) => {
                   process.env.JWT_SECRET,
                   { expiresIn: "24h" }
               );
-              res.send({ token });
+              res.status(200).send({ token });
     } else {
-      res.status(404).send("User already exists");
+      res.status(400).send("User already exists");
     }
   } catch (err) {
     res.status(500).send(err.message);
@@ -88,12 +89,6 @@ export const createUser = async (req, res) => {
  *             type: string
  *     UserNotFound:
  *       description: User not found
- *       content:
- *         text/plain:
- *           schema:
- *             type: string
- *     InternalServerError:
- *       description: Server error
  *       content:
  *         text/plain:
  *           schema:
@@ -146,7 +141,6 @@ export const updateUser = async (req, res) => {
         }
         
     } catch (err) {
-        console.error("Error during user update:", err); 
         res.status(500).send("Erreur serveur interne");
     }
 };
@@ -161,26 +155,19 @@ export const updateUser = async (req, res) => {
  *         text/plain:
  *           schema:
  *             type: string
- *     UserNotFound:
- *       description: User not found
- *       content:
- *         text/plain:
- *           schema:
- *             type: string
  */
 
 export const deleteUser = async (req, res) => {
   try {
     const id = parseInt(req.params.id);
-    if (isNaN(id)) return res.status(400).json({ error: "ID invalide" });
-
+    if (isNaN(id)) return  res.status(400).send("ID invalide"); ;
+   
     const success = await userModel.deleteUser(pool, id);
-    if (!success) return res.status(404).json({ error: "Utilisateur non trouvé" });
+    if (!success) return res.status(404).send("Utilisateur non trouvé"); ;
 
-    res.json({ message: "Utilisateur supprimé avec succès" });
+    res.status(200).send("Utilisateur supprimé avec succès")
   } catch (err) {
-    console.error("Erreur lors de la suppression de l'utilisateur :", err.message);
-    res.status(500).json({ error: "Erreur serveur" });
+    res.status(500).send("Erreur serveur");
   }
 };
 
@@ -204,10 +191,9 @@ export const getOwnUser = async (req, res) => {
         if (!user) {
             return res.status(404).send("Profil utilisateur non trouvé.");
         }
-
         res.status(200).json(user);
+    
     } catch (err) {
-        console.error("Erreur retrouvée au niveau du profil:", err); 
         res.status(500).send("Erreur serveur interne."); 
     }
 };
@@ -237,7 +223,7 @@ export const getUsers = async (req, res) => {
     const { name, role, page, limit } = req.query;
 
     if (role && role !== 'admin' && role !== 'user') {
-      return res.status(400).json({ message: 'Le rôle doit être "admin" ou "user".' });
+      return res.status(400).send('Le rôle doit être "admin" ou "user".');
     }
 
     const result = await userModel.getUsers(pool, { 
@@ -249,7 +235,6 @@ export const getUsers = async (req, res) => {
 
     res.status(200).json(result); 
   } catch (err) {
-    console.error('Erreur récupération utilisateurs :', err.message);
-    res.status(500).json({ message: 'Erreur serveur' });
+    res.status(500).send('Erreur serveur'); 
   }
 };

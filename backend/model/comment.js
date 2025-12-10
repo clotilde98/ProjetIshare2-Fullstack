@@ -1,10 +1,9 @@
 
-
-export const deleteComment = async (SQLClient, {id})=>{
-    let query="DELETE FROM Comment WHERE id=$1";
-    const {rows} = await SQLClient.query(query, [id]);
-    return rows > 0;
-}
+export const deleteComment = async (SQLClient, { id }) => {
+    const query = "DELETE FROM Comment WHERE id = $1";
+    const result = await SQLClient.query(query, [id]);
+    return result.rowCount > 0; 
+};
 
 export const createComment = async (SQLClient, { content, idPost, idCostumer }) => {
     const { rows } = await SQLClient.query(

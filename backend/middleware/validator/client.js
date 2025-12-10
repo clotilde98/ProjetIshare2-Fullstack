@@ -1,5 +1,12 @@
 import vine from '@vinejs/vine';
 
+
+/**
+ * 
+ * 
+ * 
+ */
+
 const addClientSchema = vine.object({
     googleId: vine.string().trim().optional(),
     username: vine.string().trim(),
@@ -8,7 +15,31 @@ const addClientSchema = vine.object({
     photo:vine.string().optional(),
     email: vine.string().email().trim(),
     password: vine.string()
-}); 
+});
+
+
+/**
+ * @swagger
+ * components:
+ *  schemas:
+ *      updateSchema:
+ *          type: object
+ *          properties:
+ *              username:
+ *                  type: string
+ *              street: 
+ *                  type: string
+ *              streetNumber: 
+ *                  type: integer
+ *              photo:
+ *                  type: string 
+ *              password: 
+ *                  type: string 
+ *              isAdmin:
+ *                  type: boolean
+ */             
+            
+
 
 
 const updateClientSchema =  vine.object({
