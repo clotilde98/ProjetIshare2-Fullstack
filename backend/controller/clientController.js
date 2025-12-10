@@ -64,9 +64,6 @@ export const createUser = async (req, res) => {
     const destFolderImages = path.join(__dirname, '../middleware/photo/');
     
     if (!user){
-
-
-        
         user = await userModel.createUser(pool, {googleId: googleId, username, email, streetNumber, street, photo:req.body.photo, isAdmin:req.body.isAdmin, addressID:req.body.addressID, password:req.body.password});
         const token = jwt.sign(
                   { 
@@ -126,7 +123,7 @@ export const updateUser = async (req, res) => {
 
         if (updateData.password) { 
             
-            if (!updateData.oldPassword && !req.user.is_admin) {
+            if (!updateData.oldPassword ) {
                 return res.status(400).send("L'ancien mot de passe est requis pour changer le mot de passe.");
             }
 

@@ -4,8 +4,6 @@ import * as addressModel from '../model/addressDB.js';
 
 export const importPostalData = async (req, res) => {
   let address;
-  let status = 500;
-  let errorMessage = 'Échec de l\'importation des données.';
 
   try {
     address = await pool.connect();
@@ -18,14 +16,8 @@ export const importPostalData = async (req, res) => {
     res.status(200).send(message);
   } catch (err) {
     if (address) await client.query('ROLLBACK');
-    console.error(' Erreur importPostalData:', err.message);
 
-    if (err.message.includes('API externe')) {
-      status = 503;
-      errorMessage = err.message;
-    }
-
-    res.status(status).send(errorMessage);
+    res.status(500).send(err.message);
   } finally {
     if (address) address.release();
   }
