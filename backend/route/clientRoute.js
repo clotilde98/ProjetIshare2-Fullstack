@@ -50,7 +50,7 @@ router.post("/", upload.single('photo'), clientValidatorMiddleware.addClientVali
  *         description: Server error
  */
 
-router.get("/me", checkJWT,isSameUser, getOwnUser);    
+router.get("/me", checkJWT, getOwnUser);    
 
 /**
  * @swagger

@@ -54,20 +54,22 @@ import * as uuid from 'uuid'
 
 export const createUser = async (req, res) => {
   try {
-    const {username, email, password, street, streetNumber, isAdmin, addressID} = req.body;
+    const {username, email, password, street, streetNumber, addressID} = req.body;
     const photo = req.file;
     //const photo = req.file ? `${req.protocol}://${req.get('host')}/images/${req.file.filename}`  : null;   
     let user = await userModel.getUserByEmail(pool, email)
-    const googleId = req.body.googleId ? req.body.googleId : null;
     const __filename = fileURLToPath(import.meta.url);
     const __dirname = path.dirname(__filename);
     const destFolderImages = path.join(__dirname, '../middleware/photo/');
     
     if (!user){
-
-
+        let imageName = null;
+        if (photo){
+            imageName = uuid.v4();
+            await saveImage(photo.buffer, imageName, destFolderImages); 
+        }
         
-        user = await userModel.createUser(pool, {googleId: googleId, username, email, streetNumber, street, photo:req.body.photo, isAdmin:req.body.isAdmin, addressID:req.body.addressID, password:req.body.password});
+        user = await userModel.createUser(pool, {username, email, streetNumber, street, photo:imageName, isAdmin:false, addressID, password});
         const token = jwt.sign(
                   { 
                       id: user.id, 
@@ -77,8 +79,7 @@ export const createUser = async (req, res) => {
                   process.env.JWT_SECRET,
                   { expiresIn: "24h" }
               );
-              res.send({ token });
-              await saveImage(photo.buffer, uuid.v4(), destFolderImages);
+              res.send({ token }); 
     } else {
       res.status(404).send("User already exists");
     }
@@ -223,7 +224,20 @@ export const getOwnUser = async (req, res) => {
             return res.status(404).send("Profil utilisateur non trouvé.");
         }
 
-        res.status(200).json(user);
+          const photoUrl = user.photo 
+            ? `${req.protocol}://${req.get('host')}/images/${user.photo}.jpeg` 
+            : null;
+
+        
+        
+        res.status(200).json({
+            id: user.id,
+            username: user.username,
+            email: user.email,
+            photo: photoUrl
+        });
+
+
     } catch (err) {
         console.error("Erreur retrouvée au niveau du profil:", err); 
         res.status(500).send("Erreur serveur interne."); 

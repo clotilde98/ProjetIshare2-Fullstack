@@ -52,11 +52,16 @@ export const login = async (req, res) => {
 
 export const loginWithGoogle = async (req, res) => {
     try {
-        const { email, idToken, username, streetNumber, street, photo, isAdmin, addressID} = req.body;
+        const { email, idToken, username, streetNumber, street, addressID} = req.body;
         const userInfo = await validateGoogleToken(idToken);
-        let user = await getUserByEmail(pool, email)
+
+  
+        //const photo = req.file ? `${req.protocol}://${req.get('host')}/images/${req.file.filename}`  : null;   
+        let user = await userModel.getUserByEmail(pool, email)
+
+
         if (!user){
-            user = await createUser(pool, {googleId: userInfo.id, username, email: userInfo.email, streetNumber, street, photo, isAdmin, addressID})
+            user = await createUser(pool, {googleId: userInfo.id, username, email: userInfo.email, streetNumber, street, imageName:null, addressID})
         }
 
         const token = jwt.sign(
