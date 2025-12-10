@@ -149,7 +149,7 @@ export const createReservation = async (req, res) => {
                     }
 
                     if (post.client_id == clientID){
-                        return res.status(401).send("You can't make a reservation for a post that you posted");
+                        return res.status(403).send("You can't make a reservation for a post that you posted");
                     }
 
                     const newReservation = await reservationModel.createReservation(pool, clientID, req.body); // Utilise l'ID résolu

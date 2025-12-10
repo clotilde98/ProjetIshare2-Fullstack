@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
+import { Link } from "react-router-dom";
+
 import Axios from "../services/api"; 
 import { loginSuccess, logout } from "../redux/authSlice"; 
 
@@ -92,8 +94,7 @@ const Login = () => {
           </div>
 
           <div className="formParentMotDePasse text-center mt-2">
-            <a href="#" className="forgot-link">Mot de passe oublié ?</a>
-          </div>
+<Link to="" className="forgot-link"> Mot de passe oublié ?</Link></div>
         </form>
       </div>
     </div>
