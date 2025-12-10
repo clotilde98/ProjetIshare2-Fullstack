@@ -9,11 +9,12 @@ import Posts from "../components/Posts";
 import Reservation from "../components/reservations";
 import Categories from "../components/Categories";
 import Users from "../components/Users";
-
+import ForgetPassword from "../components/forgetPassword"; 
 
 const router = createBrowserRouter([
   { path: "/", element: <Navigate to="/login" replace /> },
   { path: "/login", element: <Login /> },
+  { path: "/forgetpassword", element: <ForgetPassword /> },
   {
     path: "/dashboard",
     element: (
