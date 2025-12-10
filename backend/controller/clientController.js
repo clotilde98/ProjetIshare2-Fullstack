@@ -69,8 +69,7 @@ export const createUser = async (req, res) => {
             await saveImage(photo.buffer, imageName, destFolderImages); 
         }
         
-        user = await userModel.createUser(pool, {username, email, streetNumber, street, photo:imageName, isAdmin:false, addressID, password});
-        const token = jwt.sign(
+user = await userModel.createUser(pool, {googleId: googleId, username, email, streetNumber, street, photo:req.body.photo, isAdmin:req.body.isAdmin, addressID:req.body.addressID, password:req.body.password});        const token = jwt.sign(
                   { 
                       id: user.id, 
                       email: user.email,
