@@ -164,6 +164,8 @@ export const createPost = async (req, res) => {
             clientIDToUse = providedClientID;
         } else if (req.user) {
             clientIDToUse = req.user.id;
+        }else {
+            return res.status(401).send("Authentication required to create a post.");
         }
 
         if (!clientIDToUse) {

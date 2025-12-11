@@ -119,50 +119,72 @@ export const getPosts = async (SQLClient, { city, postStatus, page = 1, limit = 
         }
     }
 
-    const whereClause = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
+    const whereClause = conditions.length ? ` WHERE ${conditions.join(' AND ')}` : '';
 
     const countQuery = `
         SELECT COUNT(p.id)
         FROM Post p
-        JOIN Address a ON p.address_id = a.id
-        ${whereClause}
+        JOIN Address a ON p.address_id = a.id${whereClause}
     `;
 
-    const totalResult = await SQLClient.query(countQuery, values);
-    const total = parseInt(totalResult.rows[0].count, 10);
-    const limitIndex = values.length + 1;
-    const offsetIndex = values.length + 2;
+    try {
+        const totalResult = await SQLClient.query(countQuery, values);
+        const total = parseInt(totalResult.rows[0].count, 10);
+        
+        const limitIndex = values.length + 1;
+        const offsetIndex = values.length + 2;
+        const dataQuery = `
+            SELECT 
+                p.id, 
+                p.title, 
+                p.number_of_places ,
+                (
+                    p.number_of_places - (
+                        -- Calcul des réservations confirmées pour ce post
+                        SELECT COUNT(id) 
+                        FROM Reservation 
+                        WHERE post_id = p.id 
+                        AND reservation_status = 'confirmed'
+                    )
+                ) AS places_restantes, 
+                string_agg(cp.name_category, ', ') AS categories, 
+                a.city,
+                p.description,
+                c.username, 
+                p.post_status,
+                p.street,
+                p.street_number,
+                a.postal_code
+            FROM Post p
+            JOIN Address a ON p.address_id = a.id
+            JOIN Client c ON p.client_id = c.id 
+            INNER JOIN Post_category pc ON pc.id_ad = p.id
+            INNER JOIN Category_product cp ON cp.id_category = pc.id_category
+            ${whereClause}
+            GROUP BY 
+                p.id, 
+                p.title, 
+                p.number_of_places, 
+                a.city, 
+                c.username, 
+                p.post_status,
+                a.postal_code,
+                p.street, 
+                p.street_number
+            LIMIT $${limitIndex} OFFSET $${offsetIndex}
+        `;
 
-    const dataQuery = `
-        SELECT 
-            p.id, 
-            p.title, 
-            string_agg(cp.name_category, ', ') AS categories, 
-            a.city,
-            p.description,
-            c.username, 
-            p.number_of_places, 
-            p.post_status,
-            p.street ,
-            p.street_number,
-            a.postal_code
-        FROM Post p
-        JOIN Address a ON p.address_id = a.id
-        JOIN Client c ON p.client_id = c.id 
-        INNER JOIN Post_category pc ON pc.id_ad = p.id
-        INNER JOIN Category_product cp ON cp.id_category = pc.id_category
-        ${whereClause}
-        GROUP BY p.id, p.title, a.city, c.username, p.number_of_places, p.post_status,a.postal_code,p.street, p.street_number
-        LIMIT $${limitIndex} OFFSET $${offsetIndex}
-    `;
+        values.push(limitNum);
+        values.push(offset);
+        
+        const { rows } = await SQLClient.query(dataQuery, values);
 
-    values.push(limitNum);
-    values.push(offset);
-    
-    const { rows } = await SQLClient.query(dataQuery, values);
+        return {
+            rows: rows,
+            total: total
+        };
 
-    return {
-        rows: rows,
-        total: total
-    };
+    } catch (err) {
+        throw new Error(`Erreur SQL dans getPosts : ${err.message}`);
+    }
 };

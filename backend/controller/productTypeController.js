@@ -94,7 +94,6 @@ export const createTypeProduct = async (req, res) => {
             return res.status(201).send(productCreated);
         } 
         
-        return res.status(500).send("Échec de la création de la catégorie.");
 
     } catch(err) {
         

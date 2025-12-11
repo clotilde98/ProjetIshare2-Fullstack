@@ -1,20 +1,10 @@
 import multer from 'multer';
-import path from 'path'; // ⬅️ Import du module 'path'
+import path from 'path';
+const storage = multer.memoryStorage();
 
-
-const UPLOAD_DIR = path.join(path.resolve(), 'public', 'uploads'); 
-
-
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, UPLOAD_DIR); 
+export const upload = multer({
+    limits: {
+        fileSize: 700000 // 700Ko
     },
-    filename: (req, file, cb) => {
-        const ext = path.extname(file.originalname);
-        const name = path.basename(file.originalname, ext); 
-        
-        cb(null, `${name}-${Date.now()}${ext}`);
-    }
+    storage: storage
 });
-
-export const uploadPhoto = multer({ storage: storage }).single('photo');

@@ -62,28 +62,63 @@ export const deleteReservation = async (SQLClient, {id}) => {
 
 
 
-export const getReservationsByUsername = async (SQLClient, { username, page = 1, limit = 10 }) => {
-  const offset = (page - 1) * limit;
-  const conditions = [];
-  const values = [];
+export const getReservations = async (SQLClient, { username, reservationStatus, page = 1, limit = 10 }) => {
+    const pageNum = parseInt(page);
+    const limitNum = parseInt(limit);
 
+    const offset = (pageNum - 1) * limitNum;
+    
+    const conditions = [];
+    const values = []; 
 
-  if (username) {
-    conditions.push(`c.username = ($${values.length + 1})`);
-    values.push(`${username}`);
-  }
+    if (username) {
+        values.push(`%${username}%`); 
+        conditions.push(`LOWER(c.username) LIKE LOWER($${values.length})`);
+    }
+    
+    if (reservationStatus) {
+        values.push(reservationStatus); 
+        conditions.push(`r.reservation_status = $${values.length}`);
+    }
 
-  const whereClause = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
+    const whereClause = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
 
-  const query = `
-    SELECT p.title, c.username, r.reservation_date, r.reservation_status
+    
+    const countQuery = `SELECT COUNT(r.id) AS total
     FROM Reservation r
     INNER JOIN Client c ON c.id = r.client_id
     INNER JOIN Post p ON p.id = r.post_id
-    ${whereClause}
-    LIMIT ${Number(limit)} OFFSET ${Number(offset)}
-  `;
+    ${whereClause}`;
 
-  const { rows } = await SQLClient.query(query, values);
-  return rows;
+    try {
+        const countResult = await SQLClient.query(countQuery, values);
+        const total = parseInt(countResult.rows[0].total, 10);
+        
+        const limitIndex = values.length + 1;
+        const offsetIndex = values.length + 2; 
+
+        const dataQuery = `SELECT 
+            r.id, 
+            p.title, 
+            c.username, 
+            r.reservation_date, 
+            r.reservation_status
+        FROM Reservation r
+        INNER JOIN Client c ON c.id = r.client_id
+        INNER JOIN Post p ON p.id = r.post_id
+        ${whereClause}
+        ORDER BY r.reservation_date DESC
+        LIMIT $${limitIndex} OFFSET $${offsetIndex}`;
+
+        values.push(limitNum);
+        values.push(offset);
+        
+        const dataResult = await SQLClient.query(dataQuery, values);
+        const rows = dataResult.rows;
+
+        return { rows, total }; 
+
+    } catch (err) {
+        throw new Error(`Erreur SQL dans getReservations : ${err.message}`); 
+    }
 };

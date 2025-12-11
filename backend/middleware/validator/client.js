@@ -11,9 +11,9 @@ const addClientSchema = vine.object({
     googleId: vine.string().trim().optional(),
     username: vine.string().trim(),
     street : vine.string().trim(),
-    streetNumber : vine.number(), 
-    photo:vine.string().optional(),
+    streetNumber : vine.string(), 
     email: vine.string().email().trim(),
+<<<<<<< HEAD
     password: vine.string()
 });
 
@@ -40,6 +40,10 @@ const addClientSchema = vine.object({
  */             
             
 
+=======
+    password: vine.string().optional(),
+}); 
+>>>>>>> 8e043f54b6f6ff332889af831690d986726b206e
 
 
 const updateClientSchema =  vine.object({

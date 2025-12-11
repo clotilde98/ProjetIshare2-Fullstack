@@ -23,6 +23,10 @@ export const clientValidatorMiddleware = {
             req.val = await addClientValidator.validate(req.body);
             next();
         } catch (e) {
+            if (e.messages) {
+                // VineJS detailed error list
+                return res.status(400).json(e.messages);
+            }
             res.status(400).send(e.message);
         }
     },

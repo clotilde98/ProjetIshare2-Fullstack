@@ -14,7 +14,7 @@ export const getTotalReservations = async (SQLClient) => {
 
 
 export const getTotalConfirmedReservations = async (SQLClient) => {
-    const CONFIRMED_STATUS = 'confirmed'; 
+    const CONFIRMED_STATUS = 'withdrawal'; 
     const query = `
         SELECT COUNT(id) AS total 
         FROM Reservation 

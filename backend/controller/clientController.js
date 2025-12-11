@@ -3,6 +3,11 @@ import * as userModel from "../model/client.js";
 import argon2 from "argon2";
 import 'dotenv/config';
 import jwt from "jsonwebtoken";
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+import {saveImage} from '../middleware/photo/saveImage.js';
+import * as uuid from 'uuid'
 
 
 /**
@@ -44,15 +49,30 @@ import jwt from "jsonwebtoken";
  */
 
 
+<<<<<<< HEAD
+=======
+
+
+
+>>>>>>> 8e043f54b6f6ff332889af831690d986726b206e
 export const createUser = async (req, res) => {
   try {
-    const photo = req.file ? `${req.protocol}://${req.get('host')}/images/${req.file.filename}`  : null;   
-    let user = await userModel.getUserByEmail(pool, req.body.email)
-    const googleId = req.body.googleId ? req.body.googleId : null;
+    const {username, email, password, street, streetNumber, addressID} = req.body;
+    const photo = req.file;
+    //const photo = req.file ? `${req.protocol}://${req.get('host')}/images/${req.file.filename}`  : null;   
+    let user = await userModel.getUserByEmail(pool, email)
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = path.dirname(__filename);
+    const destFolderImages = path.join(__dirname, '../middleware/photo/');
     
     if (!user){
-      user = await userModel.createUser(pool, {googleId: googleId, username:req.body.username, email: req.body.email, streetNumber: req.body.streetNumber, street:req.body.street, photo:req.body.photo, isAdmin:req.body.isAdmin, addressID:req.body.addressID, password:req.body.password});
-      const token = jwt.sign(
+        let imageName = null;
+        if (photo){
+            imageName = uuid.v4();
+            await saveImage(photo.buffer, imageName, destFolderImages); 
+        }
+        
+user = await userModel.createUser(pool, {googleId: googleId, username, email, streetNumber, street, photo:req.body.photo, isAdmin:req.body.isAdmin, addressID:req.body.addressID, password:req.body.password});        const token = jwt.sign(
                   { 
                       id: user.id, 
                       email: user.email,
@@ -61,7 +81,11 @@ export const createUser = async (req, res) => {
                   process.env.JWT_SECRET,
                   { expiresIn: "24h" }
               );
+<<<<<<< HEAD
               res.status(200).send({ token });
+=======
+              res.send({ token }); 
+>>>>>>> 8e043f54b6f6ff332889af831690d986726b206e
     } else {
       res.status(400).send("User already exists");
     }
@@ -103,7 +127,7 @@ export const updateUser = async (req, res) => {
 
         if (updateData.password) { 
             
-            if (!updateData.oldPassword && !req.user.is_admin) {
+            if (!updateData.oldPassword ) {
                 return res.status(400).send("L'ancien mot de passe est requis pour changer le mot de passe.");
             }
 
@@ -191,8 +215,26 @@ export const getOwnUser = async (req, res) => {
         if (!user) {
             return res.status(404).send("Profil utilisateur non trouvé.");
         }
+<<<<<<< HEAD
         res.status(200).json(user);
     
+=======
+
+          const photoUrl = user.photo 
+            ? `${req.protocol}://${req.get('host')}/images/${user.photo}.jpeg` 
+            : null;
+
+        
+        
+        res.status(200).json({
+            id: user.id,
+            username: user.username,
+            email: user.email,
+            photo: photoUrl
+        });
+
+
+>>>>>>> 8e043f54b6f6ff332889af831690d986726b206e
     } catch (err) {
         res.status(500).send("Erreur serveur interne."); 
     }
