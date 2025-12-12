@@ -14,6 +14,84 @@ const destFolderImages = path.join(__dirname, '../middleware/photo/');
 
 
 
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     Post:
+ *       type: object
+ *       description: Represents a blog post or article
+ *       properties:
+ *         id:
+ *           type: integer
+ *           description: Unique identifier for the post
+ *           example: 1
+ *         postDate:
+ *           type: string
+ *           format: date
+ *           description: Date when the post was created
+ *           example: "2023-10-15"
+ *         description:
+ *           type: string
+ *           description: Detailed content of the post
+ *           example: "This is a detailed description of the post..."
+ *         title:
+ *           type: string
+ *           description: Title of the post
+ *           example: "My First Post"
+ *         numberOfPlaces:
+ *           type: integer
+ *           description: Number of available places (if applicable)
+ *           example: 10
+ *         postStatus:
+ *           type: string
+ *           description: Current status of the post
+ *           enum: [draft, published, archived]
+ *           example: "published"
+ *         photo:
+ *           type: string
+ *           description: URL or path to the post's photo
+ *           example: "/images/post1.jpg"
+ *         street:
+ *           type: string
+ *           description: Street name for location-based posts
+ *           example: "Main Street"
+ *         streetNumber:
+ *           type: string
+ *           description: Street number (string to handle cases like "123A")
+ *           example: "123"
+ *         addressId:
+ *           type: integer
+ *           description: Reference to the address
+ *           example: 5
+ *         clientId:
+ *           type: integer
+ *           description: Reference to the client/author
+ *           example: 7
+ * 
+ *   responses:
+ *     PostReaded:
+ *       description: The searched post has been found and read
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Post'
+ * 
+ *     PostNotFound:
+ *       description: The searched post does not exist
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               error:
+ *                 type: string
+ *                 example: "Post not found"
+ *               code:
+ *                 type: string
+ *                 example: "POST_NOT_FOUND"
+ */
+
 export const getPost = async (req, res) => {
     try {
         const id = Number(req.params.id);
@@ -34,6 +112,21 @@ export const getPost = async (req, res) => {
         res.status(500).send("Internal server error : " + err.message);
     }
 };
+
+
+/**
+ * @swagger
+ * components:
+ *   responses:
+ *     AllPostsReaded:
+ *       description: All posts have been successfully retrieved.
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: array
+ *             items:
+ *               $ref: '#/components/schemas/Post'
+ */
 
 
 export const getPosts = async (req, res) => {
@@ -60,6 +153,27 @@ export const getPosts = async (req, res) => {
         res.status(500).send("Internal server error : " + err.message);
     }
 }
+
+
+
+/**
+ * @swagger
+ * components:
+ *   responses:
+ *     PostCreated:
+ *       description: Thanks to the transaction, the user was identified and linked to the post, and a row was created in the PostCategory table.
+ *       content:
+ *         text/plain:
+ *           schema:
+ *             type: string
+ *
+ *     UnauthorizedToAccess:
+ *       description: User is not authorized to access this resource because this is neither a user nor an administrator
+ *       content:
+ *         text/plain:
+ *           schema:
+ *             type: string
+ */
 
 
 
@@ -137,6 +251,7 @@ export const updatePost = async (req, res) => {
             return res.status(400).send("Invalid post ID");
         }
         
+<<<<<<< HEAD
         const post = await postModel.readPost(pool, {id:postID});
         
         if (!post){
@@ -189,11 +304,60 @@ export const updatePost = async (req, res) => {
     } catch (err){
         if (client) await client.query('ROLLBACK');
         res.status(500).send("Internal server error : " + err.message);
+=======
+            await client.query('ROLLBACK'); 
+    
+        res.status(500).send(err.message);
+>>>>>>> 4c6f223dde37bad8a8731b887a65e664194c1273
     } finally {
         if (client) client.release();
     }
 }
 
+<<<<<<< HEAD
+=======
+
+/**
+ * @swagger
+ * components:
+ *   responses:
+ *     PostUpdated:
+ *       description: The requested post has been updated.
+ *       content:
+ *         text/plain:
+ *           schema:
+ *             type: string
+ */
+
+
+
+export const updatePost = async (req, res) => {
+    try {
+        const {numberOfPlaces} = req.body
+        if (numberOfPlaces < 0){
+            return res.status(400).send("Number of places must be positive");
+        }
+        await postModel.updatePost(pool, req.body);
+        res.sendStatus(204).send("Post updated")
+    } catch (err){
+        res.status(500).send(err.message);
+    }
+}
+
+/**
+ * @swagger
+ * components:
+ *   responses:
+ *     PostDeleted:
+ *       description: The requested post has been deleted.
+ *       content:
+ *         text/plain:
+ *           schema:
+ *             type: string
+ */
+
+
+>>>>>>> 4c6f223dde37bad8a8731b887a65e664194c1273
 export const deletePost = async (req, res) => {
     try {
         const userID = req.user.id;
@@ -216,9 +380,23 @@ export const deletePost = async (req, res) => {
         }
 
     } catch (err) {
-        res.sendStatus(500);
+        res.sendStatus(500).send(err.message);
     }
 };
+
+/**
+ * @swagger
+ * components:
+ *   responses:
+ *     AllPostByCategory:
+ *       description: Requested posts from a certain category are returned.
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: array
+ *             items:
+ *               $ref: '#/components/schemas/Post'
+ */
 
 
 export const searchPostByCategory = async(req, res) => {

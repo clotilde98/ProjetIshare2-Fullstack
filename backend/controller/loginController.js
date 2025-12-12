@@ -7,9 +7,18 @@ import { validateGoogleToken } from '../middleware/identification/validateUserGo
 
 /**
  * @swagger
- * components: 
+ * components:  
  *   responses: 
- *      InvalidInput:
+ *     ConnectionSuccess: 
+ *         description: the token is returned
+ *         content:
+ *          application/json: 
+ *              schema: 
+ *                  type: object
+ *                  properties: 
+ *                    token: 
+ *                      type: string
+ *     InvalidInput:
  *        description: User/password incorrect
  *        content:
  *          text/plain:
@@ -41,13 +50,11 @@ export const login = async (req, res) => {
             process.env.JWT_SECRET,
             { expiresIn: "24h" }
         );
-        res.send({ token });
+        res.status(200).send({ token });
     } catch (err){
         res.status(500).send(err.message);
     }
 }
-
-
 
 
 export const loginWithGoogle = async (req, res) => {
@@ -73,7 +80,7 @@ export const loginWithGoogle = async (req, res) => {
             process.env.JWT_SECRET,
             { expiresIn: "24h" }
         );
-        res.send({ token });
+        res.status(200).send({ token });
     } catch (err){
         res.status(500).send(err.message);
     }

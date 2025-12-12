@@ -16,7 +16,8 @@ import * as postModel from "../model/postDB.js"
  *         content:
  *           type: string
  *         date:
- *           type: date
+ *           type: string 
+ *           format: date
  *         id_post:
  *           type: integer
  *         id_costumer:
@@ -62,11 +63,18 @@ export const createComment = async (req, res) => {
         if (commentCreated) {
             res.status(201).send({commentCreated});
         } else {
+<<<<<<< HEAD
             res.status(400).send({ message: "Unable to create comment. Please check if the post ID is correct." }); 
         } 
     } catch (e) {
         res.status(500).send({message: "Internal server error : " + e.message});
         
+=======
+            res.status(400).send("Échec de la création du commentaire. Vérifiez l'ID de l'annonce."); 
+        } 
+    } catch (err) {
+            res.status(500).send(err.message);
+>>>>>>> 4c6f223dde37bad8a8731b887a65e664194c1273
     }
 };
 
@@ -74,36 +82,24 @@ export const createComment = async (req, res) => {
  * @swagger
  * components:
  *   responses:
- *     UpdatedUser:
+ *     CommentUpdated:
  *       description: The Comment updated in the database
  *       content:
  *         text/plain:
  *           schema:
  *             type: string
- *     InvalidOldPassword:
- *       description: Incorrect old password
+ *     CommentNotFound:
+ *       description: Comment not found
  *       content:
- *         text/plain:
+ *         application/json:
  *           schema:
  *             type: string
- *     UserNotFound:
- *       description: User not found
- *       content:
- *         text/plain:
- *           schema:
- *             type: string
- *     InternalServerError:
- *       description: Server error
- *       content:
- *         text/plain:
- *           schema:
- *             type: string
+ * 
  */
-
-
 
 export const updateComment = async (req, res) => {
 
+<<<<<<< HEAD
     try {
         let userID = req.user.id;
         const commentID = req.params.id;
@@ -125,10 +121,38 @@ export const updateComment = async (req, res) => {
 
     } catch (err) {        
         return res.status(500).send("Internal server error");
+=======
+        const updated = await commentModel.updateComment(pool, updateData);
+        
+        if (updated) {
+            return res.status(200).send("Commentaire mis à jour avec succès.");
+        } else {
+            return res.status(404).send("Commentaire non trouvé ou aucune modification effectuée.");
+        }
+
+    } catch (err) {      
+        return res.status(500).send(err.message);
+>>>>>>> 4c6f223dde37bad8a8731b887a65e664194c1273
     }
 };
 
+
+/**
+ * @swagger
+ * components:
+ *   responses:
+ *     CommentDeleted:
+ *       description: The comment has been deleted from the database
+ *       content:
+ *         text/plain:
+ *           schema:
+ *             type: string
+ *
+ */
+
+
 export const deleteComment = async(req, res) =>{
+<<<<<<< HEAD
     try {
 
         let userID = req.user.id;
@@ -149,8 +173,34 @@ export const deleteComment = async(req, res) =>{
 
     } catch (err) {
         return res.status(500).send("Internal server error");
+=======
+    try{
+        const commentDeleted = await commentModel.deleteComment(pool, {id:req.params.id});
+        if (!commentDeleted) {
+            res.status(404).send(`Comment with ID ${req.params.id} not found`);
+        } else {
+            res.status(204).send(`Comment ${req.params.id} deleted successfully`);
+        }
+
+    }catch (err){
+        res.sendStatus(500);
+>>>>>>> 4c6f223dde37bad8a8731b887a65e664194c1273
     }
 }
+/**
+ * @swagger
+ * components:
+ *   responses:
+ *     CommentsReaded:
+ *       description: All the comments that correspond to the given date
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: array
+ *             items:
+ *               $ref: '#/components/schemas/Comment'
+ */
+
 
 export const getComments = async (req, res) => {
   try {
@@ -166,7 +216,11 @@ export const getComments = async (req, res) => {
     res.status(200).json(comments);
     
   } catch (err) {
+<<<<<<< HEAD
     res.status(500).send("Internal server error : " + err.message);
+=======
+    res.status(500).send('Erreur serveur lors de la récupération des commentaires.');
+>>>>>>> 4c6f223dde37bad8a8731b887a65e664194c1273
   }
 };
 

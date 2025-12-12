@@ -37,20 +37,23 @@ import * as uuid from 'uuid'
  * components:
  *   responses:
  *     UserAdded:
- *       description: The user added at the database
+ *       description: The user has been added to the database
  *       content:
  *         application/json:
  *           schema:
  *             type: object
  *             properties:
- *               id:
- *                 type: integer
+ *               token:
+ *                 type: string
  */
 
 
+<<<<<<< HEAD
+=======
 
 
 
+>>>>>>> 8e043f54b6f6ff332889af831690d986726b206e
 export const createUser = async (req, res) => {
   try {
     const {username, email, password, street, streetNumber, addressID} = req.body;
@@ -67,9 +70,14 @@ export const createUser = async (req, res) => {
             imageName = uuid.v4();
             await saveImage(photo.buffer, imageName, destFolderImages); 
         }
+<<<<<<< HEAD
 
         user = await userModel.createUser(pool, {username, email, streetNumber, street, photo:imageName, isAdmin:false, addressID, password});
         const token = jwt.sign(
+=======
+        
+user = await userModel.createUser(pool, {googleId: googleId, username, email, streetNumber, street, photo:req.body.photo, isAdmin:req.body.isAdmin, addressID:req.body.addressID, password:req.body.password});        const token = jwt.sign(
+>>>>>>> 4c6f223dde37bad8a8731b887a65e664194c1273
                   { 
                       id: user.id, 
                       email: user.email,
@@ -78,9 +86,17 @@ export const createUser = async (req, res) => {
                   process.env.JWT_SECRET,
                   { expiresIn: "24h" }
               );
+<<<<<<< HEAD
+              res.status(200).send({ token });
+=======
               res.send({ token }); 
+>>>>>>> 8e043f54b6f6ff332889af831690d986726b206e
     } else {
+<<<<<<< HEAD
       res.status(409).send("User account already exists");
+=======
+      res.status(400).send("User already exists");
+>>>>>>> 4c6f223dde37bad8a8731b887a65e664194c1273
     }
   } catch (err) {
     res.status(500).send(err.message);
@@ -106,12 +122,6 @@ export const createUser = async (req, res) => {
  *             type: string
  *     UserNotFound:
  *       description: User not found
- *       content:
- *         text/plain:
- *           schema:
- *             type: string
- *     InternalServerError:
- *       description: Server error
  *       content:
  *         text/plain:
  *           schema:
@@ -150,6 +160,20 @@ export const updateUser = async (req, res) => {
         }
 
         if (updateData.password) { 
+<<<<<<< HEAD
+=======
+            
+            if (!updateData.oldPassword ) {
+                return res.status(400).send("L'ancien mot de passe est requis pour changer le mot de passe.");
+            }
+
+            const currentUser = await userModel.getUserById(pool, userId); 
+            
+            if (!currentUser) {
+                return res.status(404).send("Utilisateur non trouvé.");
+            }
+
+>>>>>>> 4c6f223dde37bad8a8731b887a65e664194c1273
             const pepper = process.env.PEPPER;
             
             if (!req.user.isAdmin) {
@@ -172,7 +196,11 @@ export const updateUser = async (req, res) => {
         const updatedUser = await userModel.updateUser(pool, userId, updateData);
         res.status(200).json(updatedUser); 
     } catch (err) {
+<<<<<<< HEAD
         res.status(500).send("Internal server error : " + err.message);
+=======
+        res.status(500).send("Erreur serveur interne");
+>>>>>>> 4c6f223dde37bad8a8731b887a65e664194c1273
     }
 };
 
@@ -186,16 +214,11 @@ export const updateUser = async (req, res) => {
  *         text/plain:
  *           schema:
  *             type: string
- *     UserNotFound:
- *       description: User not found
- *       content:
- *         text/plain:
- *           schema:
- *             type: string
  */
 
 export const deleteUser = async (req, res) => {
   try {
+<<<<<<< HEAD
     let userId = null;
     if (req.params.id){
         if (req.user.isAdmin){
@@ -218,6 +241,18 @@ export const deleteUser = async (req, res) => {
     } catch (err) {
         res.status(500).send("Internal server error : " + err.message);
     }
+=======
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) return  res.status(400).send("ID invalide"); ;
+   
+    const success = await userModel.deleteUser(pool, id);
+    if (!success) return res.status(404).send("Utilisateur non trouvé"); ;
+
+    res.status(200).send("Utilisateur supprimé avec succès")
+  } catch (err) {
+    res.status(500).send("Erreur serveur");
+  }
+>>>>>>> 4c6f223dde37bad8a8731b887a65e664194c1273
 };
 
 /**
@@ -240,6 +275,10 @@ export const getOwnUser = async (req, res) => {
         if (!user) {
             return res.status(404).send("User not found.");
         }
+<<<<<<< HEAD
+        res.status(200).json(user);
+    
+=======
 
           const photoUrl = user.photo
             ? `${req.protocol}://${req.get('host')}/images/${user.photo}.jpeg` 
@@ -253,8 +292,8 @@ export const getOwnUser = async (req, res) => {
         });
 
 
+>>>>>>> 8e043f54b6f6ff332889af831690d986726b206e
     } catch (err) {
-        console.error("Erreur retrouvée au niveau du profil:", err); 
         res.status(500).send("Erreur serveur interne."); 
     }
 };
@@ -284,7 +323,7 @@ export const getUsers = async (req, res) => {
     const { name, role, page, limit } = req.query;
 
     if (role && role !== 'admin' && role !== 'user') {
-      return res.status(400).json({ message: 'Le rôle doit être "admin" ou "user".' });
+      return res.status(400).send('Le rôle doit être "admin" ou "user".');
     }
 
     const result = await userModel.getUsers(pool, { 
@@ -296,7 +335,6 @@ export const getUsers = async (req, res) => {
 
     res.status(200).json(result); 
   } catch (err) {
-    console.error('Erreur récupération utilisateurs :', err.message);
-    res.status(500).json({ message: 'Erreur serveur' });
+    res.status(500).send('Erreur serveur'); 
   }
 };

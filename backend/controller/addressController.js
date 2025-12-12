@@ -34,28 +34,23 @@ export const importPostalData = async (req, res) => {
  *           type: integer
  *         city:
  *           type: string
- *         postal_code:
+ *         postalCode:
  *           type: string
- */
-
-
-/**
- * @swagger
- * components:
- *  responses: 
- *    ReadAllCities:
- *        description: all cities read from the extern API
- *        content: 
- *          application/json:
- *            schema:   
- *              $ref: '#/components/schemas/Address'
- *  
+ *   responses: 
+ *     ReadAllCities:
+ *       description: All cities read from the external API
+ *       content: 
+ *         application/json:
+ *           schema:   
+ *             type: array
+ *             items: 
+ *               $ref: '#/components/schemas/Address'
  */
 
 export const getAllCities = async (req, res) => {
   try {
     const cities = await addressModel.getAllCities(pool);
-    res.send(cities);
+    res.status(200).send(cities);
   } catch (err) {
     res.status(500).send(err.message);
   }

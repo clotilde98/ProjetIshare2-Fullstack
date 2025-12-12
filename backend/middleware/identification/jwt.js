@@ -11,17 +11,22 @@ dotenv.config();
  *       type: http
  *       scheme: bearer
  *       bearerFormat: JWT
- *
+ *   
  *   responses:
  *     UnauthorizedError:
- *       description: JWT is missing or invalid
+ *       description: Access token is missing or invalid
  *       content:
- *         text/plain:
+ *         application/json:
  *           schema:
- *             type: string
- *             example: Unauthorized access
+ *             type: object
+ *             properties:
+ *               error:
+ *                 type: string
+ *                 example: "Unauthorized"
+ *               message:
+ *                 type: string
+ *                 example: "JWT is missing or invalid"
  */
-
 export const checkJWT = async (req, res, next) => {
     try {
         const authHeader = req.headers.authorization;
