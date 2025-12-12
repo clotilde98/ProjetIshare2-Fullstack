@@ -79,7 +79,7 @@ router.get("/me", checkJWT, getOwnUser);
  *         description: Server error
  */
 
-router.get("/", checkJWT,mustBeAdmin, getUsers);      
+router.get("/", checkJWT, mustBeAdmin, getUsers);      
 /**
  * @swagger
  * /{id}:
@@ -108,7 +108,9 @@ router.get("/", checkJWT,mustBeAdmin, getUsers);
  *         description: Server error
  */
 
-router.delete("/:id", checkJWT,orMiddleware(isSameUser, mustBeAdmin) , deleteUser);       
+router.delete("/", checkJWT, deleteUser); 
+
+router.delete("/:id", checkJWT, deleteUser);       
 
 /**
   * @swagger 
@@ -133,7 +135,10 @@ router.delete("/:id", checkJWT,orMiddleware(isSameUser, mustBeAdmin) , deleteUse
   */
 
 
-router.patch("/id", checkJWT, orMiddleware(isSameUser, mustBeAdmin), clientValidatorMiddleware.updateClientValidator , updateUser);  
+router.patch("/", checkJWT, upload.single("photo"), clientValidatorMiddleware.updateClientValidator , updateUser);  
+
+
+router.patch("/:id", checkJWT, upload.single("photo"), clientValidatorMiddleware.updateClientValidator , updateUser);  
 
 
 

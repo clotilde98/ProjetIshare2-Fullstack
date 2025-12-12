@@ -1,6 +1,8 @@
 import {pool} from "../database/database.js";
 import * as commentModel from "../model/comment.js";
 
+import * as postModel from "../model/postDB.js"
+
 
 /**
  * @swagger
@@ -37,21 +39,34 @@ import * as commentModel from "../model/comment.js";
  */
 
 export const createComment = async (req, res) => {
-   
-    const idCostumer = req.user.id; 
-
     try {
-        const commentCreated = await commentModel.createComment(pool,  {...req.body , idCostumer });
+        let userID = req.user.id;
+
+        if (req.body.providedClientID){
+            if (req.user.isAdmin){
+                userID = req.body.providedClientID;
+            } else {
+                return res.status(403).send("Admin privilege required");
+            }
+        }
+
+        const post = await postModel.readPost(pool, {id:req.body.idPost});
+
+        if (!post){
+            return res.status(400).send("Post doesn't exist.");
+        }
+
+
+        const commentCreated = await commentModel.createComment(pool,  { content: req.body.content, idPost: req.body.idPost, idCustomer: userID });
         
         if (commentCreated) {
-            res.status(201).send(commentCreated);
+            res.status(201).send({commentCreated});
         } else {
-            res.status(400).send({ message: "Échec de la création du commentaire. Vérifiez l'ID de l'annonce." }); 
+            res.status(400).send({ message: "Unable to create comment. Please check if the post ID is correct." }); 
         } 
     } catch (e) {
-        console.error("Erreur lors de la création du commentaire:", e.message);
+        res.status(500).send({message: "Internal server error : " + e.message});
         
-        res.status(500).send({ message: "Erreur interne du serveur." });
     }
 };
 
@@ -88,40 +103,52 @@ export const createComment = async (req, res) => {
 
 
 export const updateComment = async (req, res) => {
-    try {
-        const updateData = {...req.body, id: req.params.id  };
 
-        
-        const updated = await commentModel.updateComment(pool, updateData);
-        
-        if (updated) {
-            return res.status(200).json({ message: "Commentaire mis à jour avec succès." });
+    try {
+        let userID = req.user.id;
+        const commentID = req.params.id;
+
+        const comment = await commentModel.getCommentById(pool, commentID);
+
+        if (!comment){
+            return res.status(404).send("Comment not found")
+        }
+
+
+        if (comment.id_customer === userID || req.user.isAdmin){
+            const updated = await commentModel.updateComment(pool, { id: commentID, content: req.body.content });
+
+            return res.status(200).send(updated);
         } else {
-            return res.status(404).json({ message: "Commentaire non trouvé ou aucune modification effectuée." });
+            return res.status(403).send("Admin privilege required.");
         }
 
     } catch (err) {        
-        console.error('Erreur lors de la mise à jour du commentaire :', err.message);
-        
-        if (err.message.includes("Missing field") || err.message.includes("No updateable field")) {
-            return res.status(400).json({ message: err.message });
-        }
-        
-        return res.status(500).json({ message: 'Erreur serveur lors de la mise à jour du commentaire.' });
+        return res.status(500).send("Internal server error");
     }
 };
 
 export const deleteComment = async(req, res) =>{
-    try{
-        const commentDeleted= await commentModel.deleteComment(pool, req.body);
-        if(!commentDeleted){
-            res.status(404).send(`Comment with ID ${commentDeleted.id} not found`);
-        }else{
-             res.status(200).send(`Comment ${commentDeleted.id} deleted successfully`);
+    try {
+
+        let userID = req.user.id;
+        const commentID = req.params.id;
+
+        const comment = await commentModel.getCommentById(pool, commentID);
+
+        if (!comment){
+            return res.status(404).send("Comment not found")
         }
-    }catch (err){
-        console.log(err); 
-        res.sendStatus(500);
+
+        if (comment.id_customer === userID || req.user.isAdmin){
+            await commentModel.deleteComment(pool, {id:commentID});
+            return res.status(200).send("Comment deleted");
+        } else {
+            return res.status(403).send("Admin privilege required.");
+        }
+
+    } catch (err) {
+        return res.status(500).send("Internal server error");
     }
 }
 
@@ -139,8 +166,7 @@ export const getComments = async (req, res) => {
     res.status(200).json(comments);
     
   } catch (err) {
-    console.error('Erreur récupération des commentaires :', err.message);
-    res.status(500).json({ message: 'Erreur serveur lors de la récupération des commentaires.' });
+    res.status(500).send("Internal server error : " + err.message);
   }
 };
 

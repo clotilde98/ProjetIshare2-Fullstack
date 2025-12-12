@@ -1,5 +1,6 @@
 
 export const createReservation = async (SQLClient, clientID, {postID}) => {
+    console.log(clientID);
     const { rows } = await SQLClient.query(
     `INSERT INTO Reservation (post_id, client_id)
      VALUES ($1, $2)
@@ -30,7 +31,7 @@ export const readReservationsByPostID = async (SQLClient, {id}) => {
 };
 
 
-export const updateReservation = async(SQLClient, {id, reservationDate, reservationStatus}) => {
+export const updateReservation = async(SQLClient, id, {reservationDate, reservationStatus}) => {
     let query = "UPDATE reservation SET ";
     const querySet = [];
     const queryValues = [];

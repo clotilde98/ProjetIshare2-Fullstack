@@ -4,8 +4,6 @@ import vine from '@vinejs/vine';
 export const createCommentSchema = vine.object({
     content: vine.string().trim(), 
     idPost: vine.number().positive(),
-    idCostumer: vine.number().positive(), 
-    
 }); 
 
 export const updateCommentSchema = vine.object({

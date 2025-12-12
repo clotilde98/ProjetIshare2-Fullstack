@@ -17,7 +17,7 @@ export const createPost = async (SQLClient, clientID, {description, title, numbe
 
 
 
-export const updatePost = async(SQLClient, {id, description, title, numberOfPlaces, postStatus, photo,street,streetNumber, addressID}) => {
+export const updatePost = async(SQLClient, id, {description, title, numberOfPlaces, postStatus, photo,street,streetNumber, addressID}) => {
     let query = "UPDATE post SET ";
     const querySet = [];
     const queryValues = [];
@@ -66,7 +66,8 @@ export const updatePost = async(SQLClient, {id, description, title, numberOfPlac
     if(queryValues.length > 0){
         queryValues.push(id);
         query += `${querySet.join(", ")} WHERE id = $${queryValues.length}`;
-        return await SQLClient.query(query, queryValues);
+        const result = await SQLClient.query(query, queryValues);
+        return result.rows[0];
     } else {
         throw new Error("No field given");
     }
@@ -83,7 +84,7 @@ export const readPost = async (SQLClient, {id}) => {
 };
 
 
-export const searchPostByCategory = async (SQLClient,  {nameCategory}) => {
+export const searchPostByCategory = async (SQLClient,  nameCategory) => {
     const query = "SELECT * FROM Post p INNER JOIN Post_category pc ON p.id = pc.id_ad INNER JOIN Category_product cp ON cp.id_category = pc.id_category WHERE cp.name_category=$1";
     const {rows} = await SQLClient.query(query, [nameCategory]);
     return rows;
@@ -94,7 +95,7 @@ export const searchPostByCategory = async (SQLClient,  {nameCategory}) => {
 export const getAllCategoriesFromPostID = async (SQLClient, id) => {
     const query = "SELECT cp.id_category, cp.name_category FROM Category_product cp INNER JOIN Post_category pc ON cp.id_category = pc.id_category WHERE pc.id_ad=$1";
     const {rows} = await SQLClient.query(query, [id]);
-    return rows[0];
+    return rows;
 }
 
 
@@ -113,10 +114,8 @@ export const getPosts = async (SQLClient, { city, postStatus, page = 1, limit = 
     }
 
     if (postStatus) {
-        if (postStatus === 'available' || postStatus === 'unavailable') {
-            values.push(postStatus);
-            conditions.push(`p.post_status = $${values.length}`);
-        }
+        values.push(postStatus);
+        conditions.push(`p.post_status = $${values.length}`);
     }
 
     const whereClause = conditions.length ? ` WHERE ${conditions.join(' AND ')}` : '';

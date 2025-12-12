@@ -7,8 +7,8 @@ export const createPostSchema = vine.object({
     numberOfPlaces: vine.number().positive(),
     streetNumber: vine.number().positive(), 
     addressID: vine.number().positive(),
-    photo: vine.string().trim(), 
-    categoriesProduct: vine.array(vine.number().positive())
+    photo: vine.string().trim().optional(), 
+    categoriesProduct: vine.string().trim(),
 }); 
 
 export const updatePostSchema = vine.object({
