@@ -251,7 +251,6 @@ export const updatePost = async (req, res) => {
             return res.status(400).send("Invalid post ID");
         }
         
-<<<<<<< HEAD
         const post = await postModel.readPost(pool, {id:postID});
         
         if (!post){
@@ -304,60 +303,11 @@ export const updatePost = async (req, res) => {
     } catch (err){
         if (client) await client.query('ROLLBACK');
         res.status(500).send("Internal server error : " + err.message);
-=======
-            await client.query('ROLLBACK'); 
-    
-        res.status(500).send(err.message);
->>>>>>> 4c6f223dde37bad8a8731b887a65e664194c1273
     } finally {
         if (client) client.release();
     }
 }
 
-<<<<<<< HEAD
-=======
-
-/**
- * @swagger
- * components:
- *   responses:
- *     PostUpdated:
- *       description: The requested post has been updated.
- *       content:
- *         text/plain:
- *           schema:
- *             type: string
- */
-
-
-
-export const updatePost = async (req, res) => {
-    try {
-        const {numberOfPlaces} = req.body
-        if (numberOfPlaces < 0){
-            return res.status(400).send("Number of places must be positive");
-        }
-        await postModel.updatePost(pool, req.body);
-        res.sendStatus(204).send("Post updated")
-    } catch (err){
-        res.status(500).send(err.message);
-    }
-}
-
-/**
- * @swagger
- * components:
- *   responses:
- *     PostDeleted:
- *       description: The requested post has been deleted.
- *       content:
- *         text/plain:
- *           schema:
- *             type: string
- */
-
-
->>>>>>> 4c6f223dde37bad8a8731b887a65e664194c1273
 export const deletePost = async (req, res) => {
     try {
         const userID = req.user.id;

@@ -11,11 +11,8 @@ import {
 
 import {clientValidatorMiddleware} from '../middleware/validation.js';
 
-import {isSameUser} from '../middleware/identification/user.js'
-
 import {mustBeAdmin} from '../middleware/identification/mustBeAdmin.js'
 
-import { orMiddleware } from '../middleware/utils/orMiddleware.js';
 
 import {upload} from '../middleware/photo/upload.js';
 
@@ -94,14 +91,7 @@ router.get("/me", checkJWT, getOwnUser);
  *         description: Server error
  */
 
-<<<<<<< HEAD
 router.get("/", checkJWT, mustBeAdmin, getUsers);      
-=======
-
-
-router.get("/", checkJWT,mustBeAdmin, getUsers);   
-
->>>>>>> 4c6f223dde37bad8a8731b887a65e664194c1273
 /**
  * swagger
  * /users/{id}:
@@ -133,14 +123,9 @@ router.get("/", checkJWT,mustBeAdmin, getUsers);
  *         description: Server error
  */
 
-<<<<<<< HEAD
 router.delete("/", checkJWT, deleteUser); 
 
 router.delete("/:id", checkJWT, deleteUser);       
-=======
-
-router.delete("/:id", checkJWT,orMiddleware(isSameUser, mustBeAdmin) , deleteUser);       
->>>>>>> 4c6f223dde37bad8a8731b887a65e664194c1273
 
 /**
   * @swagger 
@@ -172,14 +157,10 @@ router.delete("/:id", checkJWT,orMiddleware(isSameUser, mustBeAdmin) , deleteUse
   */
 
 
-<<<<<<< HEAD
 router.patch("/", checkJWT, upload.single("photo"), clientValidatorMiddleware.updateClientValidator , updateUser);  
 
 
 router.patch("/:id", checkJWT, upload.single("photo"), clientValidatorMiddleware.updateClientValidator , updateUser);  
-=======
-router.patch("/:id", checkJWT, orMiddleware(isSameUser, mustBeAdmin), clientValidatorMiddleware.updateClientValidator , updateUser);  
->>>>>>> 4c6f223dde37bad8a8731b887a65e664194c1273
 
 
 

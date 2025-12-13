@@ -137,6 +137,7 @@ export const getPosts = async (SQLClient, { city, postStatus, page = 1, limit = 
                 p.id, 
                 p.title, 
                 p.number_of_places ,
+                p.address_id,
                 (
                     p.number_of_places - (
                         -- Calcul des réservations confirmées pour ce post

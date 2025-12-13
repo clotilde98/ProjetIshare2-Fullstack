@@ -4,10 +4,6 @@ export const getCommentById = async (SQLClient, id) => {
     return rows[0] || null;
 };
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 4c6f223dde37bad8a8731b887a65e664194c1273
 export const deleteComment = async (SQLClient, { id }) => {
     const query = "DELETE FROM Comment WHERE id = $1";
     const result = await SQLClient.query(query, [id]);
