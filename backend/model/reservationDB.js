@@ -1,5 +1,6 @@
 
 export const createReservation = async (SQLClient, clientID, {postID}) => {
+    console.log(clientID);
     const { rows } = await SQLClient.query(
     `INSERT INTO Reservation (post_id, client_id)
      VALUES ($1, $2)

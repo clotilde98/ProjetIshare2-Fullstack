@@ -1,9 +1,8 @@
-
 import 'dotenv/config';
 import argon2 from "argon2";
 
 
-export const createUser = async (SQLClient, { googleId, username, email, password, streetNumber, street, photo = null, isAdmin = false, addressID }) => {
+export const createUser = async (SQLClient, { googleId = null, username, email, password, streetNumber, street, photo = null, isAdmin = false, addressID }) => {
 
   if (password){
     const pepper = process.env.PEPPER;
@@ -68,17 +67,17 @@ export const updateUser = async (SQLClient, id, { username, email, password, pho
     const querySet = []; 
     const queryValues = []; 
 
-    if (username ) {
+    if (username) {
         queryValues.push(username);
         querySet.push(`username = $${queryValues.length}`);
     }
     
-    if (email ) {
+    if (email) {
         queryValues.push(email);
         querySet.push(`email = $${queryValues.length}`);
     }
     
-    if (password ) {
+    if (password) {
         queryValues.push(password);
         querySet.push(`password = $${queryValues.length}`);
     }
@@ -88,7 +87,7 @@ export const updateUser = async (SQLClient, id, { username, email, password, pho
         querySet.push(`photo = $${queryValues.length}`);
     }
     
-    if (isAdmin) { 
+    if (isAdmin !== undefined) { 
         queryValues.push(isAdmin);
         querySet.push(`is_admin = $${queryValues.length}`);
     }
@@ -103,25 +102,18 @@ export const updateUser = async (SQLClient, id, { username, email, password, pho
         querySet.push(`street_number = $${queryValues.length}`);
     }
 
-    if (queryValues.length > 0) {
-        queryValues.push(id);
-        
-        query += `${querySet.join(", ")} WHERE id = $${queryValues.length} RETURNING *`;
-        
-        return SQLClient.query(query, queryValues);
-
-    } else {
+    if (queryValues.length === 0) {
         throw new Error("No field given for user update.");
     }
+
+    queryValues.push(id);
+    // On exclut le password dans le RETURNING
+    query += `${querySet.join(", ")} WHERE id = $${queryValues.length} RETURNING id, username, email, photo, is_admin, street, street_number`;
+
+    const result = await SQLClient.query(query, queryValues);
+    return result.rows[0];
 };
 
-export const deleteUser = async (SQLClient, id) => {
-  const { rowCount } = await SQLClient.query(
-    'DELETE FROM Client WHERE id = $1',
-    [id]
-  );
-  return rowCount > 0;
-};
 
 
 
@@ -159,7 +151,7 @@ export const getUsers = async (SQLClient, { name, role, page = 1, limit = 10 }) 
         const limitIndex = values.length + 1; 
         const offsetIndex = values.length + 2; 
 
-        const dataQuery = `SELECT c.id, c.username, c.email, c.registration_date,
+        const dataQuery = `SELECT c.id, c.username, c.email, c.registration_date, c.address_id,
                 c.is_admin, a.city, a.postal_code, c.street, c.street_number
         FROM Client c
         JOIN Address a ON c.address_id = a.id
@@ -179,4 +171,12 @@ export const getUsers = async (SQLClient, { name, role, page = 1, limit = 10 }) 
     } catch (err) {
         throw new Error(`Erreur SQL dans getUsers : ${err.message}`); 
     }
+};
+
+export const deleteUser = async (SQLClient, id) => {
+  const { rowCount } = await SQLClient.query(
+    'DELETE FROM Client WHERE id = $1',
+    [id]
+  );
+  return rowCount > 0;
 };

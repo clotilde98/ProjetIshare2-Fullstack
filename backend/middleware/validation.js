@@ -24,7 +24,6 @@ export const clientValidatorMiddleware = {
             next();
         } catch (e) {
             if (e.messages) {
-                // VineJS detailed error list
                 return res.status(400).json(e.messages);
             }
             res.status(400).send(e.message);

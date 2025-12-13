@@ -8,7 +8,6 @@ import vine from '@vinejs/vine';
  */
 
 const addClientSchema = vine.object({
-    googleId: vine.string().trim().optional(),
     username: vine.string().trim(),
     street : vine.string().trim(),
     streetNumber : vine.string(), 
@@ -52,7 +51,7 @@ const updateClientSchema =  vine.object({
     streetNumber : vine.number().optional(), 
     photo:vine.string().optional(),
     password: vine.string().optional(), 
-    isAdmin:vine.boolean().optional()
+    oldPassword: vine.string().optional(),
 }); 
 
 /**
@@ -75,10 +74,6 @@ const loginSchema = vine.object({
     email: vine.string().email(),
     password: vine.string().optional(),
     idToken: vine.string().trim().optional(),
-    username: vine.string().trim().optional(),
-    street : vine.string().trim().optional(),
-    streetNumber : vine.number().optional(), 
-    photo:vine.string().optional(),
 });
 
 export const

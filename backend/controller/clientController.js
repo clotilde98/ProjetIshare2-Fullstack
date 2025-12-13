@@ -5,7 +5,6 @@ import 'dotenv/config';
 import jwt from "jsonwebtoken";
 import path from 'path';
 import { fileURLToPath } from 'url';
-
 import {saveImage} from '../middleware/photo/saveImage.js';
 import * as uuid from 'uuid'
 
@@ -55,8 +54,8 @@ import * as uuid from 'uuid'
 export const createUser = async (req, res) => {
   try {
     const {username, email, password, street, streetNumber, addressID} = req.body;
+
     const photo = req.file;
-    //const photo = req.file ? `${req.protocol}://${req.get('host')}/images/${req.file.filename}`  : null;   
     let user = await userModel.getUserByEmail(pool, email)
     const __filename = fileURLToPath(import.meta.url);
     const __dirname = path.dirname(__filename);
@@ -68,8 +67,9 @@ export const createUser = async (req, res) => {
             imageName = uuid.v4();
             await saveImage(photo.buffer, imageName, destFolderImages); 
         }
-        
-user = await userModel.createUser(pool, {googleId: googleId, username, email, streetNumber, street, photo:req.body.photo, isAdmin:req.body.isAdmin, addressID:req.body.addressID, password:req.body.password});        const token = jwt.sign(
+
+        user = await userModel.createUser(pool, {username, email, streetNumber, street, photo:imageName, isAdmin:false, addressID, password});
+        const token = jwt.sign(
                   { 
                       id: user.id, 
                       email: user.email,
@@ -80,7 +80,7 @@ user = await userModel.createUser(pool, {googleId: googleId, username, email, st
               );
               res.send({ token }); 
     } else {
-      res.status(400).send("User already exists");
+      res.status(409).send("User account already exists");
     }
   } catch (err) {
     res.status(500).send(err.message);
@@ -115,50 +115,58 @@ user = await userModel.createUser(pool, {googleId: googleId, username, email, st
 
 export const updateUser = async (req, res) => {
     try {
-        const userId = req.user.id; 
-        const updateData = req.body; 
+        let userId = req.user.id;
+        if (req.params.id){
+            if (req.user.isAdmin){
+                userId = parseInt(req.params.id);
+            } else {
+                return res.status(403).send("Admin privilege required.");
+            }
+        }
+
+        const updateData = { ...req.body };
+        const currentUser = await userModel.getUserById(pool, userId); 
+
+        if (!currentUser){
+            return res.status(404).send("User not found");
+        }
+
+        const photo = req.file;
+        if (photo) {
+            const __filename = fileURLToPath(import.meta.url);
+            const __dirname = path.dirname(__filename);
+
+            const destFolderImages = path.join(__dirname, '../middleware/photo/');
+            const imageName = uuid.v4();
+
+            await saveImage(photo.buffer, imageName, destFolderImages);
+            updateData.photo = imageName;
+        }
 
         if (updateData.password) { 
-            
-            if (!updateData.oldPassword ) {
-                return res.status(400).send("L'ancien mot de passe est requis pour changer le mot de passe.");
-            }
-
-            const currentUser = await userModel.getUserById(pool, userId); 
-            
-            if (!currentUser) {
-                return res.status(404).send("Utilisateur non trouvé.");
-            }
-
             const pepper = process.env.PEPPER;
             
-            if (!req.user.is_admin) {
+            if (!req.user.isAdmin) {
+                if (!updateData.oldPassword) {
+                    return res.status(400).send("Old password required.");
+                }
                 const validOldPassword = await argon2.verify(
                     currentUser.password, 
                     updateData.oldPassword + pepper
                 );
 
                 if (!validOldPassword) {
-                    return res.status(401).send("Ancien mot de passe incorrect.");
+                    return res.status(400).send("Old password incorrect.");
                 }
             }
 
             const passwordWithPepper = updateData.password + pepper;
             updateData.password = await argon2.hash(passwordWithPepper); 
-            
-            delete updateData.oldPassword; 
         }
-        
-        const result = await userModel.updateUser(pool, userId, updateData);
-
-        if (result && result.rowCount > 0) {
-            res.sendStatus(204); 
-        } else {
-            res.status(400).send("Aucun champ fourni pour la mise à jour ou utilisateur non trouvé.");
-        }
-        
+        const updatedUser = await userModel.updateUser(pool, userId, updateData);
+        res.status(200).json(updatedUser); 
     } catch (err) {
-        res.status(500).send("Erreur serveur interne");
+        res.status(500).send("Internal server error : " + err.message);
     }
 };
 
@@ -176,16 +184,28 @@ export const updateUser = async (req, res) => {
 
 export const deleteUser = async (req, res) => {
   try {
-    const id = parseInt(req.params.id);
-    if (isNaN(id)) return  res.status(400).send("ID invalide"); ;
-   
-    const success = await userModel.deleteUser(pool, id);
-    if (!success) return res.status(404).send("Utilisateur non trouvé"); ;
+    let userId = null;
+    if (req.params.id){
+        if (req.user.isAdmin){
+            userId = parseInt(req.params.id);
+        } else {
+            return res.status(403).send("Admin privilege required.");
+        }
+    } else {
+        userId = req.user.id;
+    }
 
-    res.status(200).send("Utilisateur supprimé avec succès")
-  } catch (err) {
-    res.status(500).send("Erreur serveur");
-  }
+    const currentUser = await userModel.getUserById(pool, userId); 
+
+    if (!currentUser){
+        return res.status(404).send("User not found");
+    }
+
+    await userModel.deleteUser(pool, userId);
+    res.status(200).send("User deleted successfully.");
+    } catch (err) {
+        res.status(500).send("Internal server error : " + err.message);
+    }
 };
 
 /**
@@ -206,15 +226,13 @@ export const getOwnUser = async (req, res) => {
        const user = await userModel.getProfileById(pool, clientID); 
 
         if (!user) {
-            return res.status(404).send("Profil utilisateur non trouvé.");
+            return res.status(404).send("User not found.");
         }
 
-          const photoUrl = user.photo 
+          const photoUrl = user.photo
             ? `${req.protocol}://${req.get('host')}/images/${user.photo}.jpeg` 
             : null;
 
-        
-        
         res.status(200).json({
             id: user.id,
             username: user.username,
