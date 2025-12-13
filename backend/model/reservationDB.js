@@ -31,14 +31,18 @@ export const readReservationsByPostID = async (SQLClient, {id}) => {
 };
 
 
-export const updateReservation = async(SQLClient, id, {reservationDate, reservationStatus}) => {
+export const updateReservation = async(SQLClient, {id, clientID,postID, reservationStatus}) => {
     let query = "UPDATE reservation SET ";
     const querySet = [];
     const queryValues = [];
-    
-    if(reservationDate){
-        queryValues.push(reservationDate);
-        querySet.push(`reservation_date = $${queryValues.length}`);
+
+    if (clientID){
+        queryValues.push(clientID);
+        querySet.push(`client_id = $${queryValues.length}`);
+    }
+    if (postID){
+        queryValues.push(postID);
+        querySet.push(`post_id = $${queryValues.length}`);
     }
 
     if (reservationStatus){

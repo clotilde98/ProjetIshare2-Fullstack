@@ -13,7 +13,6 @@ import {clientValidatorMiddleware} from '../middleware/validation.js';
 
 import {mustBeAdmin} from '../middleware/identification/mustBeAdmin.js'
 
-
 import {upload} from '../middleware/photo/upload.js';
 
 
