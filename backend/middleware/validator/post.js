@@ -1,5 +1,6 @@
 import vine from '@vinejs/vine';
 
+
 export const createPostSchema = vine.object({
     title: vine.string().trim(),
     description: vine.string().trim(),
@@ -10,6 +11,8 @@ export const createPostSchema = vine.object({
     photo: vine.string().trim(), 
     categoriesProduct: vine.array(vine.number().positive())
 }); 
+
+
 
 export const updatePostSchema = vine.object({
     title: vine.string().trim().optional(),
@@ -22,6 +25,7 @@ export const updatePostSchema = vine.object({
     client_id: vine.number().positive().optional(),
     photo: vine.string().trim().optional(), 
 }); 
+
 
 export const
     createPostValidator = vine.compile(createPostSchema),

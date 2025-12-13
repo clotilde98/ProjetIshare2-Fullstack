@@ -49,12 +49,9 @@ import * as uuid from 'uuid'
  */
 
 
-<<<<<<< HEAD
-=======
 
 
 
->>>>>>> 8e043f54b6f6ff332889af831690d986726b206e
 export const createUser = async (req, res) => {
   try {
     const {username, email, password, street, streetNumber, addressID} = req.body;
@@ -81,11 +78,7 @@ user = await userModel.createUser(pool, {googleId: googleId, username, email, st
                   process.env.JWT_SECRET,
                   { expiresIn: "24h" }
               );
-<<<<<<< HEAD
-              res.status(200).send({ token });
-=======
               res.send({ token }); 
->>>>>>> 8e043f54b6f6ff332889af831690d986726b206e
     } else {
       res.status(400).send("User already exists");
     }
@@ -215,10 +208,6 @@ export const getOwnUser = async (req, res) => {
         if (!user) {
             return res.status(404).send("Profil utilisateur non trouvé.");
         }
-<<<<<<< HEAD
-        res.status(200).json(user);
-    
-=======
 
           const photoUrl = user.photo 
             ? `${req.protocol}://${req.get('host')}/images/${user.photo}.jpeg` 
@@ -234,7 +223,6 @@ export const getOwnUser = async (req, res) => {
         });
 
 
->>>>>>> 8e043f54b6f6ff332889af831690d986726b206e
     } catch (err) {
         res.status(500).send("Erreur serveur interne."); 
     }
