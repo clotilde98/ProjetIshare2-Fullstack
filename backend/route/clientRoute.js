@@ -11,11 +11,7 @@ import {
 
 import {clientValidatorMiddleware} from '../middleware/validation.js';
 
-import {isSameUser} from '../middleware/identification/user.js'
-
 import {mustBeAdmin} from '../middleware/identification/mustBeAdmin.js'
-
-import { orMiddleware } from '../middleware/utils/orMiddleware.js';
 
 import {upload} from '../middleware/photo/upload.js';
 

@@ -24,11 +24,6 @@ import vine from '@vinejs/vine';
 export const createCommentSchema = vine.object({
     content: vine.string().trim(), 
     idPost: vine.number().positive(),
-<<<<<<< HEAD
-=======
-    idCustomer: vine.number().positive(), 
-    
->>>>>>> 4c6f223dde37bad8a8731b887a65e664194c1273
 }); 
 
 /**

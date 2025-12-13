@@ -9,7 +9,6 @@ import {checkJWT} from '../middleware/identification/jwt.js'
 import { mustBeAdmin } from '../middleware/identification/mustBeAdmin.js';
 import {clientValidatorMiddleware} from '../middleware/validation.js';
 import { getAllStats } from '../controller/dashboardController.js';
-import { orMiddleware } from '../middleware/utils/orMiddleware.js';
 
 import productTypeRouter from './productTypeRoute.js'
 
