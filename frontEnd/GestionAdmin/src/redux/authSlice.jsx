@@ -1,11 +1,17 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { accountService } from "../services/accountService.jsx";
 
+
+const tokenFromStorage = accountService.getToken();
+const userInfoFromStorage = accountService.getUserInfo();
+const isCurrentlyLogged = !!tokenFromStorage;
+const isCurrentlyAdmin = userInfoFromStorage?.isAdmin === true;
+
 const initialState = {
-  token: null,
-  isLogged: false,
-  isAdmin: false,
-  user: null,
+  token: tokenFromStorage, 
+  isLogged: isCurrentlyLogged,
+  isAdmin: isCurrentlyAdmin, 
+  user: userInfoFromStorage, 
 };
 
 const authSlice = createSlice({

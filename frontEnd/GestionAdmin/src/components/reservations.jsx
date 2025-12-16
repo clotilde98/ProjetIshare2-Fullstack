@@ -1,38 +1,17 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { Table, Input, Button, Space, Modal, Form, message, Select } from "antd";
 import { PlusOutlined, FilterOutlined, EditOutlined, DeleteOutlined, RollbackOutlined } from "@ant-design/icons";
-import { createStyles } from "antd-style";
-import Axios from "../services/api"; // Assurez-vous que le chemin d'Axios est correct
-import "../styles/body.css"; // Assurez-vous que le chemin des styles est correct
+import useStyle from '../styles/table.jsx';
+import Axios from "../services/api"; 
+import "../styles/body.css"; 
 
 const { Option } = Select;
 
-// Définition des statuts et de leurs styles correspondants
 const STATUS_OPTIONS = {
     confirmed: { label: "Confirmée", color: '#52c41a' },
     cancelled: { label: "Annulée", color: '#ff4d4f' },
     withdrawal: { label: "Rétiré", color: '#faad14' },
 };
-
-// Styles Ant Design (inchangés)
-const useStyle = createStyles(({ css, token }) => {
-    const { antCls } = token;
-    return {
-        customTable: css`
-            ${antCls}-table {
-                ${antCls}-table-container {
-                    ${antCls}-table-body,
-                    ${antCls}-table-content {
-                        scrollbar-width: thin;
-                        scrollbar-color: #eaeaea transparent;
-                        scrollbar-gutter: stable;
-                    }
-                }
-            }
-        `,
-        pageTitle: css``,
-    };
-});
 
 
 const Reservations = () => {
@@ -53,7 +32,6 @@ const Reservations = () => {
     const [form] = Form.useForm();
 
 
-    // --- Fonctions de récupération des données de base ---
 
     const fetchPosts = useCallback(async () => {
         try {

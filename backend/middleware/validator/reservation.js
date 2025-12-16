@@ -2,7 +2,6 @@ import vine from '@vinejs/vine';
 
 export const createReservationSchema = vine.object({
     postID: vine.number().positive(),
-    reservation_status: vine.enum(['confirmed', 'cancelled']),
 }); 
 
 export const updateReservationSchema = vine.object({

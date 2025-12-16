@@ -32,6 +32,7 @@ export const checkJWT = async (req, res, next) => {
         const authHeader = req.headers.authorization;
 
         if (!authHeader || !authHeader.startsWith("Bearer ")) {
+            req.user = null;
         return res.status(401).json({ message: "Token missing or invalid" });
         }
 

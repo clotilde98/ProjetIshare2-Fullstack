@@ -1,29 +1,12 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { Table, Input, Button, Space, Modal, Form, message, Select, InputNumber, Row, Col } from "antd";
 import { PlusOutlined, FilterOutlined, EditOutlined, DeleteOutlined, RollbackOutlined } from "@ant-design/icons";
-import { createStyles } from "antd-style";
+import useStyle from '../styles/table.jsx';
 import Axios from "../services/api";
 import "../styles/body.css";
 
 const { Option } = Select;
 
-const useStyle = createStyles(({ css, token }) => {
-  const { antCls } = token;
-  return {
-    customTable: css`
-      ${antCls}-table {
-        ${antCls}-table-container {
-          ${antCls}-table-body,
-          ${antCls}-table-content {
-            scrollbar-width: thin;
-            scrollbar-color: #eaeaea transparent;
-            scrollbar-gutter: stable;
-          }
-        }
-      } 
-    `, 
-  };
-});
 
 const Users = () => {
   const { styles } = useStyle();

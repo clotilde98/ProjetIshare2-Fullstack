@@ -19,9 +19,30 @@ let isLogged = () => {
 
 }
 
- const getToken = () => {
-  return localStorage.getItem('token');
+const isTokenExpired = (token) => {
+    try {
+        const decoded = jwtDecode(token);
+        if (decoded.exp * 1000 < Date.now()) {
+            return true; 
+        }
+        return false;
+    } catch (error) {
+        return true;
+    }
 };
+
+ const getToken = () => {
+const token = localStorage.getItem('token');
+    if (!token) {
+        return null;
+    }
+
+    if (isTokenExpired(token)) {
+        localStorage.removeItem('token'); 
+        return null;
+    }
+
+    return token;};
 
 const getUserInfo = () => {
   const token = getToken();

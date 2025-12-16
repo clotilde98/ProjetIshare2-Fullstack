@@ -1,28 +1,9 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Table, Input, Button, Space, Modal, Form, message } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, RollbackOutlined } from '@ant-design/icons';
-import { createStyles } from 'antd-style';
 import Axios from '../services/api'; 
 import "../styles/body.css";
-
-
-const useStyle = createStyles(({ css, token }) => {
-  const { antCls } = token;
-  return {
-    customTable: css`
-      ${antCls}-table {
-        ${antCls}-table-container {
-          ${antCls}-table-body,
-          ${antCls}-table-content {
-            scrollbar-width: thin;
-            scrollbar-color: #eaeaea transparent;
-            scrollbar-gutter: stable;
-          }
-        }
-      } 
-    `, 
-  };
-});
+import useStyle from '../styles/table.jsx';
 
 const Categories = () => {
   const { styles } = useStyle(); 

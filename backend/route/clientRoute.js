@@ -6,7 +6,8 @@ import {
   deleteUser,
   createUser,
   getUsers,
-  getOwnUser
+  getOwnUser,
+  createUserWithAdmin
 } from "../controller/clientController.js";
 
 import {clientValidatorMiddleware} from '../middleware/validation.js';
@@ -39,7 +40,7 @@ const router = Router();
 
 
 
-router.post("/", upload.single('photo'), clientValidatorMiddleware.addClientValidator, createUser); 
+router.post("/",upload.single('photo'), clientValidatorMiddleware.addClientValidator, createUser); 
 /**
  * @swagger
  * /users/me:
@@ -63,6 +64,11 @@ router.post("/", upload.single('photo'), clientValidatorMiddleware.addClientVali
  *        500:
  *         description: Server error
  */
+
+
+router.post("/admin", checkJWT, upload.single('photo'), clientValidatorMiddleware.addClientValidator, createUserWithAdmin); 
+
+
 
 router.get("/me", checkJWT, getOwnUser);    
 

@@ -47,7 +47,6 @@ import * as uuid from 'uuid'
  *                 type: string
  */
 
-
 export const createUser = async (req, res) => {
   try {
     const {username, email, password, street, streetNumber, addressID} = req.body;
@@ -84,6 +83,56 @@ export const createUser = async (req, res) => {
   }
 }
 
+export const createUserWithAdmin = async (req, res) => {
+    try {
+        const {username, email, password, street, streetNumber, addressID} = req.body;
+        
+        let createAdminUser;
+
+        if (!'isAdmin' in req.body) {
+            createAdminUser = false
+        }
+
+
+        createAdminUser = req.body.isAdmin ; 
+        
+        if (!req.user.isAdmin && createAdminUser) {
+            return res.status(400).send("Not allowed to create an admin user")
+        }
+        
+
+        const photo = req.file;
+        let user = await userModel.getUserByEmail(pool, email)
+        const __filename = fileURLToPath(import.meta.url);
+        const __dirname = path.dirname(__filename);
+        const destFolderImages = path.join(__dirname, '../middleware/photo/');
+        
+        if (!user){
+            let imageName = null;
+            if (photo){
+                imageName = uuid.v4();
+                await saveImage(photo.buffer, imageName, destFolderImages); 
+            }
+
+            user = await userModel.createUser(pool, {username, email, streetNumber, street, photo:imageName, isAdmin:createAdminUser, addressID, password});
+            const token = jwt.sign(
+                { 
+                    id: user.id, 
+                    email: user.email,
+                    isAdmin: user.is_admin,
+                },
+                process.env.JWT_SECRET,
+                { expiresIn: "24h" }
+            );
+            
+            res.status(200).send({ token });
+        } else {
+            res.status(409).send("User account already exists");
+        }
+    } catch (err) {
+        res.status(500).send(err.message);
+    }
+}
 
 /**
  * @swagger
@@ -271,14 +320,14 @@ export const getUsers = async (req, res) => {
       return res.status(400).send('Le rôle doit être "admin" ou "user".');
     }
 
-    const result = await userModel.getUsers(pool, { 
+    const users = await userModel.getUsers(pool, { 
       name,
       role,
       page: parseInt(page) || 1,
       limit: parseInt(limit) || 10
     });
 
-    res.status(200).json(result); 
+    res.status(200).json(users); 
   } catch (err) {
     res.status(500).send('Erreur serveur'); 
   }

@@ -1,33 +1,12 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { Table, Input, Button, Space, Modal, Form, message, Select, InputNumber, Tag } from "antd";
 import { PlusOutlined, FilterOutlined, EditOutlined, DeleteOutlined, RollbackOutlined, CalendarOutlined } from "@ant-design/icons";
-import { createStyles } from "antd-style";
+import useStyle from '../styles/table.jsx';
 import Axios from "../services/api"; 
 import "../styles/body.css";
 
 
 const { Option } = Select;
-
-const useStyle = createStyles(({ css, token }) => {
-  const { antCls } = token;
-  return {
-    customTable: css`
-      ${antCls}-table {
-        ${antCls}-table-container {
-          ${antCls}-table-body,
-          ${antCls}-table-content {
-            scrollbar-width: thin;
-            scrollbar-color: #eaeaea transparent;
-            scrollbar-gutter: stable;
-          }
-        }
-      }
-    `,
-    categoryTag: css`
-      margin-bottom: 4px;
-    `,
-  };
-});
 
 const Posts = () => {
   const { styles } = useStyle();
@@ -344,10 +323,10 @@ const Posts = () => {
         clientID: clientID,
       };
 
-      console.log("Prepared payload for request:", payload);
 
       if (currentMode === "edit" && editingPost) {       
         const res = await Axios.patch(`/posts/${editingPost.id}`, payload);
+         console.log("Prepared payload for request:", payload);
         message.success(" Annonce mise à jour");
       } else if (currentMode === "create") {
         const res = await Axios.post("/posts", payload);
