@@ -57,8 +57,8 @@ const Posts = () => {
         id: post.id,
         title: post.title,
         description: post.description,
-        numberOfPlaces: post.number_of_places, // Capacité max
-        placesRestantes: post.places_restantes, // Places restantes
+        numberOfPlaces: post.number_of_places, 
+        placesRestantes: post.places_restantes, 
         postStatus: post.post_status,
         city: post.city,
         street: post.street,
