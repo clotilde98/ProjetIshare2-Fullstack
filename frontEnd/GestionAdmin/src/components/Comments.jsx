@@ -227,7 +227,7 @@ const fetchComments = useCallback(async (currentPage = 1, itemsPerPage = pageSiz
                 <Button key="submit-del" type="primary" danger onClick={handleDeleteSubmit}>Supprimer</Button>
             ] : [ 
                 <Button key="cancel" onClick={handleCancel} icon={<RollbackOutlined />}>Annuler</Button>,
-                <Button key="submit" type="primary" onClick={() => form.submit()}>Sauvegarder</Button>
+                <Button key="submit" type="primary" onClick={() => form.submit()}>Modifier</Button>
             ]
         }
       >

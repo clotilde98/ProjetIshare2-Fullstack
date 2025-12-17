@@ -251,103 +251,53 @@ const Posts = () => {
   };
 
   const handleFormSubmit = async (values) => {
-    const currentMode = mode;
-    if (currentMode === "delete") return;
+  const currentMode = mode;
+  if (currentMode === "delete") return;
 
-    const numberOfPlaces = Number(values.number_of_places);
-    if (isNaN(numberOfPlaces) || numberOfPlaces < 1) {
-      message.error("Le nombre de places est invalide.");
-      return;
-    }
+  // 1. Validations et conversions numériques
+  const resolvedAddressId = Number(values.address_id) || (editingPost?.addressID ? Number(editingPost.addressID) : undefined);
+  
+  let clientID = currentMode === 'create' 
+    ? (values.client_id ? Number(values.client_id) : null)
+    : (editingPost?.clientID ? Number(editingPost.clientID) : null);
 
-    
-    const resolvedAddressId = Number(values.address_id) || (editingPost?.addressID !== undefined && editingPost?.addressID !== null ? Number(editingPost.addressID) : undefined);
+  if (!resolvedAddressId || (currentMode === 'create' && !clientID)) {
+    message.error("Données obligatoires manquantes (adresse ou client).");
+    return;
+  }
 
-    if (!resolvedAddressId || isNaN(resolvedAddressId)) {
-      message.error("ID d'adresse manquant. Veuillez sélectionner une ville/code postal valide.");
-      return;
-    }
+  try {
+    
+    const payload = {
+      title: values.title,
+      description: values.description,
+      postStatus: values.post_status ,
+      numberOfPlaces: values.number_of_places,
+      street: values.street,
+      streetNumber: values.street_number,
+      addressID: resolvedAddressId,
+      photo: null, 
+      categoriesProduct: JSON.stringify((values.selected_category_ids || []).map(id => Number(id))),
+      providedClientID: clientID, 
+    };
 
-    let clientID;
-    if (currentMode === 'create') {
-      const resolvedClientRaw = values.client_id;
-      clientID = resolvedClientRaw !== undefined && resolvedClientRaw !== null ? Number(resolvedClientRaw) : null;
-      if (!clientID) {
-        message.error("ID client manquant en mode création.");
-        return;
-      }
-    } else if (currentMode === 'edit') {
-      clientID = editingPost?.clientID !== undefined && editingPost?.clientID !== null ? Number(editingPost.clientID) : null;
-      if (!clientID) {
-        message.error("ID client original introuvable pour la mise à jour.");
-        return;
-      }
-    }
+    // 3. Envoi via Axios (JSON par défaut)
+    if (currentMode === "edit" && editingPost) {
+      await Axios.patch(`/posts/${editingPost.id}`, payload);
+      message.success("Annonce mise à jour");
+    } else if (currentMode === "create") {
+      await Axios.post("/posts", payload);
+      message.success("Annonce créée");
+    }
 
-    let selectedAddress = cities.find((c) => c.id === resolvedAddressId);
+    handleCancel();
+    fetchPosts(currentMode === "create" ? 1 : currentPage, pageSize, citySearch, statusFilter);
 
-    if (!selectedAddress && currentMode === "edit" && editingPost && Number(editingPost.addressID) === resolvedAddressId) {
-      selectedAddress = {
-        id: resolvedAddressId,
-        city: editingPost.city,
-        postalCode: editingPost.postalCode,
-      };
-    }
-
-    if (!selectedAddress || !selectedAddress.city || !selectedAddress.postalCode) {
-      if (currentMode === 'create') {
-        message.error("Adresse sélectionnée invalide. Veuillez re-sélectionner la ville et le code postal.");
-        return;
-      }
-    }
-
-    const selectedCategoryIDs = (values.selected_category_ids || []).map((id) => Number(id));
-    console.log("Selected category IDs to send:", selectedCategoryIDs);
-
-    try {
-      const payload = {
-        title: values.title,
-        description: values.description,
-        postStatus: values.post_status,
-        numberOfPlaces: numberOfPlaces,
-
-        street: values.street,
-        streetNumber: Number(values.street_number),
-        addressID: resolvedAddressId, 
-        photo: "default_photo_url.jpg",
-
-        categoriesProduct: selectedCategoryIDs,
-
-        city: selectedAddress?.city || editingPost?.city,
-        postalCode: selectedAddress?.postalCode || editingPost?.postalCode,
-        clientID: clientID,
-      };
-
-
-      if (currentMode === "edit" && editingPost) {       
-        const res = await Axios.patch(`/posts/${editingPost.id}`, payload);
-         console.log("Prepared payload for request:", payload);
-        message.success(" Annonce mise à jour");
-      } else if (currentMode === "create") {
-        const res = await Axios.post("/posts", payload);
-        message.success("Annonce créée");
-      }
-
-      handleCancel();
-      fetchPosts(currentMode === "create" ? 1 : currentPage, pageSize, citySearch, statusFilter);
-    } catch (err) {
-      console.error("Error during form submit:", err);
-      console.error("err.response:", err.response);
-
-      if (err.response && err.response.status === 400 && Array.isArray(err.response.data)) {
-        console.error("Erreurs de Validation du Serveur (400):", err.response.data);
-        const firstError = err.response.data[0]?.message || "Erreur de validation inconnue.";
-        message.error(` Échec de la validation: ${firstError}`);
-      } else {
-        message.error(err.response?.data?.message || "Erreur opération inconnue.");
-      }
-    }
-  };
+  } catch (err) {
+    console.error("Erreur:", err.response?.data);
+    message.error(err.response?.data || "Une erreur est survenue.");
+  }
+};
 
   const handleRemoveCategoryTag = (categoryIdToRemove) => {
     const currentIds = form.getFieldValue("selected_category_ids") || [];
@@ -362,7 +312,7 @@ const Posts = () => {
       form.setFieldsValue({ selected_category_ids: mappedIds });
       setPendingCategoryNames([]);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
   }, [categories, pendingCategoryNames, mode]);
   
   // Fonctions de Réservation
@@ -384,13 +334,11 @@ const Posts = () => {
     try {
       const payload = {
         postID: reservingPost.id, 
-        clientID: Number(values.client_id), 
-        reservation_status: "confirmed"
+        providedClientID: values.client_id, 
       };
 
-      console.log("Payload de réservation envoyé:", payload);
 
-      const res = await Axios.post("/reservations", payload); 
+      await Axios.post("/reservations", payload); 
       
       message.success(`Réservation pour l'annonce "${reservingPost.title}" créée avec succès.`);
       handleReserveCancel();
@@ -590,7 +538,7 @@ const Posts = () => {
                   Annuler
                 </Button>,
                 <Button key="submit" type="primary" onClick={() => form.submit()}>
-                  {editingPost ? "Sauvegarder" : "Créer"}
+                  {editingPost ? "Modifier" : "Créer"}
                 </Button>,
               ]
         }
@@ -633,7 +581,7 @@ const Posts = () => {
               name="address_id"
               label={
                 <>
-                  Ville et Code Postal {mode === "edit" && currentAddressDisplay && <> (Actuelle: {currentAddressDisplay})</>}
+                  Ville et Code Postal 
                 </>
               }
               rules={[

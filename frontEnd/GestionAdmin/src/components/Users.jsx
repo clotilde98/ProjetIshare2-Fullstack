@@ -7,7 +7,6 @@ import "../styles/body.css";
 
 const { Option } = Select;
 
-
 const Users = () => {
   const { styles } = useStyle();
   const [users, setUsers] = useState([]);
@@ -37,7 +36,7 @@ const Users = () => {
       const formattedAddresses = addressesData.map(addr => ({
         id: addr.id,
         city: addr.city,
-        postalCode: addr.postal_code,
+        postalCode: addr.postal_code, // CamelCase à gauche
         displayName: `${addr.city} (${addr.postal_code})`,
       }));
       setAddresses(formattedAddresses);
@@ -48,7 +47,6 @@ const Users = () => {
       setLoadingAddresses(false);
     }
   }, []);
-
 
   const fetchUsers = useCallback(async (page = 1, limit = 10, name = "", role = null) => {
     setLoading(true);
@@ -66,13 +64,13 @@ const Users = () => {
         id: user.id,
         email: user.email,
         username: user.username,
-        registration_date: user.registration_date,
-        is_admin: user.is_admin,
-        address_id: user.address_id,
+        registrationDate: user.registration_date, 
+        isAdmin: user.is_admin,                   
+        addressID: user.address_id,               
         street: user.street,
-        street_number: user.street_number,
+        streetNumber: user.street_number,         
         city: user.city, 
-        postal_code: user.postal_code, 
+        postalCode: user.postal_code,             
       }));
 
       setUsers(usersData);
@@ -92,7 +90,6 @@ const Users = () => {
     fetchAddresses();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fetchUsers, fetchAddresses]);
-
 
   // --- Fonctions de Modal ---
   const handleCancel = () => {
@@ -118,10 +115,10 @@ const Users = () => {
     form.setFieldsValue({
       username: user.username,
       email: user.email,
-      is_admin: user.is_admin, 
-      address_id: user.address_id, 
+      is_admin: user.isAdmin,      
+      address_id: user.addressID,  
       street: user.street,
-      street_number: user.street_number,
+      street_number: user.streetNumber, 
     });
   };
 
@@ -132,8 +129,6 @@ const Users = () => {
   };
 
   const handleDeleteSubmit = async () => {
-    
-    
       try {
         await Axios.delete(`/users/${deletingUser.id}`); 
         
@@ -143,74 +138,59 @@ const Users = () => {
       } catch (err) {
           console.error('Erreur de suppression:', err);
           message.error(err.response?.data?.message || ` Erreur lors de la suppression.`);
-          handleCancel();
+          
       }
   };
 
+  const handleFormSubmit = async (values) => {
+  if (mode === 'delete') return;
 
-  const handleFormSubmit = async values => {
-      const currentMode = mode;
-      if (currentMode === 'delete') return;
-    
-    // Vérification de l'adresse ID 
-    if (!values.address_id) {
-        message.error("Veuillez sélectionner une ville/code postal.");
-        return;
+  const resolvedAddressId = Number(values.address_id) || 
+    (editingUser?.addressID ? Number(editingUser.addressID) : undefined);
+
+  try {
+    const payload = {
+      username: values.username,
+      email: values.email,
+      password: values.password,
+      street: values.street,
+      streetNumber: String(values.street_number), 
+      isAdmin: values.is_admin,
+      addressID: resolvedAddressId,
+      photo: null,
+    };
+
+    if (mode === 'create') {   
+      await Axios.post("/users/admin", payload);   
+    } else if (mode === 'edit' && editingUser) {  
+      await Axios.patch(`/users/${editingUser.id}`, payload);
+      message.success("Utilisateur mis à jour !");
     }
-    
-    try {
-      const payload = {
-        username: values.username,
-        email: values.email,
-        is_admin: values.is_admin ?? false,
-        address_id: Number(values.address_id),
-        street: values.street,
-        street_number: Number(values.street_number),
-      };
-      
-      let successMessage = '';
 
-      if (currentMode === 'edit' && editingUser) {
-        await Axios.put(`/users/${editingUser.id}`, payload);
-        successMessage = " Utilisateur mis à jour";
-      } else if (currentMode === 'create') {
-        payload.password = values.password;
-        await Axios.post("/users", payload);
-        successMessage = "Utilisateur créé";
+    handleCancel();
+    fetchUsers(mode === 'create' ? 1 : currentPage, pageSize, searchText, roleFilter);
+
+  } catch (err) {
+    const serverMessage = err.response?.data?.message || err.response?.data || "Erreur opération";
+    let errorHandled = false;
+
+    if (err.response?.status === 409) {
+      const errorMsg = String(err.response.data).toLowerCase() || "";
+      if (errorMsg.includes('email')) {
+        form.setFields([{ name: 'email', errors: ['Cet email est déjà utilisé.'] }]);
+        errorHandled = true;
       }
-
-      message.success(successMessage);
-      handleCancel();
-      fetchUsers(currentMode === 'create' ? 1 : currentPage, pageSize, searchText, roleFilter);
-
-    } catch (err) {
-      console.error(err);
-      const serverMessage = err.response?.data?.message || "Erreur opération";
-      
-      // Gestion des conflits (Email ou Username)
-      if (err.response?.status === 409) {
-        const errorMsg = err.response.data?.message?.toLowerCase();
-        
-        if (errorMsg && errorMsg.includes('email')) {
-            form.setFields([
-              { name: 'email', errors: [' Cet email est déjà utilisé.'] },
-            ]);
-            errorHandled = true;
-        }
-        if (errorMsg && errorMsg.includes('username') || (errorMsg && errorMsg.includes("nom d'utilisateur"))) { // Adapter au message exact de votre API
-            form.setFields([
-              { name: 'username', errors: [' Ce nom d\'utilisateur est déjà pris.'] },
-            ]);
-            errorHandled = true;
-        }
-      }
-      
-      if(!errorHandled) {
-        message.error(serverMessage);
+      if (errorMsg.includes('username') || errorMsg.includes("nom d'utilisateur")) {
+        form.setFields([{ name: 'username', errors: ['Ce nom d\'utilisateur est déjà pris.'] }]);
+        errorHandled = true;
       }
     }
-  };
 
+    if (!errorHandled) {
+      message.error(serverMessage);
+    }
+  }
+};
 
   const handleTableChange = pagination => {
     const newPage = pagination.current;
@@ -241,8 +221,8 @@ const Users = () => {
           key: "address", 
           width: 200,
           render: (city, record) => {
-            const streetInfo = (record.street && record.street_number) ? `${record.street_number} ${record.street}` : '';
-            const cityInfo = (city && record.postal_code) ? `${city} (${record.postal_code})` : '';
+            const streetInfo = (record.street && record.streetNumber) ? `${record.streetNumber} ${record.street}` : '';
+            const cityInfo = (city && record.postalCode) ? `${city} (${record.postalCode})` : '';
             
             if (streetInfo && cityInfo) return `${streetInfo}, ${cityInfo}`;
             if (streetInfo) return streetInfo;
@@ -252,8 +232,8 @@ const Users = () => {
     }, 
     {
       title: "Date Inscription",
-      dataIndex: "registration_date",
-      key: "registration_date",
+      dataIndex: "registrationDate", 
+      key: "registrationDate",
       width: 140,
       render: text => {
         if (!text) return "N/A";
@@ -280,7 +260,6 @@ const Users = () => {
       <h6 className={styles.pageTitle}>Utilisateurs</h6>
       <hr/>
       <Space style={{ marginBottom: 16 }}>
-        {/* Filtres et actions existants */}
         <Input.Search placeholder="Rechercher par nom" value={searchText} onChange={handleSearch} style={{ width: 250 }} />
         <Select
           value={roleFilter === 'admin' ? 'admin' : roleFilter === 'user' ? 'not-admin' : 'all'}
@@ -323,7 +302,7 @@ const Users = () => {
                 <Button key="submit-del" type="primary" danger onClick={handleDeleteSubmit}>Supprimer</Button>
             ] : [
                 <Button key="cancel" onClick={handleCancel} icon={<RollbackOutlined />}>Annuler</Button>,
-                <Button key="submit" type="primary" onClick={() => form.submit()}>{editingUser ? 'Sauvegarder' : 'Créer'}</Button>
+                <Button key="submit" type="primary" onClick={() => form.submit()}>{editingUser ? 'Modifier' : 'Créer'}</Button>
             ]
         }
       >
@@ -337,15 +316,13 @@ const Users = () => {
                 form={form} 
                 layout="vertical" 
                 onFinish={handleFormSubmit}
-                initialValues={{ is_admin: editingUser?.is_admin ?? false }}
+                initialValues={{ is_admin: editingUser?.isAdmin ?? false }}
             >
             <Form.Item 
                 name="username" 
                 label="Nom d'utilisateur" 
                 rules={[
                     { required: true, message: "Le nom d'utilisateur est requis" },
-                    // NOTE: La validation d'unicité (existe déjà) doit être gérée par l'API
-                    // J'ai ajouté un gestionnaire dans handleFormSubmit pour le code 409
                 ]}
             >
               <Input />
@@ -356,27 +333,24 @@ const Users = () => {
                 label="Email" 
                 rules={[
                     { required: true, type: 'email', message: "Email requis et valide" }
-                    // La validation d'unicité (existe déjà) est gérée dans handleFormSubmit
                 ]}
             >
               <Input />
             </Form.Item>
 
-            {/* Champ Mot de passe (Création uniquement) */}
             {!editingUser && (
               <Form.Item 
                 name="password" 
                 label="Mot de passe" 
                 rules={[
                     { required: true, message: "Le mot de passe est requis à la création" },
-                    { min: 10, message: 'Le mot de passe doit contenir au moins 10 caractères.' }
+                    { min: 6, message: 'Le mot de passe doit contenir au moins 6 caractères.' }
                 ]}
               >
                 <Input.Password placeholder="Obligatoire à la création" />
               </Form.Item>
             )}
 
-            {/* Champ Confirmation Mot de passe (Création uniquement) */}
             {!editingUser && (
                 <Form.Item
                     name="confirm"
@@ -408,8 +382,6 @@ const Users = () => {
 
             <hr style={{ margin: '20px 0' }}/>
             
-            {/* --- Champs d'Adresse --- */}
-
             <Form.Item 
                 name="address_id" 
                 label="Ville et Code Postal" 
