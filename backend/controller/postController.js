@@ -131,20 +131,13 @@ export const getPost = async (req, res) => {
 
 export const getPosts = async (req, res) => {
     try {
-        const { city, postStatus } = req.query;
-
-        const page = req.query.page ? Number(req.query.page) : 1;
-        const limit = req.query.limit ? Number(req.query.limit) : 10;
-
-        if (Number.isNaN(page) || Number.isNaN(limit)) {
-            return res.status(400).send("Page and limit must be numbers");
-        }
+        const { city, postStatus, page,limit} = req.query;
 
         const posts = await postModel.getPosts(pool, {
             city,
             postStatus,
-            page,
-            limit
+             page: parseInt(page) || 1, 
+            limit: parseInt(limit) || 10   
         });
 
         return res.status(200).json(posts);
