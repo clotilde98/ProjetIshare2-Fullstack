@@ -62,7 +62,7 @@ export const getProfileById = async (SQLClient, id) => {
     return rows[0];
 };
   
-export const updateUser = async (SQLClient, id, { username, email, password, photo, isAdmin, street, streetNumber }) => {
+export const updateUser = async (SQLClient, id, { username, email, password, photo, isAdmin, street, streetNumber,addressID }) => {
     let query = "UPDATE Client SET ";
     const querySet = []; 
     const queryValues = []; 
@@ -101,17 +101,20 @@ export const updateUser = async (SQLClient, id, { username, email, password, pho
         queryValues.push(streetNumber);
         querySet.push(`street_number = $${queryValues.length}`);
     }
-
-    if (queryValues.length === 0) {
-        throw new Error("No field given for user update.");
+    if (addressID){
+        queryValues.push(addressID);
+        querySet.push(`address_id = $${queryValues.length}`);
     }
 
-    queryValues.push(id);
-    // On exclut le password dans le RETURNING
-    query += `${querySet.join(", ")} WHERE id = $${queryValues.length} RETURNING id, username, email, photo, is_admin, street, street_number`;
+    if (queryValues.length > 0) {
+        queryValues.push(id); 
+        query += `${querySet.join(", ")} WHERE id = $${queryValues.length}`;
 
-    const result = await SQLClient.query(query, queryValues);
-    return result.rows[0];
+        const result = await SQLClient.query(query, queryValues);
+        return result.rowCount > 0;
+    } else {
+        throw new Error("No field given (client name)");
+    }
 };
 
 

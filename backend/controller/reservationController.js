@@ -170,18 +170,7 @@ export const updateReservation = async (req, res) => {
         }
 
 
-        const {reservationDate, reservationStatus} = req.body
-        if (reservationDate){
-            const reservationTimestamp = new Date(reservationDate).getTime();
-
-            if (isNaN(reservationTimestamp)) {
-                return res.status(400).send("Invalid reservation date format");
-            }
-
-            if (reservationTimestamp < Date.now()) {
-                return res.status(400).send("Reservation date cannot be in the past");
-            }
-        }
+        const { reservationStatus, postID, clientID} = req.body
 
         if (reservationStatus){
             if (!VALID_STATUS.includes(reservationStatus)){
@@ -192,8 +181,11 @@ export const updateReservation = async (req, res) => {
         }
 
 
-        await reservationModel.updateReservation(pool, reservationID, req.body);
-        res.sendStatus(204)
+        await reservationModel.updateReservation(pool, { id: reservationID, reservationStatus, 
+            postID,            
+            clientID})
+
+       return res.status(200).json(updateReservation);
         
     } catch (err){
         res.status(500).send(err.message);

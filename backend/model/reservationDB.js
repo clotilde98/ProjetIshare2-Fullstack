@@ -1,6 +1,5 @@
 
 export const createReservation = async (SQLClient, clientID, {postID}) => {
-    console.log(clientID);
     const { rows } = await SQLClient.query(
     `INSERT INTO Reservation (post_id, client_id)
      VALUES ($1, $2)
@@ -102,10 +101,14 @@ export const getReservations = async (SQLClient, { username, reservationStatus, 
         const limitIndex = values.length + 1;
         const offsetIndex = values.length + 2; 
 
+
+
         const dataQuery = `SELECT 
             r.id, 
             p.title, 
+            p.id as post_id,
             c.username, 
+            c.id as client_id,
             r.reservation_date, 
             r.reservation_status
         FROM Reservation r

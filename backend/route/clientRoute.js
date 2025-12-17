@@ -66,7 +66,7 @@ router.post("/",upload.single('photo'), clientValidatorMiddleware.addClientValid
  */
 
 
-router.post("/admin", checkJWT, upload.single('photo'), clientValidatorMiddleware.addClientValidator, createUserWithAdmin); 
+router.post("/admin", checkJWT, clientValidatorMiddleware.addClientValidator, createUserWithAdmin); 
 
 
 

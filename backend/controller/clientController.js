@@ -93,28 +93,18 @@ export const createUserWithAdmin = async (req, res) => {
             createAdminUser = false
         }
 
-
         createAdminUser = req.body.isAdmin ; 
         
         if (!req.user.isAdmin && createAdminUser) {
             return res.status(400).send("Not allowed to create an admin user")
         }
-        
 
-        const photo = req.file;
         let user = await userModel.getUserByEmail(pool, email)
-        const __filename = fileURLToPath(import.meta.url);
-        const __dirname = path.dirname(__filename);
-        const destFolderImages = path.join(__dirname, '../middleware/photo/');
         
         if (!user){
-            let imageName = null;
-            if (photo){
-                imageName = uuid.v4();
-                await saveImage(photo.buffer, imageName, destFolderImages); 
-            }
 
-            user = await userModel.createUser(pool, {username, email, streetNumber, street, photo:imageName, isAdmin:createAdminUser, addressID, password});
+            user = await userModel.createUser(pool, {username, email, streetNumber, street, photo:null, isAdmin:createAdminUser, addressID, password});
+            
             const token = jwt.sign(
                 { 
                     id: user.id, 
