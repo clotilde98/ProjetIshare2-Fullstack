@@ -9,7 +9,7 @@ const router = Router();
 router.post('/', checkJWT,mustBeAdmin,categoryProductValidatorMiddleware.createCategoryProductValidator,createTypeProduct);
 
 
-router.get('/',checkJWT, getCategories);
+router.get('/',checkJWT,mustBeAdmin, getCategories);
 
 router.patch('/:id',checkJWT,mustBeAdmin,categoryProductValidatorMiddleware.updateCategoryProductValidator, updateTypeProduct);
 router.delete('/:id',checkJWT,mustBeAdmin, deleteTypeProduct);
