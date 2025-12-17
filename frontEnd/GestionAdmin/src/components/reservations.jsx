@@ -127,14 +127,14 @@ const Reservations = () => {
                     clientID: values.client_id
                 };
                 await Axios.patch(`/reservations/${editingReservation.id}`, updatePayload);
-                message.success("✅ Réservation mise à jour");
+                message.success("Réservation mise à jour");
             } else if (mode === 'create') {
                 const createPayload = {
                     postID: values.post_id,
                     providedClientID: values.client_id,
                 };
                 await Axios.post("/reservations", createPayload);
-                message.success("✅ Réservation créée");
+                message.success(" Réservation créée");
             }
 
             handleCancel();
