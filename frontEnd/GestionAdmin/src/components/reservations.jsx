@@ -87,7 +87,7 @@ const Reservations = () => {
         fetchReservations(1, pageSize, searchText, statusFilter);
         fetchPosts();
         fetchClients();
-    }, [fetchReservations, fetchPosts, fetchClients, pageSize, searchText, statusFilter]);
+    }, [pageSize, searchText, statusFilter]);
 
     // --- Handlers ---
     const handleAdd = () => {
@@ -124,7 +124,7 @@ const Reservations = () => {
                 const updatePayload = {
                     reservationStatus: values.reservation_status,
                     postID: values.post_id,
-                    clientID: values.client_id
+                    providedClientID: values.client_id
                 };
                 await Axios.patch(`/reservations/${editingReservation.id}`, updatePayload);
                 message.success("Réservation mise à jour");
@@ -133,7 +133,8 @@ const Reservations = () => {
                     postID: values.post_id,
                     providedClientID: values.client_id,
                 };
-                await Axios.post("/reservations", createPayload);
+                const res = await Axios.post("/reservations", createPayload);
+                console.log(res);
                 message.success(" Réservation créée");
             }
 
