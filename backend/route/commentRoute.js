@@ -3,8 +3,6 @@ import {checkJWT} from '../middleware/identification/jwt.js'
 import {getComments, createComment, updateComment, deleteComment} from '../controller/commentController.js';
 import {commentValidatorMiddleware} from '../middleware/validation.js';
 import {mustBeAdmin} from '../middleware/identification/mustBeAdmin.js'
-import { orMiddleware} from '../middleware/utils/orMiddleware.js';
-import { isSameUser } from '../middleware/identification/user.js';
 
 
 const router = Router();
@@ -51,73 +49,71 @@ const router = Router();
 
 
 
-router.get('/',checkJWT,mustBeAdmin, getComments);
+router.get('/',checkJWT, getComments);
 
 /**
  * @swagger
- * /comments/: 
- *  post: 
- *      summary: Add a comment 
- *      security: 
- *          - bearerAuth: []
- *      tags: 
- *          - Comment
- *      requestBody: 
- *         content: 
- *              application/json: 
- *                 schema: 
- *                  $ref: '#/components/schemas/createCommentSchema'
- *      
- *      responses: 
- *         200: 
- *          $ref: "#/components/responses/CommentAdded"
- *         400: 
- *          $ref: "#/components/responses/ValidationError"
- *         401: 
- *          $ref: "#/components/responses/UnauthorizedError"
- *         500: 
- *          description: Server error      
- * 
+ * /comments:
+ *   post:
+ *     summary: Add a comment
+ *     security:
+ *       - bearerAuth: []
+ *     tags:
+ *       - Comment
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/CreateCommentSchema'
+ *     responses:
+ *       201:
+ *         $ref: "#/components/responses/CommentAdded"
+ *       400:
+ *         $ref: "#/components/responses/ValidationError"
+ *       401:
+ *         $ref: "#/components/responses/UnauthorizedError"
+ *       500:
+ *         description: Server error
  */
-
-
 
 
 router.post('/',checkJWT,commentValidatorMiddleware.addCommentValidator,createComment);
 
 /**
  * @swagger
- * /comments/{id}: 
- *   patch: 
- *      summary: An administrator updates a comment
- *      security: 
- *          - bearerAuth: []
- *      tags: 
- *          - Comment
- *      parameters: 
- *          - name: id 
- *            in: path 
- *            required: true 
- *            schema: 
- *              type: integer
- * 
- *      requestBody:
- *           content: 
- *              application/json: 
- *                  schema: 
- *                     $ref: '#/components/schemas/updateCommentSchema'
- *      responses: 
- *         200:
- *           $ref: '#/components/responses/CommentUpdated'
- *         400: 
- *           $ref: '#/components/responses/ValidationError'
- *         401: 
- *           $ref: '#/components/responses/UnauthorizedError'
- *         404: 
- *           $ref: '#/components/responses/CommentNotFound'
- *         500: 
- *           description: Server error 
- *   
+ * /comments/{id}:
+ *   patch:
+ *     summary: An administrator updates a comment
+ *     security:
+ *       - bearerAuth: []
+ *     tags:
+ *       - Comment
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/UpdateCommentSchema'
+ *     responses:
+ *       200:
+ *         $ref: '#/components/responses/CommentUpdated'
+ *       400:
+ *         $ref: '#/components/responses/ValidationError'
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       403:
+ *         $ref: '#/components/responses/AccessDeniedError'
+ *       404:
+ *         $ref: '#/components/responses/CommentNotFound'
+ *       500:
+ *         description: Server error
  */
 
 
@@ -144,18 +140,22 @@ router.patch('/:id',checkJWT, mustBeAdmin,commentValidatorMiddleware.updateComme
  *              
  *      responses:
  *          204:
- *            $ref: '#/components/responses/CommentDeleted'
+ *            description: The comment has been deleted from the database
+ *            content: 
+ *              text/plain: 
+ *                 schema:
+ *                    type: string 
  *          401:
  *            $ref: '#/components/responses/UnauthorizedError'
+ *          403: 
+ *            $ref: '#/components/responses/AccessDeniedError'
  *          404:
  *            $ref: '#/components/responses/CommentNotFound'
  *          500:
- *            description: Server error
- *  
+ *            description: Server error  
  */
 
-
-router.delete('/:id', orMiddleware(mustBeAdmin, isSameUser),checkJWT, deleteComment);
+router.delete('/:id',checkJWT, deleteComment);
 
 
 export default router;

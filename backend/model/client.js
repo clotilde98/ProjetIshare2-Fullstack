@@ -3,7 +3,8 @@ import 'dotenv/config';
 import argon2 from "argon2";
 
 
-export const createUser = async (SQLClient, { googleId, username, email, password, streetNumber, street, photo = null, isAdmin = false, addressID }) => {
+
+export const createUser = async (SQLClient, { googleId = null, username, email, password, streetNumber, street, photo = null, isAdmin = false, addressID }) => {
 
   if (password){
     const pepper = process.env.PEPPER;
@@ -13,13 +14,12 @@ export const createUser = async (SQLClient, { googleId, username, email, passwor
   }
   
   
-  const { rows } = await SQLClient.query(
-    `INSERT INTO Client (googleId, username, email, password, street_number, street, photo, is_admin, address_id) VALUES ($1, $2, $3, $4, $5, $6, $7 ,$8, $9) RETURNING *`,
-    [googleId, username, email, password, streetNumber, street, photo, isAdmin, addressID]
-  );
-  return rows[0];
+ const { rows } = await SQLClient.query(
+  `INSERT INTO Client (googleId, username, email, password, street_number, street, photo, is_admin, address_id) VALUES ($1, $2, $3, $4, $5, $6, $7 ,$8, $9) RETURNING *`,
+  [googleId, username, email, password, streetNumber, street, photo, isAdmin, addressID]
+ );
+ return rows[0];
 };
-
 
 
 export const getUserById = async (SQLClient, id) => {
@@ -68,17 +68,17 @@ export const updateUser = async (SQLClient, id, { username, email, password, pho
     const querySet = []; 
     const queryValues = []; 
 
-    if (username ) {
+    if (username) {
         queryValues.push(username);
         querySet.push(`username = $${queryValues.length}`);
     }
     
-    if (email ) {
+    if (email) {
         queryValues.push(email);
         querySet.push(`email = $${queryValues.length}`);
     }
     
-    if (password ) {
+    if (password) {
         queryValues.push(password);
         querySet.push(`password = $${queryValues.length}`);
     }
@@ -88,7 +88,7 @@ export const updateUser = async (SQLClient, id, { username, email, password, pho
         querySet.push(`photo = $${queryValues.length}`);
     }
     
-    if (isAdmin) { 
+    if (isAdmin !== undefined) { 
         queryValues.push(isAdmin);
         querySet.push(`is_admin = $${queryValues.length}`);
     }
@@ -103,16 +103,16 @@ export const updateUser = async (SQLClient, id, { username, email, password, pho
         querySet.push(`street_number = $${queryValues.length}`);
     }
 
-    if (queryValues.length > 0) {
-        queryValues.push(id);
-        
-        query += `${querySet.join(", ")} WHERE id = $${queryValues.length} RETURNING *`;
-        
-        return SQLClient.query(query, queryValues);
-
-    } else {
+    if (queryValues.length === 0) {
         throw new Error("No field given for user update.");
     }
+
+    queryValues.push(id);
+    // On exclut le password dans le RETURNING
+    query += `${querySet.join(", ")} WHERE id = $${queryValues.length} RETURNING id, username, email, photo, is_admin, street, street_number`;
+
+    const result = await SQLClient.query(query, queryValues);
+    return result.rows[0];
 };
 
 export const deleteUser = async (SQLClient, id) => {
@@ -159,7 +159,7 @@ export const getUsers = async (SQLClient, { name, role, page = 1, limit = 10 }) 
         const limitIndex = values.length + 1; 
         const offsetIndex = values.length + 2; 
 
-        const dataQuery = `SELECT c.id, c.username, c.email, c.registration_date,
+        const dataQuery = `SELECT c.id, c.username, c.email, c.registration_date, c.address_id,
                 c.is_admin, a.city, a.postal_code, c.street, c.street_number
         FROM Client c
         JOIN Address a ON c.address_id = a.id

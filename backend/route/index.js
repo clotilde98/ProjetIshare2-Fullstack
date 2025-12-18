@@ -16,16 +16,9 @@ import productTypeRouter from './productTypeRoute.js'
 const router = Router();
 
 router.use('/users',userRouter);
-<<<<<<< HEAD
-router.use('/posts', postRouter);
-router.use('/reservations', reservationRouter);
-router.use('/comments', commentRouter);
-router.use('/productType', productTypeRouter);
-=======
 router.use('/posts', checkJWT,postRouter);
 router.use('/reservations',checkJWT, reservationRouter);
 router.use('/comments',checkJWT, commentRouter);
->>>>>>> 8e043f54b6f6ff332889af831690d986726b206e
 
 /**
  * @swagger
@@ -40,7 +33,7 @@ router.use('/comments',checkJWT, commentRouter);
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/loginSchema'
+ *             $ref: '#/components/schemas/LoginSchema'
  *     responses:
  *       200: 
  *          $ref: '#/components/responses/ConnectionSuccess'
@@ -67,17 +60,19 @@ router.post('/login',clientValidatorMiddleware.loginValidator, login)
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/loginSchema'
+ *             $ref: '#/components/schemas/LoginSchema'
  *     responses:
- *       '200':
+ *        200:
  *         $ref: '#/components/responses/ConnectionSuccess'
- *       '401':
+ *        400:
+ *          $ref: '#/components/responses/ValidationError'
+ *        401:
  *         $ref: '#/components/responses/InvalidInput'
  */
 
 
 router.post('/loginWithGoogle', clientValidatorMiddleware.loginValidator, loginWithGoogle)
-<<<<<<< HEAD
+
 /**
  * @swagger 
  * /stats: 
@@ -94,10 +89,9 @@ router.post('/loginWithGoogle', clientValidatorMiddleware.loginValidator, loginW
  *          description: Error server
  */
 
-router.get('/stats', checkJWT, mustBeAdmin , getAllStats)
-=======
+
+
 router.get('/stats', checkJWT, orMiddleware(mustBeAdmin) , getAllStats)
->>>>>>> 8e043f54b6f6ff332889af831690d986726b206e
 /**
  * @swagger
  * /getAllCities: 
@@ -115,10 +109,6 @@ router.get('/stats', checkJWT, orMiddleware(mustBeAdmin) , getAllStats)
  *      
  */
 
-<<<<<<< HEAD
-router.get('/getAllCities',checkJWT, getAllCities);
-
-=======
 router.get('/getAllCities',checkJWT,orMiddleware(mustBeAdmin), getAllCities);
 /**
  * @swagger
@@ -137,6 +127,5 @@ router.get('/getAllCities',checkJWT,orMiddleware(mustBeAdmin), getAllCities);
  *         description: Error server 
  */
 router.use('/productType', productTypeRouter);
->>>>>>> 8e043f54b6f6ff332889af831690d986726b206e
 
 export default router;

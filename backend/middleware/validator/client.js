@@ -2,48 +2,65 @@ import vine from '@vinejs/vine';
 
 
 /**
- * 
- * 
+ * @swagger
+ * components: 
+ *  schemas: 
+ *      AddClientSchema: 
+ *              type: object 
+ *              properties: 
+ *                  googleId: 
+ *                      type: string  
+ *                  username: 
+ *                      type: string 
+ *                  street: 
+ *                      type: string
+ *                  streetNumber: 
+ *                      type: integer
+ *                  email: 
+ *                      type: string
+ *                  password: 
+ *                      type: string
+ *              required: 
+ *                  - username
+ *                  - street
+ *                  - steetNumber 
+ *                  - email
+ *                  - password 
  * 
  */
 
 const addClientSchema = vine.object({
-    googleId: vine.string().trim().optional(),
     username: vine.string().trim(),
     street : vine.string().trim(),
-    streetNumber : vine.string(), 
+    streetNumber : vine.number(), 
     email: vine.string().email().trim(),
-<<<<<<< HEAD
     password: vine.string()
 });
-
 
 /**
  * @swagger
  * components:
  *  schemas:
- *      updateSchema:
+ *      UpdateSchema:
  *          type: object
  *          properties:
  *              username:
- *                  type: string
+ *                  type: string 
  *              street: 
  *                  type: string
  *              streetNumber: 
  *                  type: integer
  *              photo:
  *                  type: string 
- *              password: 
+ *              oldPpassword: 
  *                  type: string 
+ *              newPassord: 
+ *                  type: string
  *              isAdmin:
  *                  type: boolean
  */             
             
 
-=======
-    password: vine.string().optional(),
-}); 
->>>>>>> 8e043f54b6f6ff332889af831690d986726b206e
 
 
 const updateClientSchema =  vine.object({
@@ -52,14 +69,15 @@ const updateClientSchema =  vine.object({
     streetNumber : vine.number().optional(), 
     photo:vine.string().optional(),
     password: vine.string().optional(), 
-    isAdmin:vine.boolean().optional()
+    oldPassword: vine.string().optional(),
 }); 
+ 
 
 /**
  * @swagger
  * components:
  *   schemas:
- *     loginSchema:
+ *     LoginSchema:
  *       type: object
  *       properties:
  *         email:
@@ -74,11 +92,6 @@ const updateClientSchema =  vine.object({
 const loginSchema = vine.object({
     email: vine.string().email(),
     password: vine.string().optional(),
-    idToken: vine.string().trim().optional(),
-    username: vine.string().trim().optional(),
-    street : vine.string().trim().optional(),
-    streetNumber : vine.number().optional(), 
-    photo:vine.string().optional(),
 });
 
 export const

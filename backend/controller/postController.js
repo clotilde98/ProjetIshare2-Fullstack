@@ -2,6 +2,10 @@ import { pool } from "../database/database.js";
 import {createPostCategory} from '../model/postCategory.js'
 import * as postModel from '../model/postDB.js';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const destFolderImages = path.join(__dirname, '../middleware/photo/');
+
 /**
  * @swagger
  * components:
@@ -64,20 +68,6 @@ import * as postModel from '../model/postDB.js';
  *         application/json:
  *           schema:
  *             $ref: '#/components/schemas/Post'
- * 
- *     PostNotFound:
- *       description: The searched post does not exist
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               error:
- *                 type: string
- *                 example: "Post not found"
- *               code:
- *                 type: string
- *                 example: "POST_NOT_FOUND"
  */
 
 export const getPost = async (req, res) => {
@@ -114,85 +104,94 @@ export const getPost = async (req, res) => {
 
 export const getPosts = async (req, res) => {
     try {
-        const { city, postStatus, page, limit } = req.query;
-        const posts = await postModel.getPosts(pool, {city, postStatus, page, limit})
+        const { city, postStatus } = req.query;
+
+        const page = req.query.page ? Number(req.query.page) : 1;
+        const limit = req.query.limit ? Number(req.query.limit) : 10;
+
+        if (Number.isNaN(page) || Number.isNaN(limit)) {
+            return res.status(400).send("Page and limit must be numbers");
+        }
+
+        const posts = await postModel.getPosts(pool, {
+            city,
+            postStatus,
+            page,
+            limit
+        });
+
         return res.status(200).json(posts);
+
     } catch (err) {
-        res.status(500).send(err.message);
+        res.status(500).send("Internal server error : " + err.message);
     }
 }
-
-
-
-/**
- * @swagger
- * components:
- *   responses:
- *     PostCreated:
- *       description: Thanks to the transaction, the user was identified and linked to the post, and a row was created in the PostCategory table.
- *       content:
- *         text/plain:
- *           schema:
- *             type: string
- *
- *     UnauthorizedToAccess:
- *       description: User is not authorized to access this resource because this is neither a user nor an administrator
- *       content:
- *         text/plain:
- *           schema:
- *             type: string
- */
 
 
 
 export const createPost = async (req, res) => {
     let client;
     try {
-        
-        const { categoriesProduct, clientID: providedClientID } = req.body; 
-        
-        if (!categoriesProduct || categoriesProduct.length === 0){
-            return res.status(400).send("Missing product category to create a post");
+
+        let userID = req.user.id;
+
+        const photo = req.file;
+
+        if (req.body.providedClientID) {
+            if (req.user.isAdmin) {
+                userID = req.body.providedClientID;
+            } else {
+                return res.status(403).send("Admin privilege required");
+            }
         }
-        
+
+        let imageName = null;
+
+        let categoriesProduct = [];
+        if (req.body.categoriesProduct) {
+            categoriesProduct = JSON.parse(req.body.categoriesProduct);
+            if (!Array.isArray(categoriesProduct) || categoriesProduct.length === 0) {
+                return res.status(400).send("Post category required.");
+            }
+        } else {
+            return res.status(400).send("Post category required.")
+        }
+
         client = await pool.connect();
-        await client.query('BEGIN'); 
-        
-        let clientIDToUse;
-                
-        if (req.user && req.user.isAdmin && providedClientID) {
-            clientIDToUse = providedClientID;
-        } else if (req.user) {
-            clientIDToUse = req.user.id;
-        }else {
-            return res.status(401).send("Authentication required to create a post.");
-        }
+        await client.query('BEGIN');
 
-        if (!clientIDToUse) {
-             await client.query('ROLLBACK');
-             return res.status(401).send("Client ID is missing or unauthorized.");
+        if (photo){
+            imageName = uuid.v4();
+            req.body.photo = imageName;
+            await saveImage(photo.buffer, imageName, destFolderImages); 
         }
 
 
-        const post = await postModel.createPost(client, clientIDToUse, req.body);
+        const post = await postModel.createPost(client, userID, req.body);
         const postID = post.id;
 
         for (const categoryID of categoriesProduct) {
-            await createPostCategory(client, { IDCategory :categoryID, IDPost: postID });
+            await createPostCategory(client, { IDCategory: categoryID, IDPost: postID });
         }
 
         await client.query('COMMIT');
 
-        res.status(201).send("Post created");
-    } catch (err){
-        
-            await client.query('ROLLBACK'); 
-    
-        res.status(500).send(err.message);
+        res.status(201).send({ post });
+
+    } catch (err) {
+        if (client) {
+            await client.query('ROLLBACK');
+        }
+
+        res.status(500).send("Internal server error : " + err.message);
+
     } finally {
-        if (client) client.release();
+        if (client) {
+            client.release();
+        }
     }
 }
+
 
 
 /**
@@ -210,15 +209,69 @@ export const createPost = async (req, res) => {
 
 
 export const updatePost = async (req, res) => {
+    let client;
     try {
-        const {numberOfPlaces} = req.body
-        if (numberOfPlaces < 0){
-            return res.status(400).send("Number of places must be positive");
+        let userID = req.user.id;
+        const postID = Number(req.params.id);
+
+        if (Number.isNaN(postID)) {
+            return res.status(400).send("Invalid post ID");
         }
-        await postModel.updatePost(pool, req.body);
-        res.sendStatus(204).send("Post updated")
+        
+        const post = await postModel.readPost(pool, {id:postID});
+        
+        if (!post){
+            return res.status(404).send("Post not found")
+        }
+
+        
+        
+        if (post.client_id === userID || req.user.isAdmin){
+            let imageName = null;
+            const photo = req.file;
+            if (photo) {
+                imageName = uuid.v4();
+                req.body.photo = imageName;
+                await saveImage(photo.buffer, imageName, destFolderImages);
+            }
+
+
+            let categoriesProduct = [];
+            if (req.body.categoriesProduct) {
+                categoriesProduct = JSON.parse(req.body.categoriesProduct);
+                if (!Array.isArray(categoriesProduct) || categoriesProduct.length === 0) {
+                    return res.status(400).send("Post category required.");
+                }
+            } else {
+                return res.status(400).send("Post category required.")
+            }
+
+            client = await pool.connect();
+            await client.query('BEGIN');
+
+            await deletePostCategoriesForPostID(client, postID);
+
+
+            for (const categoryID of categoriesProduct) {
+                await createPostCategory(client, { IDCategory: categoryID, IDPost: postID });
+            }
+
+            
+            const updatedPost = await postModel.updatePost(client, postID, req.body)
+
+
+            await client.query('COMMIT');
+
+            return res.status(200).send({updatedPost});
+        } else {
+            return res.status(403).send("Admin privilege required.");
+        }
+
     } catch (err){
-        res.status(500).send(err.message);
+        if (client) await client.query('ROLLBACK');
+        res.status(500).send("Internal server error : " + err.message);
+    } finally {
+        if (client) client.release();
     }
 }
 
@@ -237,20 +290,30 @@ export const updatePost = async (req, res) => {
 
 export const deletePost = async (req, res) => {
     try {
-        const id = req.params.id;
-        if (!id || isNaN(parseInt(id))){
-            return res.status(400).send("Post ID invalid")
+        const userID = req.user.id;
+        const postID = Number(req.params.id);
+        if (Number.isNaN(postID)) {
+            return res.status(400).send("Invalid post ID");
         }
-        const rowCount = await postModel.deletePost(pool, { id });
-        if (!rowCount) {
+
+        const post = await postModel.readPost(pool, {id:postID});
+
+        if (!post) {
             return res.status(404).send("Post not found");
         }
-        res.status(200).send("Post deleted");
+
+        if (post.client_id === userID || req.user.isAdmin){
+            await postModel.deletePost(pool, {id:postID});
+            res.status(200).send("Post deleted");
+        } else {
+            return res.status(403).send("Admin privilege required.");
+        }
 
     } catch (err) {
-        res.sendStatus(500).send(err.message);
+        res.sendStatus(500);
     }
 };
+
 
 /**
  * @swagger
@@ -269,7 +332,7 @@ export const deletePost = async (req, res) => {
 
 export const searchPostByCategory = async(req, res) => {
     try {
-         const posts = await postModel.searchPostByCategory(pool, req.body);
+         const posts = await postModel.searchPostByCategory(pool, req.query.nameCategory);
          res.status(200).send(posts);
     }catch(err){
         res.status(500).send(err.message);

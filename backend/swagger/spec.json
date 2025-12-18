@@ -1,1 +1,2274 @@
-{"openapi":"3.0.0","info":{"title":"API","version":"1.0.0"},"paths":{"/users/":{"post":{"summary":"Add a customer","security":[{"bearerAuth":[]}],"tags":["Customer"],"responses":{"200":{"$ref":"#/components/responses/UserAdded"},"400":{"$ref":"#/components/responses/ValidationError"},"500":{"description":"Error Server"}}},"get":{"summary":"An administrator want see the users.","security":[{"bearerAuth":[]}],"tags":["Customer"],"responses":{"200":{"$ref":"#/components/responses/ReadedUser"},"400":{"$ref":"#/components/responses/InvalidRole"},"401":{"$ref":"#/components/responses/UnauthorizedError"},"403":{"$ref":"#/components/responses/mustBeAdmin"},"500":{"description":"Server error"}}}},"/users/me":{"get":{"summary":"The users want see this own account.","security":[{"bearerAuth":[]}],"tags":["Customer"],"responses":{"200":{"description":"User profile returned","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Client"}}}},"401":{"$ref":"#/components/responses/UnauthorizedError"},"404":{"$ref":"#/components/responses/UserAccount"},"500":{"description":"Server error"}}}},"/users":{"patch":{"summary":"A user wants to update their account, or only an administrator can update a customer account.","security":[{"bearerAuth":[]}],"tags":["Customer"],"requestBody":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/updateSchema"}}}},"responses":{"400":{"$ref":"#/components/responses/ValidationError"},"401":{"$ref":"#/components/responses/UnauthorizedError"},"403":{"$ref":"#/components/responses/AccessDeniedError"},"404":{"$ref":"#/components/responses/UserNotFound"},"500":{"description":"Error server"}}}},"/comments/":{"get":{"summary":"Retrieve a list of comments","parameters":[{"name":"commentDate","in":"query","required":true,"schema":{"type":"string","format":"date"},"description":"Filter comments by date (optional)"},{"name":"page","in":"query","required":false,"schema":{"type":"integer","default":1},"description":"Page number for pagination"},{"name":"limit","in":"query","required":false,"schema":{"type":"integer","default":10},"description":"Number of comments per page"}],"security":[{"bearerAuth":[]}],"tags":["Comment"],"responses":{"200":{"$ref":"#/components/responses/CommentsReaded"},"401":{"$ref":"#/components/responses/UnauthorizedError"},"500":{"description":"Server error"}}},"post":{"summary":"Add a comment","security":[{"bearerAuth":[]}],"tags":["Comment"],"requestBody":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/createCommentSchema"}}}},"responses":{"200":{"$ref":"#/components/responses/CommentAdded"},"400":{"$ref":"#/components/responses/ValidationError"},"401":{"$ref":"#/components/responses/UnauthorizedError"},"500":{"description":"Server error"}}}},"/comments/{id}":{"patch":{"summary":"An administrator updates a comment","security":[{"bearerAuth":[]}],"tags":["Comment"],"parameters":[{"name":"id","in":"path","required":true,"schema":{"type":"integer"}}],"requestBody":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/updateCommentSchema"}}}},"responses":{"200":{"$ref":"#/components/responses/CommentUpdated"},"400":{"$ref":"#/components/responses/ValidationError"},"401":{"$ref":"#/components/responses/UnauthorizedError"},"404":{"$ref":"#/components/responses/CommentNotFound"},"500":{"description":"Server error"}}},"delete":{"summary":"An administrator deletes a comment","description":"Delete a specific comment","security":[{"bearerAuth":[]}],"tags":["Comment"],"parameters":[{"name":"id","in":"path","required":true,"description":"ID of the comment to delete","schema":{"type":"integer"}}],"responses":{"204":{"$ref":"#/components/responses/CommentDeleted"},"401":{"$ref":"#/components/responses/UnauthorizedError"},"404":{"$ref":"#/components/responses/CommentNotFound"},"500":{"description":"Server error"}}}},"/login":{"post":{"summary":"Authenticates a customer","tags":["Niveau principal"],"security":[{"bearerAuth":[]}],"requestBody":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/loginSchema"}}}},"responses":{"200":{"$ref":"#/components/responses/ConnectionSuccess"},"400":{"$ref":"#/components/responses/ValidationError"},"401":{"$ref":"#/components/responses/InvalidInput"},"500":{"description":"Error server"}}}},"/loginWithGoogle":{"post":{"summary":"Authenticates a customer with Google","tags":["Niveau principal"],"security":[{"bearerAuth":[]}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/loginSchema"}}}},"responses":{"200":{"$ref":"#/components/responses/ConnectionSuccess"},"401":{"$ref":"#/components/responses/InvalidInput"}}}},"/stats":{"post":{"summary":"Get all application statistics","tags":["Niveau principal"],"responses":{"200":{"$ref":"#/components/responses/AllStatReaded"},"401":{"$ref":"#/components/responses/UnauthorizedError"},"500":{"description":"Error server"}}}},"/getAllCities":{"get":{"summary":"Get the complete list of cities","tags":["Niveau principal"],"responses":{"200":{"$ref":"#/components/responses/ReadAllCities"},"401":{"$ref":"#/components/responses/UnauthorizedError"},"500":{"description":"Error server"}}}}},"components":{"schemas":{"Address":{"type":"object","properties":{"id":{"type":"integer"},"city":{"type":"string"},"postalCode":{"type":"string"}}},"Client":{"type":"object","properties":{"id":{"type":"integer"},"username":{"type":"string"},"street":{"type":"string"},"streetNumber":{"type":"integer"},"photo":{"type":"string"},"email":{"type":"string"},"password":{"type":"string"}}},"Comment":{"type":"object","properties":{"id":{"type":"integer"},"content":{"type":"string"},"date":{"type":"string","format":"date"},"id_post":{"type":"integer"},"id_costumer":{"type":"integer"}}},"DashboardStats":{"type":"object","properties":{"totalAnnonces":{"type":"integer","description":"Total number of posts"},"totalReservation":{"type":"integer","description":"Total number of reservations"},"totalRetraits":{"type":"integer","description":"Total number of withdrawals"},"utilisateursActifs":{"type":"integer","description":"Total number of active users"}}},"Post":{"type":"object","description":"Represents a blog post or article","properties":{"id":{"type":"integer","description":"Unique identifier for the post","example":1},"postDate":{"type":"string","format":"date","description":"Date when the post was created","example":"2023-10-15"},"description":{"type":"string","description":"Detailed content of the post","example":"This is a detailed description of the post..."},"title":{"type":"string","description":"Title of the post","example":"My First Post"},"numberOfPlaces":{"type":"integer","description":"Number of available places (if applicable)","example":10},"postStatus":{"type":"string","description":"Current status of the post","enum":["draft","published","archived"],"example":"published"},"photo":{"type":"string","description":"URL or path to the post's photo","example":"/images/post1.jpg"},"street":{"type":"string","description":"Street name for location-based posts","example":"Main Street"},"streetNumber":{"type":"string","description":"Street number (string to handle cases like \"123A\")","example":"123"},"addressId":{"type":"integer","description":"Reference to the address","example":5},"clientId":{"type":"integer","description":"Reference to the client/author","example":7}}},"Category":{"type":"object","properties":{"idCategory":{"type":"integer"},"nameCategory":{"type":"string"}}},"updateSchema":{"type":"object","properties":{"username":{"type":"string"},"street":{"type":"string"},"streetNumber":{"type":"integer"},"photo":{"type":"string"},"password":{"type":"string"},"isAdmin":{"type":"boolean"}}},"loginSchema":{"type":"object","properties":{"email":{"type":"string"},"password":{"type":"string"}},"required":["email","password"]},"createCommentSchema":{"type":"object","properties":{"content":{"type":"string"},"idPost":{"type":"integer"},"idCustomer":{"type":"integer"}},"required":["content","idPost","idCustomer"]},"updateCommentSchema":{"type":"object","properties":{"content":{"type":"string"}}}},"responses":{"ReadAllCities":{"description":"All cities read from the external API","content":{"application/json":{"schema":{"type":"array","items":{"$ref":"#/components/schemas/Address"}}}}},"UserAdded":{"description":"The user has been added to the database","content":{"application/json":{"schema":{"type":"object","properties":{"token":{"type":"string"}}}}}},"UpdatedUser":{"description":"The user updated in the database","content":{"text/plain":{"schema":{"type":"string"}}}},"InvalidOldPassword":{"description":"Incorrect old password","content":{"text/plain":{"schema":{"type":"string"}}}},"UserNotFound":{"description":"User not found","content":{"text/plain":{"schema":{"type":"string"}}}},"DeletedUser":{"description":"The user is deleted from the database","content":{"text/plain":{"schema":{"type":"string"}}}},"UserAccount":{"description":"The user want see his account","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Client"}}}},"ReadedUser":{"description":"The user wants to read the existing users","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Client"}}}},"InvalidRole":{"description":"The role is invalid","content":{"text/plain":{"schema":{"type":"string"}}}},"CommentAdded":{"description":"The Comment added at the database","content":{"application/json":{"schema":{"type":"object","properties":{"id":{"type":"integer"}}}}}},"CommentUpdated":{"description":"The Comment updated in the database","content":{"text/plain":{"schema":{"type":"string"}}}},"CommentNotFound":{"description":"Comment not found","content":{"application/json":{"schema":{"type":"string"}}}},"CommentDeleted":{"description":"The comment has been deleted from the database","content":{"text/plain":{"schema":{"type":"string"}}}},"CommentsReaded":{"description":"All the comments that correspond to the given date","content":{"application/json":{"schema":{"type":"array","items":{"$ref":"#/components/schemas/Comment"}}}}},"AllStatReaded":{"description":"All stats are obtained","content":{"application/json":{"schema":{"$ref":"#/components/schemas/DashboardStats"}}}},"ConnectionSuccess":{"description":"the token is returned","content":{"application/json":{"schema":{"type":"object","properties":{"token":{"type":"string"}}}}}},"InvalidInput":{"description":"User/password incorrect","content":{"text/plain":{"schema":{"type":"string"}}}},"PostReaded":{"description":"The searched post has been found and read","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Post"}}}},"PostNotFound":{"description":"The searched post does not exist","content":{"application/json":{"schema":{"type":"object","properties":{"error":{"type":"string","example":"Post not found"},"code":{"type":"string","example":"POST_NOT_FOUND"}}}}}},"AllPostsReaded":{"description":"All posts have been successfully retrieved.","content":{"application/json":{"schema":{"type":"array","items":{"$ref":"#/components/schemas/Post"}}}}},"PostCreated":{"description":"Thanks to the transaction, the user was identified and linked to the post, and a row was created in the PostCategory table.","content":{"text/plain":{"schema":{"type":"string"}}}},"UnauthorizedToAccess":{"description":"User is not authorized to access this resource because this is neither a user nor an administrator","content":{"text/plain":{"schema":{"type":"string"}}}},"PostUpdated":{"description":"The requested post has been updated.","content":{"text/plain":{"schema":{"type":"string"}}}},"PostDeleted":{"description":"The requested post has been deleted.","content":{"text/plain":{"schema":{"type":"string"}}}},"AllPostByCategory":{"description":"Requested posts from a certain category are returned.","content":{"application/json":{"schema":{"type":"array","items":{"$ref":"#/components/schemas/Post"}}}}},"CategoryReaded":{"description":"Category successfully retrieved","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Category"}}}},"CategoryProductCreated":{"description":"The requested category of product has been created successfully.","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Category"}}}},"ExistingType":{"description":"The requested category already exists (duplicates are not allowed).","content":{"application/json":{"schema":{"type":"object","properties":{"error":{"type":"string","example":"Conflict"},"message":{"type":"string","example":"Category already exists"},"code":{"type":"string","example":"DUPLICATE_CATEGORY"}}}}}},"TypeProductUpdated":{"description":"The requested type of product is successfully updated","content":{"text/plain":{"schema":{"type":"string","example":"Type product updated successfully"}}}},"TypeProductNotFound":{"description":"The requested type of product was not found","content":{"text/plain":{"schema":{"type":"string","example":"Type product not found"}}}},"TypeProductDeleted":{"description":"The requested type of product is deleted.","content":{"text/plain":{"schema":{"type":"string"}}}},"UnauthorizedError":{"description":"Access token is missing or invalid","content":{"application/json":{"schema":{"type":"object","properties":{"error":{"type":"string","example":"Unauthorized"},"message":{"type":"string","example":"JWT is missing or invalid"}}}}}},"mustBeAdmin":{"description":"User verification requires administrator privileges","content":{"text/plain":{"schema":{"type":"string","example":"Admin privileges required"}}}},"AccessDeniedError":{"description":"Not the same user or not an admin","content":{"text/plain":{"schema":{"type":"string","example":"Access denied"}}}},"ValidationError":{"description":"the error(s) described","content":{"text/plain":{"schema":{"type":"string"}}}}},"securitySchemes":{"bearerAuth":{"type":"http","scheme":"bearer","bearerFormat":"JWT"}}},"tags":[]}
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "API",
+    "version": "1.0.0"
+  },
+  "components": {
+    "responses": {
+      "ObjectNotFound": {
+        "description": "Not found",
+        "content": {
+          "text/plain": {
+            "schema": {
+              "type": "string",
+              "example": "User not found"
+            }
+          }
+        }
+      },
+      "ObjectCompetingEdition": {
+        "description": "Already exists",
+        "content": {
+          "text/plain": {
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "AccessDeniedError": {
+        "description": "Need the permission",
+        "content": {
+          "text/plain": {
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "ReadAllCities": {
+        "description": "All cities read from the external API",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/Address"
+              }
+            }
+          }
+        }
+      },
+      "UserAdded": {
+        "description": "The user has been added to the database",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "token": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "UpdatedUser": {
+        "description": "The user updated in the database",
+        "content": {
+          "text/plain": {
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "InvalidOldPassword": {
+        "description": "Incorrect old password",
+        "content": {
+          "text/plain": {
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "UserNotFound": {
+        "description": "User not found",
+        "content": {
+          "text/plain": {
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "DeletedUser": {
+        "description": "The user is deleted from the database",
+        "content": {
+          "text/plain": {
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "UserAccount": {
+        "description": "The user want see his account",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Client"
+            }
+          }
+        }
+      },
+      "ReadedUser": {
+        "description": "The user wants to read the existing users",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Client"
+            }
+          }
+        }
+      },
+      "InvalidRole": {
+        "description": "The role is invalid",
+        "content": {
+          "text/plain": {
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "CommentAdded": {
+        "description": "The Comment added at the database",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "integer"
+                }
+              }
+            }
+          }
+        }
+      },
+      "CommentUpdated": {
+        "description": "The Comment updated in the database",
+        "content": {
+          "text/plain": {
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "CommentNotFound": {
+        "description": "Comment not found",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "CommentDeleted": {
+        "description": "The comment has been deleted from the database",
+        "content": {
+          "text/plain": {
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "CommentsReaded": {
+        "description": "All the comments that correspond to the given date",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/Comment"
+              }
+            }
+          }
+        }
+      },
+      "AllStatReaded": {
+        "description": "All stats are obtained",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/DashboardStats"
+            }
+          }
+        }
+      },
+      "ConnectionSuccess": {
+        "description": "the token is returned",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "token": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "InvalidInput": {
+        "description": "User/password incorrect",
+        "content": {
+          "text/plain": {
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "PostReaded": {
+        "description": "The searched post has been found and read",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Post"
+            }
+          }
+        }
+      },
+      "AllPostsReaded": {
+        "description": "All posts have been successfully retrieved.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/Post"
+              }
+            }
+          }
+        }
+      },
+      "PostUpdated": {
+        "description": "The requested post has been updated.",
+        "content": {
+          "text/plain": {
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "PostDeleted": {
+        "description": "The requested post has been deleted.",
+        "content": {
+          "text/plain": {
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "AllPostByCategory": {
+        "description": "Requested posts from a certain category are returned.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/Post"
+              }
+            }
+          }
+        }
+      },
+      "CategoryReaded": {
+        "description": "Category successfully retrieved",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Category"
+            }
+          }
+        }
+      },
+      "CategoryProductCreated": {
+        "description": "The requested category of product has been created successfully.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Category"
+            }
+          }
+        }
+      },
+      "TypeProductUpdated": {
+        "description": "The requested type of product is successfully updated",
+        "content": {
+          "text/plain": {
+            "schema": {
+              "type": "string",
+              "example": "Type product updated successfully"
+            }
+          }
+        }
+      },
+      "ReservationsList": {
+        "description": "List of reservations depending on the function used",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/Reservation"
+              }
+            }
+          }
+        }
+      },
+      "ReservationResponse": {
+        "description": "The reservation object is returned",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Reservation"
+            }
+          }
+        }
+      },
+      "UnauthorizedError": {
+        "description": "Access token is missing or invalid",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Unauthorized"
+                },
+                "message": {
+                  "type": "string",
+                  "example": "JWT is missing or invalid"
+                }
+              }
+            }
+          }
+        }
+      },
+      "ValidationError": {
+        "description": "the error(s) described",
+        "content": {
+          "text/plain": {
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "schemas": {
+      "Address": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "city": {
+            "type": "string"
+          },
+          "postalCode": {
+            "type": "string"
+          }
+        }
+      },
+      "Client": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "username": {
+            "type": "string"
+          },
+          "street": {
+            "type": "string"
+          },
+          "streetNumber": {
+            "type": "integer"
+          },
+          "photo": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          }
+        }
+      },
+      "Comment": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "content": {
+            "type": "string"
+          },
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "id_post": {
+            "type": "integer"
+          },
+          "id_costumer": {
+            "type": "integer"
+          }
+        }
+      },
+      "DashboardStats": {
+        "type": "object",
+        "properties": {
+          "totalAnnonces": {
+            "type": "integer",
+            "description": "Total number of posts"
+          },
+          "totalReservation": {
+            "type": "integer",
+            "description": "Total number of reservations"
+          },
+          "totalRetraits": {
+            "type": "integer",
+            "description": "Total number of withdrawals"
+          },
+          "utilisateursActifs": {
+            "type": "integer",
+            "description": "Total number of active users"
+          }
+        }
+      },
+      "Post": {
+        "type": "object",
+        "description": "Represents a blog post or article",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "Unique identifier for the post",
+            "example": 1
+          },
+          "postDate": {
+            "type": "string",
+            "format": "date",
+            "description": "Date when the post was created",
+            "example": "2023-10-15"
+          },
+          "description": {
+            "type": "string",
+            "description": "Detailed content of the post",
+            "example": "This is a detailed description of the post..."
+          },
+          "title": {
+            "type": "string",
+            "description": "Title of the post",
+            "example": "My First Post"
+          },
+          "numberOfPlaces": {
+            "type": "integer",
+            "description": "Number of available places (if applicable)",
+            "example": 10
+          },
+          "postStatus": {
+            "type": "string",
+            "description": "Current status of the post",
+            "enum": [
+              "draft",
+              "published",
+              "archived"
+            ],
+            "example": "published"
+          },
+          "photo": {
+            "type": "string",
+            "description": "URL or path to the post's photo",
+            "example": "/images/post1.jpg"
+          },
+          "street": {
+            "type": "string",
+            "description": "Street name for location-based posts",
+            "example": "Main Street"
+          },
+          "streetNumber": {
+            "type": "string",
+            "description": "Street number (string to handle cases like \"123A\")",
+            "example": "123"
+          },
+          "addressId": {
+            "type": "integer",
+            "description": "Reference to the address",
+            "example": 5
+          },
+          "clientId": {
+            "type": "integer",
+            "description": "Reference to the client/author",
+            "example": 7
+          }
+        }
+      },
+      "Category": {
+        "type": "object",
+        "properties": {
+          "idCategory": {
+            "type": "integer"
+          },
+          "nameCategory": {
+            "type": "string"
+          }
+        }
+      },
+      "Reservation": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "reservationDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "reservationStatus": {
+            "type": "string"
+          },
+          "postId": {
+            "type": "integer"
+          },
+          "clientId": {
+            "type": "integer"
+          }
+        }
+      },
+      "CreateCategoryProductSchema": {
+        "type": "object",
+        "properties": {
+          "nameCategory": {
+            "type": "string"
+          }
+        }
+      },
+      "UpdateCategoryProductSchema": {
+        "type": "object",
+        "properties": {
+          "nameCategory": {
+            "type": "string"
+          }
+        }
+      },
+      "AddClientSchema": {
+        "type": "object",
+        "properties": {
+          "googleId": {
+            "type": "string"
+          },
+          "username": {
+            "type": "string"
+          },
+          "street": {
+            "type": "string"
+          },
+          "streetNumber": {
+            "type": "integer"
+          },
+          "email": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "username",
+          "street",
+          "steetNumber",
+          "email",
+          "password"
+        ]
+      },
+      "UpdateSchema": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string"
+          },
+          "street": {
+            "type": "string"
+          },
+          "streetNumber": {
+            "type": "integer"
+          },
+          "photo": {
+            "type": "string"
+          },
+          "oldPpassword": {
+            "type": "string"
+          },
+          "newPassord": {
+            "type": "string"
+          },
+          "isAdmin": {
+            "type": "boolean"
+          }
+        }
+      },
+      "LoginSchema": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ]
+      },
+      "CreateCommentSchema": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "string"
+          },
+          "idPost": {
+            "type": "integer"
+          },
+          "idCustomer": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "content",
+          "idPost",
+          "idCustomer"
+        ]
+      },
+      "UpdateCommentSchema": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "string"
+          }
+        }
+      },
+      "CreatePostSchema": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "street": {
+            "type": "string"
+          },
+          "streetNumber": {
+            "type": "integer"
+          },
+          "numberOfPlaces": {
+            "type": "integer"
+          },
+          "addressID": {
+            "type": "integer"
+          },
+          "categoriesProduct": {
+            "type": "array",
+            "items": {
+              "type": "number",
+              "minimum": 1
+            }
+          }
+        },
+        "required": [
+          "title",
+          "description",
+          "street",
+          "streetNumber",
+          "numberOfPlaces",
+          "addressID",
+          "categoriesProduct"
+        ]
+      },
+      "UpdatePostSchema": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "street": {
+            "type": "string"
+          },
+          "streetNumber": {
+            "type": "integer"
+          },
+          "numberOfPlaces": {
+            "type": "integer"
+          },
+          "postStatus": {
+            "type": "string",
+            "enum": [
+              "available",
+              "unavailable"
+            ]
+          }
+        }
+      },
+      "CreateReservationSchema": {
+        "type": "object",
+        "properties": {
+          "postID": {
+            "type": "integer"
+          },
+          "reservationStatus": {
+            "type": "string",
+            "enum": [
+              "confirmed",
+              "cancelled"
+            ]
+          }
+        },
+        "required": [
+          "postID",
+          "reservationStatus"
+        ]
+      },
+      "UpdateReservationSchema": {
+        "type": "object",
+        "properties": {
+          "reservationStatus": {
+            "type": "string",
+            "enum": [
+              "confirmed",
+              "cancelled"
+            ]
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  },
+  "paths": {
+    "/users/admin": {
+      "post": {
+        "summary": "Add a new customer (admin only)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "tags": [
+          "Customer"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/AddClientSchema"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "file": {
+                        "type": "string",
+                        "format": "binary"
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "User added successfully",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ObjectCompetingEdition"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/users/": {
+      "post": {
+        "summary": "Add a customer",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "tags": [
+          "Customer"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/AddClientSchema"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "file": {
+                        "type": "string",
+                        "format": "binary"
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "User added successfully",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ObjectCompetingEdition"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      },
+      "get": {
+        "summary": "An administrator want see the users.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "tags": [
+          "Customer"
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/ReadedUser"
+          },
+          "400": {
+            "description": "The role is invalid",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessDeniedError"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      },
+      "patch": {
+        "summary": "An administrator want uptate an user account",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "tags": [
+          "Customer"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/UpdateSchema"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "file": {
+                        "type": "string",
+                        "format": "binary"
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The user was updated in the database",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessDeniedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ObjectNotFound"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/users/me": {
+      "get": {
+        "summary": "The users want see this own account.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "tags": [
+          "Customer"
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/UserAccount"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/UserAccount"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      },
+      "delete": {
+        "summary": "User deletes their own account",
+        "tags": [
+          "Customer"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The user is deleted from the database",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ObjectNotFound"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/users/{id}": {
+      "delete": {
+        "summary": "A user wants to delete their account, or only an administrator can delete an account.",
+        "tags": [
+          "Customer"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The user is deleted from the database",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessDeniedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ObjectNotFound"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/comments/": {
+      "get": {
+        "summary": "Retrieve a list of comments",
+        "parameters": [
+          {
+            "name": "commentDate",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "description": "Filter comments by date (optional)"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 1
+            },
+            "description": "Page number for pagination"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 10
+            },
+            "description": "Number of comments per page"
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "tags": [
+          "Comment"
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/CommentsReaded"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/comments": {
+      "post": {
+        "summary": "Add a comment",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "tags": [
+          "Comment"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCommentSchema"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "$ref": "#/components/responses/CommentAdded"
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/comments/{id}": {
+      "patch": {
+        "summary": "An administrator updates a comment",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "tags": [
+          "Comment"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCommentSchema"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/CommentUpdated"
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessDeniedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/CommentNotFound"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      },
+      "delete": {
+        "summary": "An administrator deletes a comment",
+        "description": "Delete a specific comment",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "tags": [
+          "Comment"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "ID of the comment to delete",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "The comment has been deleted from the database",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessDeniedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/CommentNotFound"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/login": {
+      "post": {
+        "summary": "Authenticates a customer",
+        "tags": [
+          "Niveau principal"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginSchema"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/ConnectionSuccess"
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "401": {
+            "$ref": "#/components/responses/InvalidInput"
+          },
+          "500": {
+            "description": "Error server"
+          }
+        }
+      }
+    },
+    "/loginWithGoogle": {
+      "post": {
+        "summary": "Authenticates a customer with Google",
+        "tags": [
+          "Niveau principal"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginSchema"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/ConnectionSuccess"
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "401": {
+            "$ref": "#/components/responses/InvalidInput"
+          }
+        }
+      }
+    },
+    "/stats": {
+      "post": {
+        "summary": "Get all application statistics",
+        "tags": [
+          "Niveau principal"
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/AllStatReaded"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "500": {
+            "description": "Error server"
+          }
+        }
+      }
+    },
+    "/getAllCities": {
+      "get": {
+        "summary": "Get the complete list of cities",
+        "tags": [
+          "Niveau principal"
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/ReadAllCities"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "500": {
+            "description": "Error server"
+          }
+        }
+      }
+    },
+    "/productType": {
+      "get": {
+        "tags": [
+          "Niveau principal"
+        ],
+        "responses": {
+          "200": {
+            "description": "Read all the successful cities",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error server"
+          }
+        }
+      },
+      "post": {
+        "summary": "An administrator can create a category type",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "tags": [
+          "ProductType"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCategoryProductSchema"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "$ref": "#/components/responses/CategoryProductCreated"
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessDeniedError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ObjectCompetingEdition"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/posts/": {
+      "post": {
+        "summary": "Whether they are an administrator or a user, they can create a post and send confirmation of its creation.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "tags": [
+          "Post"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/CreatePostSchema"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "file": {
+                        "type": "string",
+                        "format": "binary"
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Thanks to the transaction, the user was identified and linked to the post, and a row was created in the PostCategory table.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessDeniedError"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      },
+      "get": {
+        "summary": "Get posts with filters",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "tags": [
+          "Post"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "city",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "postStatus",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/AllPostsReaded"
+          },
+          "400": {
+            "description": "The requested page and its limit must both be a number."
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "500": {
+            "description": "Server Error"
+          }
+        }
+      }
+    },
+    "/byCategory": {
+      "get": {
+        "summary": "Retrieve posts by category",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "tags": [
+          "Post"
+        ],
+        "parameters": [
+          {
+            "name": "nameCategory",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "number",
+                "minimum": 1
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/AllPostByCategory"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/posts/{id}": {
+      "get": {
+        "summary": "Return an existing post using the received ID",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "tags": [
+          "Post"
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/PostReaded"
+          },
+          "400": {
+            "description": "The post ID must be a number.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ObjectNotFound"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      },
+      "patch": {
+        "summary": "Updates an existing post with the option to upload a file.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "example": 1
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/UpdatePostSchema"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "file": {
+                        "type": "string",
+                        "format": "binary"
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "tags": [
+          "Post"
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/PostUpdated"
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessDeniedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ObjectNotFound"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a post using the ID",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The requested post has been deleted.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessDeniedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ObjectNotFound"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/productType/": {
+      "get": {
+        "summary": "Get categories filtered by name",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "tags": [
+          "ProductType"
+        ],
+        "parameters": [
+          {
+            "name": "nameCategory",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            },
+            "required": false
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            },
+            "required": false
+          }
+        ],
+        "responses": {
+          "201": {
+            "$ref": "#/components/responses/CategoryReaded"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/productType/{id}": {
+      "patch": {
+        "summary": "Only an administrator can modify a product category",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "tags": [
+          "ProductType"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCategoryProductSchema"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/ReservationResponse"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessDeniedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ObjectNotFound"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a category product by ID",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "tags": [
+          "ProductType"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "The requested type of product was deleted.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing product category ID",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessDeniedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ObjectNotFound"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/reservations": {
+      "post": {
+        "summary": "Create a reservation for a specific post for a user or create it yourself",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateReservationSchema"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/ReservationResponse"
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      },
+      "get": {
+        "summary": "The administrator wants to see the reservations made in the database.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "username",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/ReservationsList"
+          },
+          "400": {
+            "description": "Bad status, non-existent status in the choices",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessDeniedError"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/reservations/me": {
+      "get": {
+        "summary": "The user wants to see their reservations",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/ReservationsList"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ObjectNotFound"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/reservations/client/{id}": {
+      "get": {
+        "summary": "Only an administrator can see all the reservations a customer has made",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "schema": {
+              "type": "integer"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/ReservationsList"
+          },
+          "400": {
+            "description": "Invalid client ID",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ObjectNotFound"
+          },
+          "500": {
+            "description": "Server Error"
+          }
+        }
+      }
+    },
+    "/reservations/post/{id}": {
+      "get": {
+        "summary": "As an administrator, you can see the bookings of a particular user.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "schema": {
+              "type": "integer"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/ReservationsList"
+          },
+          "400": {
+            "description": "Invalid post ID",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessDeniedError"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/reservations/{id}": {
+      "get": {
+        "summary": "The administrator can view all reservations for a post, the user only those for their own post.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/ReservationResponse"
+          },
+          "400": {
+            "description": "Invalid reservation ID",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessDeniedError"
+          },
+          "500": {
+            "description": "Server Error"
+          }
+        }
+      },
+      "patch": {
+        "summary": "Update a reservation",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "schema": {
+              "type": "integer"
+            },
+            "required": true
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateReservationSchema"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/ReservationResponse"
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessDeniedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ObjectNotFound"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a reservation by ID",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Reservation ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Reservation deleted successfully",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid reservation ID",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessDeniedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ObjectNotFound"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    }
+  },
+  "tags": []
+}

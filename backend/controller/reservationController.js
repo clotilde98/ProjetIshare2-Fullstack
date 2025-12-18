@@ -7,16 +7,46 @@ import {getUserById} from '../model/client.js'
 import * as reservationModel from '../model/reservationDB.js';
 
 
+const VALID_STATUS = ['confirmed', 'cancelled', 'withdrawal']; 
 
-const VALID_STATUSES = ['confirmed', 'cancelled', 'withdrawal']; 
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     Reservation:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *         reservationDate:
+ *           type: string
+ *           format: date
+ *         reservationStatus:
+ *           type: string
+ *         postId:
+ *           type: integer
+ *         clientId:
+ *           type: integer
+ *
+ *   responses:
+ *     ReservationsList:
+ *       description: List of reservations depending on the function used
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: array
+ *             items:
+ *               $ref: '#/components/schemas/Reservation'
+ */
+
 
 export const getReservations = async (req, res) => { 
     try {
         const { username, status, page, limit } = req.query;
 
-        if (status && !VALID_STATUSES.includes(status)) {
+        if (status && !VALID_STATUS.includes(status)) {
             return res.status(400).json({ 
-                message: `Le statut de réservation doit être l'un des suivants : "${VALID_STATUSES.join('", "')}".` 
+                message: `Reservation status can only be : "${VALID_STATUS.join('", "')}".` 
             });
         }
 
@@ -33,37 +63,40 @@ export const getReservations = async (req, res) => {
         res.status(200).json(result); 
         
     } catch (err) {
-        console.error('Erreur récupération réservations :', err.message);
+        res.status(500).send('Internal server error :', err.message);
         
     }
 };
 
-
 export const getReservation = async (req, res) => {
     try {
-        const id = parseInt(req.params.id);
-        if (!id || isNaN(parseInt(id))){
-            return res.status(400).send("Reservation ID is invalid")
+        const reservationID = parseInt(req.params.id);
+        if (Number.isNaN(reservationID)) {
+            return res.status(400).send("Invalid reservation ID");
         }
-        const reservation = await reservationModel.readReservation(pool, {id});
-        if (reservation){
-            res.send(reservation);
-        } else {
-            res.status(404).send("Reservation not found");
+
+        const reservation = await reservationModel.readReservation(pool, { id: reservationID });
+
+        if (!reservation) {
+            return res.status(404).send("Reservation not found");
         }
+
+        res.status(200).json({ reservation });
+
     } catch (err) {
-        res.status(500).send(err.message);
+        res.status(500).send(`Internal server error: ${err.message}`);
     }
-}
+};
+
 
 
 
 export const getMyReservations = async (req, res) => {
     try {
-        const id = req.user.id;
-        const reservations = await reservationModel.readReservationsByClientID(pool, {id});
+        let userID = req.user.id;
+        const reservations = await reservationModel.readReservationsByClientID(pool, {id:userID});
         if (reservations.length > 0){
-            res.send(reservations);
+            res.status(200).send({reservations});
         } else {
             res.status(404).send("Client reservation not found");
         }
@@ -72,18 +105,17 @@ export const getMyReservations = async (req, res) => {
         res.status(500).send(err.message);
     }
 }
+
 
 export const getReservationsByClientID = async (req, res) => {
     try {
-        const id = parseInt(req.params.id);
-        if (!id || isNaN(parseInt(id))){
-            return res.status(400).send("Client reservation ID is invalid")
-        }
+        const clientID = parseInt(req.params.id);
+        if (Number.isNaN(clientID)) return res.status(400).send("Invalid client ID");
+
         
-        const reservations = await reservationModel.readReservationsByClientID(pool, {id});
-        console.log(reservations);
+        const reservations = await reservationModel.readReservationsByClientID(pool, {id:clientID});
         if (reservations.length > 0){
-            res.send(reservations);
+            res.status(200).send({reservations});
         } else {
             res.status(404).send("Client reservation not found");
         }
@@ -92,99 +124,112 @@ export const getReservationsByClientID = async (req, res) => {
     }
 }
 
+
 export const getReservationsByPostID = async (req, res) => {
     try {
-        const id = parseInt(req.params.id);
-        if (!id || isNaN(parseInt(id))){
-            return res.status(400).send("Post reservations ID is invalid")
+        const postID = parseInt(req.params.id);
+        if (Number.isNaN(postID)) return res.status(400).send("Invalid post ID");
+
+        const post = await readPost(pool, {id:postID});
+        if (!post) return res.status(404).send("Post doesn't exist");
+
+        if (post.client_id !== req.user.id && !req.user.isAdmin) return res.status(403).send("Admin privilege required");
+
+
+        const reservations = await reservationModel.readReservationsByPostID(pool, {id:postID});
+        
+        res.status(200).send({reservations});
+        
+    } catch (err) {
+        res.status(500).send("Internal server error : " + err.message);
+    }
+}
+
+/**
+ * @swagger
+ * components:
+ *   responses:
+ *       ReservationResponse: 
+ *            description:  The reservation object is returned   
+ *            content: 
+ *              application/json: 
+ *                     schema: 
+ *                       $ref: '#/components/schemas/Reservation'  
+ */
+
+export const createReservation = async (req, res) => {
+    try {
+        let userID = req.user.id; 
+        const { postID } = req.body;
+
+        if (req.body.providedClientID) {
+            if (req.user.isAdmin) {
+                userID = req.body.providedClientID;
+            } else {
+                return res.status(403).send("Admin privilege required");
+            }
         }
-        const reservation = await reservationModel.readReservationsByPostID(pool, {id});
-        if (reservation){
-            res.send(reservation);
-        } else {
-            res.status(404).send("Post reservations not found");
+
+        const post = await readPost(pool, { id: postID });
+        if (!post) return res.status(404).send("Post doesn't exist");
+
+        if (post.client_id === userID) {
+            return res.status(403).send("You can't make a reservation for a post that you posted");
         }
+
+        if (post.post_status === 'unavailable') {
+            return res.status(409).send("Post is unavailable");
+        }
+
+        const currentReservations = await reservationModel.readReservationsByPostID(pool, { id: postID });
+        if (currentReservations.length >= post.number_of_places) {
+            return res.status(409).send("Number of places for the post has already reached the max capacity");
+        }
+
+        const userReservation = await reservationModel.readReservationByClientIDAndByPostID(pool, { clientID: userID, postID });
+        if (userReservation) {
+            return res.status(409).send("Reservation already exists");
+        }
+
+        const newReservation = await reservationModel.createReservation(pool, userID, req.body); 
+        res.status(201).json({ reservation: newReservation });
+
     } catch (err) {
         res.status(500).send(err.message);
     }
 }
 
 
-export const createReservation = async (req, res) => {
-    try {
-        const currentUserID =  req.user.id ; 
-        const providedClientID = req.body.clientID;
-        const isAdmin = req.user.isAdmin ; 
 
-        let reservationClientID;
-        
-        if (req.user && isAdmin && providedClientID) {
-            reservationClientID = providedClientID;
-        } else if (req.user) {
-            reservationClientID = currentUserID;
-        } else {
-            return res.status(401).send("Authentication required to create a reservation.");
-        }
 
-        const clientID = reservationClientID;         
-        const { postID } = req.body;
-        
-        const post = await readPost(pool, {id : postID});
-        
-        if (!post){
-            return res.status(404).send("Post doesn't exist");
-        } else {
-            if (post.post_status === 'unavailable'){
-                return res.status(404).send("Post is unavailable");
-            }
-            const countCurrentReservationsForPost = await reservationModel.readReservationsByPostID(pool, {id:postID});
-            if (post.number_of_places > countCurrentReservationsForPost.length){
-                const client = await getUserById(pool, clientID); 
-                if (!client){
-                    return res.status(404).send("User not found");
-                } else {
-                    const userReservation = await reservationModel.readReservationByClientIDAndByPostID(pool, {clientID:client.id, postID})
-                    if (userReservation){
-                        return res.status(401).send("Reservation already exists");
-                    }
-
-                    if (post.client_id == clientID){
-                        return res.status(403).send("You can't make a reservation for a post that you posted");
-                    }
-
-                    const newReservation = await reservationModel.createReservation(pool, clientID, req.body); // Utilise l'ID résolu
-                    res.status(201).send(newReservation.id);
-                }
-            } else {
-                res.status(409).send("Number of place for the post had already reached the max capacity");
-            }
-            
-        }
-    } catch (err){
-        res.status(500).send(err.message);
-    }
-}
 
 export const updateReservation = async (req, res) => {
     try {
-        const {reservationDate, reservationStatus} = req.body
-        if (reservationDate){
-            const reservationTimestamp = new Date(reservationDate).getTime();
+        const reservationID = Number(req.params.id);
+        if (Number.isNaN(reservationID)) return res.status(400).send("Invalid reservation ID");
 
-            if (reservationTimestamp < Date.now()) {
-                return res.status(409).send("Reservation date cannot be in the past");
-            }
+        const reservation = await reservationModel.readReservation(pool, {id:reservationID});
+        if (!reservation) return res.status(404).send("Reservation not found");
+
+        if (reservation.client_id !== req.user.id && !req.user.isAdmin) {
+            return res.status(403).send("Admin privilege required.");
         }
+
+
+        const {reservationStatus} = req.body
+       
 
         if (reservationStatus){
-            if (reservationStatus !== 'confirmed' && reservationStatus !== 'cancelled'){
-                return res.status(409).send("Reservation status can only either be 'confirmed' or 'cancelled'");
+            if (!VALID_STATUS.includes(reservationStatus)){
+                return res.status(400).json({ 
+                    message: `Reservation status can only be : "${VALID_STATUS.join('", "')}".` 
+                });
             }
         }
 
 
-        await reservationModel.updateReservation(pool, req.body);
-        res.sendStatus(204)
+        reservationUpdated = await reservationModel.updateReservation(pool, reservationID, req.body);
+        res.sendStatus(200).json(reservationUpdated)
         
     } catch (err){
         res.status(500).send(err.message);
@@ -193,18 +238,25 @@ export const updateReservation = async (req, res) => {
 
 export const deleteReservation = async (req, res) => {
     try {
-        const id = req.params.id;
-        if (!id || isNaN(parseInt(id))){
-            return res.status(400).send("Reservation ID invalid")
+        const reservationID = Number(req.params.id);
+
+        if (Number.isNaN(reservationID)) return res.status(400).send("Invalid reservation ID");
+
+        const reservation = await reservationModel.readReservation(pool, {id:reservationID});
+        if (!reservation) return res.status(404).send("Reservation not found");
+
+
+        if (reservation.client_id !== req.user.id && !req.user.isAdmin) {
+            return res.status(403).send("Admin privilege required.");
         }
-        const rowCount = await reservationModel.deleteReservation(pool, req.params); 
-        if (!rowCount){
-            return res.status(404).send(`Reservation with ID ${id} not found`);
-        } else {
-            res.status(200).send(`Reservation ${id} deleted successfully`);
-        }
+
+
+        await reservationModel.deleteReservation(pool, {id:reservationID}); 
+        
+        res.status(200).send(`Reservation ${reservationID} deleted successfully`);
+        
         
     } catch (err) {
-        res.status(500).send(err.message);
+        res.status(500).send("Internal server error : " + err.message);
     }
 };

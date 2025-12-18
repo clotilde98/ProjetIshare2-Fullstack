@@ -1,22 +1,6 @@
 import {getUserById } from "../../model/client.js"; 
 import { pool } from "../../database/database.js";
 
-
-/**
- * @swagger
- * components:
- *   responses:
- *     AccessDeniedError:
- *       description: Not the same user or not an admin
- *       content:
- *         text/plain:
- *           schema:
- *             type: string
- *             example: Access denied
- */
-
-
-
 export const isSameUser = async(req, res, next) => {
     try{
         

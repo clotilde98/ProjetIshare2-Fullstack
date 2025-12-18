@@ -53,24 +53,8 @@ export const getCategories = async (req, res) => {
  *         application/json:
  *           schema:
  *             $ref: '#/components/schemas/Category'
- *     
- *     ExistingType:
- *       description: The requested category already exists (duplicates are not allowed).
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               error:
- *                 type: string
- *                 example: "Conflict"
- *               message:
- *                 type: string
- *                 example: "Category already exists"
- *               code:
- *                 type: string
- *                 example: "DUPLICATE_CATEGORY"
- */
+ *
+ */           
 
 export const createTypeProduct = async (req, res) => {
     try {
@@ -84,7 +68,7 @@ export const createTypeProduct = async (req, res) => {
 
         const existingType = await typeProductModel.getCategories(pool, categoryData);
         
-        if (existingType && existingType.rows && existingType.rows.length > 0) {
+        if (existingType.rows.length > 0) {
             return res.status(409).send("Type already exists");
         }
 
@@ -112,13 +96,7 @@ export const createTypeProduct = async (req, res) => {
  *           schema:
  *             type: string
  *             example: "Type product updated successfully"
- *     TypeProductNotFound:
- *       description: The requested type of product was not found
- *       content:
- *         text/plain:
- *           schema:
- *             type: string
- *             example: "Type product not found"
+ *  
  */
 
 export const updateTypeProduct = async (req, res) => {
@@ -148,21 +126,6 @@ export const updateTypeProduct = async (req, res) => {
         return res.status(500).send(err.message); 
     }
 };
-
-
-/**
- * @swagger
- * components: 
- *     responses: 
- *          TypeProductDeleted: 
- *                  description: The requested type of product is deleted. 
- *                  content: 
- *                      text/plain: 
- *                          schema: 
- *                              type: string
- *                          
- *                      
- */
 
 
 

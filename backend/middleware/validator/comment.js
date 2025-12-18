@@ -4,7 +4,7 @@ import vine from '@vinejs/vine';
  * @swagger
  * components:
  *   schemas:
- *     createCommentSchema:
+ *     CreateCommentSchema:
  *       type: object
  *       properties:
  *         content:
@@ -32,7 +32,7 @@ export const createCommentSchema = vine.object({
  * @swagger
  * components:
  *   schemas:
- *     updateCommentSchema:
+ *     UpdateCommentSchema:
  *       type: object
  *       properties:
  *         content:
