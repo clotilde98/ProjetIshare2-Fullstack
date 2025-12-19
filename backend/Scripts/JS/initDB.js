@@ -47,7 +47,6 @@ try {
             await pool.query("SELECT 1");
             connected = true;
             } catch (e) {
-            console.log("Waiting for DB...");
             await new Promise(res => setTimeout(res, 1000));
             }
         }
@@ -64,14 +63,6 @@ try {
     const passwordWithPepper = password + pepper;
     const hash = await argon2.hash(passwordWithPepper);
     password = hash
-
-    const clientTable = await pool.query(`
-    SELECT tablename 
-    FROM pg_tables 
-    WHERE schemaname = 'public' AND tablename='client';
-    `);
-    console.log('Client table exists:', clientTable.rows.length > 0);
-
 
 
     for (let i = 0; i < 10; i++) {
