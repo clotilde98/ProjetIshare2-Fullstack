@@ -1,11 +1,10 @@
-import React, { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Form, Button, message, Select, Tag, Modal, Space } from "antd";
 import { EditOutlined, DeleteOutlined, FilterOutlined } from "@ant-design/icons";
 import useStyle from '../styles/table.jsx';
 import Axios from "../services/api";
 import "../styles/body.css";
 
-// Import des composants partagés
 import { useTableLogic } from "../hook/TableLogic";
 import { TableHeader, CustomTable } from "./Datable";
 import { CrudModal } from "./CrudModal";
@@ -21,7 +20,7 @@ const STATUS_OPTIONS = {
 const Reservations = () => {
     const { styles } = useStyle();
 
-    // --- States pour les données secondaires ---
+    
     const [clients, setClients] = useState([]);
     const [postsList, setPostsList] = useState([]);
 
@@ -29,14 +28,14 @@ const Reservations = () => {
     const [loadingPosts, setLoadingPosts] = useState(false);
     const [statusFilter, setStatusFilter] = useState(null);
 
-    // --- States Modals ---
+    
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [editingReservation, setEditingReservation] = useState(null);
     const [deletingReservation, setDeletingReservation] = useState(null);
-    const [mode, setMode] = useState("idle");
+    const [mode, setMode] = useState('');
     const [form] = Form.useForm();
 
-    // --- Hook Logique Table ---
+    
     const {
         data: rawReservations,
         loading,
@@ -48,7 +47,7 @@ const Reservations = () => {
         fetchData: fetchReservations
     } = useTableLogic("/reservations", "username", 10);
 
-    // --- Mapping des données (SANS useMemo, comme dans Posts.jsx) ---
+    
     const reservations = (Array.isArray(rawReservations) ? rawReservations : []).map(reservation => ({
         key: reservation.id,
         id: reservation.id,
@@ -60,7 +59,7 @@ const Reservations = () => {
         title: reservation.title
     }));
 
-    // --- Fetch Secondary Data (Séquentiel sans Promise.all) ---
+    
     const fetchSecondaryData = useCallback(async () => {
         setLoadingClients(true); 
         setLoadingPosts(true);
@@ -79,7 +78,7 @@ const Reservations = () => {
             })));
 
         } catch (error) { 
-            console.error(error); 
+             message.error("Unable to load users or posts."); 
         } finally { 
             setLoadingClients(false); 
             setLoadingPosts(false); 
@@ -90,8 +89,7 @@ const Reservations = () => {
         fetchReservations();
         fetchSecondaryData();
     }, [fetchSecondaryData, fetchReservations]);
-
-    // --- Handlers ---
+    
     const handleTableChange = (page = 1, size = pageSize, search = searchText, status = statusFilter) => {
         fetchReservations(page, size, search, { status: status });
     };
@@ -102,16 +100,16 @@ const Reservations = () => {
     };
 
     const handleStatusFilter = (value) => {
-        const s = value === "all" ? null : value;
+        const select = value === "all" ? null : value;
         setStatusFilter(s);
-        handleTableChange(1, pageSize, searchText, s);
+        handleTableChange(1, pageSize, searchText, select);
     };
 
     const handleCancel = () => {
         setIsModalVisible(false);
         setEditingReservation(null);
         setDeletingReservation(null);
-        setMode("idle");
+        setMode('');
         form.resetFields();
     };
 

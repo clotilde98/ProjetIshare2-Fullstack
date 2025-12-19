@@ -1,4 +1,3 @@
-import React from 'react';
 import { Modal, Button } from 'antd';
 import { RollbackOutlined, SaveOutlined, DeleteOutlined } from '@ant-design/icons';
 

@@ -1,11 +1,11 @@
-import React, { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Form, Button, message, Select, Input, InputNumber, Row, Col, Space, Modal } from "antd";
 import { EditOutlined, DeleteOutlined, FilterOutlined } from "@ant-design/icons";
 import useStyle from '../styles/table.jsx';
 import Axios from "../services/api";
 import "../styles/body.css";
 
-// Import des composants partagés
+
 import { useTableLogic } from "../hook/TableLogic";
 import { TableHeader, CustomTable } from "./Datable";
 import { CrudModal } from "./CrudModal";
@@ -13,9 +13,9 @@ import { CrudModal } from "./CrudModal";
 const { Option } = Select;
 
 const Users = () => {
+
     const { styles } = useStyle();
 
-    // --- 1. LOGIQUE DU HOOK ---
     const {
         data: rawUsers,
         loading,
@@ -27,19 +27,19 @@ const Users = () => {
         fetchData: fetchUsers
     } = useTableLogic("/users", "username", 10);
 
-    // --- ÉTATS SECONDAIRES ---
+    
     const [addresses, setAddresses] = useState([]);
     const [loadingAddresses, setLoadingAddresses] = useState(false);
     const [roleFilter, setRoleFilter] = useState(null);
 
-    // --- ÉTATS UI MODALES ---
+
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [editingUser, setEditingUser] = useState(null);
     const [deletingUser, setDeletingUser] = useState(null);
-    const [mode, setMode] = useState('idle');
+    const [mode, setMode] = useState('');
     const [form] = Form.useForm();
 
-    // --- MAPPING DES DONNÉES (Sans useMemo, comme Reservations.jsx) ---
+
     const users = (Array.isArray(rawUsers) ? rawUsers : []).map(user => ({
         key: user.id,
         id: user.id,
@@ -54,18 +54,18 @@ const Users = () => {
         registrationDate: user.registration_date
     }));
 
-    // --- FETCH DATA SECONDAIRE ---
+    
     const fetchSecondaryData = useCallback(async () => {
         setLoadingAddresses(true);
         try {
             const res = await Axios.get("/getAllCities");
-            const data = res.data?.rows || res.data || [];
+            const data = res.data?.rows || [];
             setAddresses(data.map(city => ({
                 id: city.id,
                 displayName: `${city.city} (${city.postal_code})`,
             })));
         } catch (err) {
-            console.error(err);
+            message.error("Impossible de charger les villes...");
         } finally {
             setLoadingAddresses(false);
         }
@@ -76,7 +76,6 @@ const Users = () => {
         fetchSecondaryData();
     }, [fetchUsers, fetchSecondaryData]);
 
-    // --- HANDLERS ---
     const handleTableChange = (page = 1, size = pageSize, search = searchText, role = roleFilter) => {
         fetchUsers(page, size, search, { role: role });
     };
@@ -96,7 +95,7 @@ const Users = () => {
         setIsModalVisible(false);
         setEditingUser(null);
         setDeletingUser(null);
-        setMode('idle');
+        setMode('');
         form.resetFields();
     };
 
@@ -127,12 +126,16 @@ const Users = () => {
                 photo: null
             };
 
-            if (mode === 'edit') await Axios.patch(`/users/${editingUser.id}`, payload);
-            else await Axios.post("/users/admin", payload);
-            
+            if (mode === 'edit') {
+                await Axios.patch(`/users/${editingUser.id}`, payload);
+            }else{
+                await Axios.post("/users/admin", payload);
+            }   
+        
             message.success("Succès");
             handleCancel();
             handleTableChange();
+        
         } catch (err) {
             const msg = err.response?.data?.message || "Erreur lors de l'opération";
             Modal.error({ title: "Action impossible", content: String(msg) });
@@ -141,13 +144,13 @@ const Users = () => {
 
     const tableColumns = [
         { title: "Email", dataIndex: "email", width: 180, fixed: "left" },
-        { title: "Utilisateur", dataIndex: "username", width: 150 },
+        { title: "Utilisateur", dataIndex: "username", width: 150, },
         {
             title: "Adresse",
             width: 250,
-            render: (_, r) => {
-                const street = (r.street && r.streetNumber) ? `${r.streetNumber} ${r.street}` : '';
-                const city = (r.city && r.postalCode) ? `${r.city} (${r.postalCode})` : '';
+            render: (_, record) => {
+                const street = (record.street && record.streetNumber) ? `${record.streetNumber} ${record.street}` : '';
+                const city = (record.city && record.postalCode) ? `${record.city} (${record.postalCode})` : '';
                 return [street, city].filter(Boolean).join(', ') || 'N/A';
             }
         },
@@ -155,7 +158,7 @@ const Users = () => {
             title: "Inscription",
             dataIndex: "registrationDate",
             width: 120,
-            render: d => d ? new Date(d).toLocaleDateString('fr-FR') : "N/A"
+            render: date => date ? new Date(date).toLocaleDateString('fr-FR') : "N/A"
         },
         {
             title: "Actions",

@@ -52,8 +52,9 @@ export const updateReservation = async(SQLClient, {id, clientID,postID, reservat
 
     if(queryValues.length > 0){
         queryValues.push(id);
-        query += `${querySet.join(", ")} WHERE id = $${queryValues.length}`;
-        return await SQLClient.query(query, queryValues);
+        query += `${querySet.join(", ")} WHERE id = $${queryValues.length} RETURNING *`;
+        const result = await SQLClient.query(query, queryValues);
+        return result.rows[0] || null;
     } else {
         throw new Error("No field given");
     }

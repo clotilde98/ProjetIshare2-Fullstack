@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { Link } from "react-router-dom";
@@ -19,8 +19,8 @@ const Login = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async (event) => {
+    event.preventDefault();
     setError("");
 
     if (!email || !password) {
@@ -42,7 +42,6 @@ const Login = () => {
             }
       }
     } catch (err) {
-      console.error("Erreur de connexion:", err.response ? err.response.data : err.message);
       setError("Email ou mot de passe incorrect.");
       dispatch(logout()); 
     }
@@ -58,10 +57,10 @@ const Login = () => {
           </div>
 
          
-          {error && <div className="alert alert-danger py-1 text-center">{error}</div>} {/* <-- L'erreur s'affichera ici */}
+          {error && <div className="alert alert-danger py-1 text-center">{error}</div>} 
 
       
-          {/* ... Reste du formulaire (email, mot de passe, bouton) ... */}
+       
           <div className="email input-group mb-3 custom-input-group-wrapper">
             <span className="input-group-text userIcon-wrapper" id="email-addon">
               <img className="userIcon" alt="Icône utilisateur" src={user_icon} />
@@ -71,7 +70,7 @@ const Login = () => {
               className="form-control rectangle formParentEmail"
               placeholder="EMAIL"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(event) => setEmail(event.target.value)}
               required
               autoComplete="username"
               inputMode="email"
@@ -87,7 +86,7 @@ const Login = () => {
               className="form-control rectangle motDePasse"
               placeholder="MOT DE PASSE"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(event) => setPassword(event.target.value)}
               required
               autoComplete="current-password"
             />

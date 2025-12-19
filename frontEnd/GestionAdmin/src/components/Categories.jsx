@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Form, Input, message, Space, Button } from 'antd';
 import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import Axios from '../services/api';
@@ -11,15 +11,15 @@ const Categories = () => {
   const { styles } = useStyle();
   const [form] = Form.useForm();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [mode, setMode] = useState('idle'); 
+  const [mode, setMode] = useState(''); 
   const [editing, setEditing] = useState(null);
 
   const { data, loading, page, pageSize, total, search, setSearch, fetchData } = 
     useTableLogic('/productType', 'nameCategory', 5);
 
-  // Transformation des données pour correspondre aux colonnes
+  
   const categories = data.map(categorie => ({ 
-    id: categorie.id_category, // On garde bien l'ID ici
+    id: categorie.id_category, 
     name: categorie.name_category,
     key: categorie.id_category 
   }));
@@ -37,7 +37,7 @@ const Categories = () => {
 
   const handleOpenEdit = (categorie) => { 
     setMode('edit'); 
-    setEditing(categorie); // Contient 'id' et 'name'
+    setEditing(categorie); 
     form.setFieldsValue({ name: categorie.name });
     setIsModalOpen(true);
   };
@@ -51,9 +51,12 @@ const Categories = () => {
   const handleConfirm = async () => {
     try {
       if (mode === 'delete') {
-        if (!editing?.id) return; 
-        await Axios.delete(`/productType/${editing.id}`);
-        message.success('Catégorie supprimée');
+        if (editing?.id){
+          await Axios.delete(`/productType/${editing.id}`);
+          message.success('Catégorie supprimée');
+        }else{
+          message.error("Erreur : ID de catégorie introuvable"); 
+        }
       } else {
         const values = await form.validateFields();
         
@@ -61,12 +64,15 @@ const Categories = () => {
          
           if (!editing?.id) {
             message.error("Erreur : ID de catégorie introuvable");
-            return;
-          }
+            
+          }else{
+            
+          
           await Axios.patch(`/productType/${editing.id}`, { 
             nameCategory: values.name 
           });
           message.success('Catégorie modifiée');
+          }
         } else {
           await Axios.post('/productType', { nameCategory: values.name });
           message.success('Catégorie créée');
@@ -74,10 +80,9 @@ const Categories = () => {
       }
       
       setIsModalOpen(false);
-      // Rafraîchir les données
       fetchData(page, pageSize, search); 
+    
     } catch (err) {
-      console.error("Erreur complète:", err);
       if (err.response?.status === 409) {
         form.setFields([{ name: 'name', errors: ['Ce nom existe déjà.'] }]);
       } else {
@@ -87,14 +92,13 @@ const Categories = () => {
   };
 
   const columns = [
-    { title: 'ID', dataIndex: 'id', width: 100 },
-    { title: 'Nom de la catégorie', dataIndex: 'name' },
+    { title: 'ID', dataIndex: 'id', width: 100,  key: 'id' },
+    { title: 'Nom de la catégorie', dataIndex: 'name'},
     {
       title: 'Actions',
       width: 140,
       render: (_, record) => (
         <Space>
-          {/* On passe bien 'record' qui contient notre 'id' transformé */}
           <Button type="primary" icon={<EditOutlined />} onClick={() => handleOpenEdit(record)} />
           <Button type="primary" danger icon={<DeleteOutlined />} onClick={() => handleOpenDelete(record)} />
         </Space>

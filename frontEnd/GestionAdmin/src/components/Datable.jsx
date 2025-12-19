@@ -1,4 +1,3 @@
-import React from 'react';
 import { Table, Input, Button, Space, DatePicker } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';

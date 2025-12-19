@@ -36,7 +36,7 @@ export const updateComment = async (SQLClient, { id, content }) => {
         }
         
         queryValues.push(id); 
-        query += `${querySet.join(", ")} WHERE id = $${queryValues.length}`;
+        query += `${querySet.join(", ")} WHERE id = $${queryValues.length} RETURNING *`;
 
         const result = await SQLClient.query(query, queryValues);
         return result.rows[0]; 
@@ -44,7 +44,6 @@ export const updateComment = async (SQLClient, { id, content }) => {
         throw new Error("No updateable field given (content)");
     }
 };
-
 
 
 export const getComments = async (SQLClient, { commentDate, page = 1, limit = 10 }) => {

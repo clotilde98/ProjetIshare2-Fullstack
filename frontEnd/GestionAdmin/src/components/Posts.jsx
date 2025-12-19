@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Input, Button, Space, Modal, Form, message, Select, InputNumber, Tag, Row, Col } from "antd";
 import { EditOutlined, DeleteOutlined, CalendarOutlined, FilterOutlined } from "@ant-design/icons";
 import useStyle from '../styles/table.jsx';
@@ -14,7 +14,6 @@ const { Option } = Select;
 const Posts = () => {
   const { styles } = useStyle();
 
-  // --- States pour les données secondaires ---
   const [clients, setClients] = useState([]);
   const [cities, setCities] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -24,11 +23,10 @@ const Posts = () => {
   const [loadingCategories, setLoadingCategories] = useState(false);
   const [statusFilter, setStatusFilter] = useState(null);
 
-  // --- States Modals ---
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingPost, setEditingPost] = useState(null);
   const [deletingPost, setDeletingPost] = useState(null);
-  const [mode, setMode] = useState("idle");
+  const [mode, setMode] = useState('');
   const [form] = Form.useForm();
   
   const [pendingCategoryNames, setPendingCategoryNames] = useState([]);
@@ -36,13 +34,12 @@ const Posts = () => {
   const [reservingPost, setReservingPost] = useState(null);
   const [reserveForm] = Form.useForm();
 
-  // --- Hook Logique Table ---
   const { 
     data: rawPosts, loading, page: currentPage, pageSize, total: totalPosts, 
     search: citySearch, setSearch: setCitySearch, fetchData: fetchPosts 
   } = useTableLogic("/posts", "city", 5);
 
-  // --- Map des Posts ---
+  
   const posts = (Array.isArray(rawPosts) ? rawPosts : []).map((post) => ({
     key: post.id,
     id: post.id,
@@ -61,7 +58,7 @@ const Posts = () => {
     categories: post.categories,
   }));
 
-  // --- Fetch Secondary Data ---
+  
   const fetchSecondaryData = useCallback(async () => {
     setLoadingClients(true); setLoadingCities(true); setLoadingCategories(true);
     try {
@@ -86,7 +83,7 @@ const Posts = () => {
       setCategories(formattedCategories);
 
     } catch (error) { 
-      console.error(error); 
+      message.error(error + "Unable to load data. Please try again later"); 
     } finally { 
       setLoadingClients(false); 
       setLoadingCities(false); 
@@ -109,7 +106,7 @@ const Posts = () => {
     }
   }, [categories, pendingCategoryNames, mode, form]);
 
-  // --- Handlers ---
+  
   const handleTableChange = (page, pageSize) => fetchPosts(page, pageSize, citySearch, { postStatus: statusFilter });
   
   const handleSearch = (value) => { 
@@ -124,11 +121,11 @@ const Posts = () => {
 
   const handleCancel = () => {
     setIsModalVisible(false); setEditingPost(null); setDeletingPost(null);
-    setMode("idle"); form.resetFields(); setPendingCategoryNames([]);
+    setMode(''); form.resetFields(); setPendingCategoryNames([]);
   };
 
   const handleEdit = (post) => {
-    setEditingPost(post); setMode("edit"); form.resetFields();
+    setEditingPost(post); setMode(' '); form.resetFields();
     const names = post.categories ? post.categories.split(",").map(name => name.trim()) : [];
     
     form.setFieldsValue({

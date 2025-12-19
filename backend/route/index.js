@@ -82,6 +82,8 @@ router.post('/loginWithGoogle', clientValidatorMiddleware.loginValidator, loginW
  *          $ref: '#/components/responses/AllStatReaded' 
  *       401: 
  *          $ref: '#/components/responses/UnauthorizedError' 
+ *       403: 
+ *          $ref: '#/components/responses/AccessDeniedError'
  *       500: 
  *          description: Error server
  */

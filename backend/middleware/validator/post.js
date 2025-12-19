@@ -1,5 +1,37 @@
 import vine from '@vinejs/vine';
 
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     CreatePostSchema:
+ *       type: object
+ *       properties:
+ *         title:
+ *           type: string
+ *         description:
+ *           type: string
+ *         street:
+ *           type: string
+ *         streetNumber:
+ *           type: integer
+ *         numberOfPlaces:
+ *           type: integer
+ *         addressID:
+ *           type: integer
+ *         categoriesProduct:
+ *           type: string
+ *       required:
+ *         - title
+ *         - description
+ *         - street
+ *         - streetNumber
+ *         - numberOfPlaces
+ *         - addressID
+ *         - categoriesProduct
+ */
+
+
 
 export const createPostSchema = vine.object({
     title: vine.string().trim(),
@@ -11,6 +43,33 @@ export const createPostSchema = vine.object({
     photo: vine.string().trim().optional(), 
     categoriesProduct: vine.string().trim(),
 }); 
+
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     UpdatePostSchema:
+ *       type: object
+ *       properties:
+ *         title:
+ *           type: string
+ *         description:
+ *           type: string
+ *         street:
+ *           type: string
+ *         streetNumber:
+ *           type: integer
+ *         numberOfPlaces:
+ *           type: integer
+ *         postStatus:
+ *           type: string
+ *           enum:
+ *             - available
+ *             - unavailable
+ *         categoriesProduct:
+ *           type: string
+ */
+
 
 
 
@@ -24,6 +83,8 @@ export const updatePostSchema = vine.object({
     address_id: vine.number().positive().optional(),
     client_id: vine.number().positive().optional(),
     photo: vine.string().trim().optional(), 
+    categoriesProduct: vine.string().trim().optional(), 
+    
 }); 
 
 
