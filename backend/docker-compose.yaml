@@ -1,7 +1,7 @@
 services:
   web:
     build: .
-    command:  node server.js
+    command: npm run start:docker
     ports:
       - "3002:3002"
     depends_on:
@@ -21,11 +21,3 @@ services:
       POSTGRES_DB: ${DBNAME}
     ports:
       - "5432:5432"  
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./Scripts/SQL/initDB.sql:/docker-entrypoint-initdb.d/initDB.sql
-
- 
-
-volumes:
-  postgres_data: 

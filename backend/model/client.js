@@ -35,7 +35,7 @@ export const getUserById = async (SQLClient, id) => {
 
 export const getUserByEmail = async (SQLClient, email) => {
   const { rows } = await SQLClient.query(
-    `SELECT googleId, id, username, email, street, street_number, registration_date, photo, is_admin AS isAdmin, address_id
+    `SELECT googleId, password, id, username, email, street, street_number, registration_date, photo, is_admin AS isAdmin, address_id
      FROM Client
      WHERE email = $1`,
     [email]
