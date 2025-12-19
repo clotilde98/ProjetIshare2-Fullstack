@@ -9,6 +9,41 @@ import * as reservationModel from '../model/reservationDB.js';
 
 const VALID_STATUS = ['confirmed', 'cancelled', 'withdrawal']; 
 
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     Reservation:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *         reservation_date:
+ *           type: string
+ *           format: date
+ *         reservation_status:
+ *           type: string
+ *         post_id:
+ *           type: integer
+ *         client_id:
+ *           type: integer
+ *         title: 
+ *           type: string
+ *         username: 
+ *           type: string
+ *
+ *   responses:
+ *     ReservationsList:
+ *       description: List of reservations depending on the function used
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: array
+ *             items:
+ *               $ref: '#/components/schemas/Reservation'
+ */
+
+
 export const getReservations = async (req, res) => { 
     try {
         const { username, status, page, limit } = req.query;
@@ -114,6 +149,20 @@ export const getReservationsByPostID = async (req, res) => {
 }
 
 
+/**
+ * @swagger
+ * components:
+ *   responses:
+ *       ReservationResponse: 
+ *            description:  The reservation object is returned   
+ *            content: 
+ *              application/json: 
+ *                     schema: 
+ *                       $ref: '#/components/schemas/Reservation'  
+ */
+
+
+
 export const createReservation = async (req, res) => {
     try {
         let userID = req.user.id; 
@@ -200,10 +249,9 @@ export const updateReservation = async (req, res) => {
             }
         }
 
-        console.log(providedClientID);
-        await reservationModel.updateReservation(pool, { id: reservationID, clientID:providedClientID, postID, reservationStatus })
+        const updatedReservation = await reservationModel.updateReservation(pool, { id: reservationID, clientID:providedClientID, postID, reservationStatus })
 
-       return res.status(200).json(updateReservation);
+       return res.status(200).json(updatedReservation);
         
     } catch (err){
         res.status(500).send(err.message);

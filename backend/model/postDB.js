@@ -135,9 +135,11 @@ export const getPosts = async (SQLClient, { city, postStatus, page = 1, limit = 
         const dataQuery = `
             SELECT 
                 p.id, 
-                p.title, 
-                p.number_of_places ,
+                p.title,
                 p.address_id,
+                p.client_id, 
+                p.photo,
+                p.post_date,
                 (
                     p.number_of_places - (
                         -- Calcul des réservations confirmées pour ce post

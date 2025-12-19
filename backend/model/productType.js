@@ -1,10 +1,11 @@
-
-
-export const readCategoryProductFromID = async (SQLClient, id)=>{
-    let query="SELECT * FROM Category_product WHERE id_category = $1"; 
-    const {rows}=await SQLClient.query(query, [id]);
-    return rows;
-}
+export const readCategoryProductFromID = async (SQLClient, idCategory) => {
+    const query = "SELECT id_category, name_category FROM Category_product WHERE id_category = $1";
+    const { rows } = await SQLClient.query(query, [idCategory]);
+    
+    if (rows.length === 0) return null;
+    
+    return rows[0];
+};
 
 export const createTypeProduct = async(SQLClient, {nameCategory}) => {
  const {rows}=await SQLClient.query("INSERT INTO Category_product(name_category) VALUES ($1) RETURNING *",
@@ -25,10 +26,10 @@ export const updateTypeProduct = async (SQLClient, { idCategory, nameCategory })
 
     if (queryValues.length > 0) {
         queryValues.push(idCategory); 
-        query += `${querySet.join(", ")} WHERE id_category = $${queryValues.length}`;
+        query += `${querySet.join(", ")} WHERE id_category = $${queryValues.length} RETURNING *`;
 
-        const result = await SQLClient.query(query, queryValues);
-        return result.rowCount > 0;
+        const results = await SQLClient.query(query, queryValues);
+        return results.rows[0];
     } else {
         throw new Error("No field given (Category name)");
     }
@@ -36,10 +37,10 @@ export const updateTypeProduct = async (SQLClient, { idCategory, nameCategory })
 
 
 export const deleteTypeProduct=async(SQLClient, {idCategory})=> {
-  
-   let query="DELETE FROM Category_product WHERE id_category=$1";
-   const result = await SQLClient.query(query, [idCategory]); 
-   return result.rowCount ; 
+  
+   let query="DELETE FROM Category_product WHERE id_category=$1";
+   const result = await SQLClient.query(query, [idCategory]); 
+   return result.rowCount ; 
 }
 
 

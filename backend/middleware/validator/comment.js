@@ -4,7 +4,7 @@ import vine from '@vinejs/vine';
  * @swagger
  * components:
  *   schemas:
- *     createCommentSchema:
+ *     CreateCommentSchema:
  *       type: object
  *       properties:
  *         content:
@@ -20,7 +20,6 @@ import vine from '@vinejs/vine';
  */
 
 
-
 export const createCommentSchema = vine.object({
     content: vine.string().trim(), 
     idPost: vine.number().positive(),
@@ -30,7 +29,7 @@ export const createCommentSchema = vine.object({
  * @swagger
  * components:
  *   schemas:
- *     updateCommentSchema:
+ *     UpdateCommentSchema:
  *       type: object
  *       properties:
  *         content:
