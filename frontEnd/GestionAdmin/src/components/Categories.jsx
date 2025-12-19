@@ -1,267 +1,152 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { Table, Input, Button, Space, Modal, Form, message } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined, RollbackOutlined } from '@ant-design/icons';
-import Axios from '../services/api'; 
-import "../styles/body.css";
+import React, { useState, useEffect } from 'react';
+import { Form, Input, message, Space, Button } from 'antd';
+import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import Axios from '../services/api';
 import useStyle from '../styles/table.jsx';
+import { useTableLogic } from '../hook/TableLogic.jsx';
+import { TableHeader, CustomTable } from './Datable.jsx'; 
+import { CrudModal } from './CrudModal';
 
 const Categories = () => {
-  const { styles } = useStyle(); 
-    const [categories, setCategories] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { styles } = useStyle();
+  const [form] = Form.useForm();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [mode, setMode] = useState('idle'); 
+  const [editing, setEditing] = useState(null);
 
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(5);
-  const [total, setTotal] = useState(0);
-  const [search, setSearch] = useState('');
+  const { data, loading, page, pageSize, total, search, setSearch, fetchData } = 
+    useTableLogic('/productType', 'nameCategory', 5);
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editing, setEditing] = useState(null); 
-  const [mode, setMode] = useState('idle'); 
-  const [form] = Form.useForm();
+  // Transformation des données pour correspondre aux colonnes
+  const categories = data.map(categorie => ({ 
+    id: categorie.id_category, // On garde bien l'ID ici
+    name: categorie.name_category,
+    key: categorie.id_category 
+  }));
 
+  useEffect(() => { 
+    fetchData(); 
+  }, [fetchData]);
 
-  
-  const handleCancel = () => {
-    setIsModalOpen(false);
-    setEditing(null);
-    setMode('idle'); 
-    form.resetFields();
-  };
+  const handleOpenAdd = () => { 
+    setMode('create'); 
+    setEditing(null); 
+    form.resetFields(); 
+    setIsModalOpen(true); 
+  };
 
-  
-  const fetchCategories = useCallback(async (currentPage = 1, itemsPerPage = pageSize, searchQuery = '') => {
-    setLoading(true);
-    
-    try {
-      const requestParams = { page: currentPage, limit: itemsPerPage };
-      
-      if (searchQuery) {
-        requestParams.nameCategory = searchQuery; 
-      }
+  const handleOpenEdit = (categorie) => { 
+    setMode('edit'); 
+    setEditing(categorie); // Contient 'id' et 'name'
+    form.setFieldsValue({ name: categorie.name });
+    setIsModalOpen(true);
+  };
 
-      const response = await Axios.get('/productType', { params: requestParams });
-      
-      const categoryRows = response.data?.rows ?? [];
-      
-      setCategories(categoryRows.map(categorie => ({ 
-          key: categorie.id_category ,
-          id: categorie.id_category , 
-          name: categorie.name_category 
-      })));
-      
-      setTotal(response.data?.total ?? categoryRows.length);
-      setPage(currentPage);
-      setPageSize(itemsPerPage);
-    } catch (err) {
-      console.error('Erreur lors du chargement des catégories:', err);
-      message.error('Impossible de charger les catégories');
-    } finally {
-      setLoading(false);
-    }
-  }, [pageSize]); 
- 
-  useEffect(() => {
-    fetchCategories(1, pageSize, '');
-  }, [fetchCategories]);
+  const handleOpenDelete = (categorie) => {
+    setMode('delete');
+    setEditing(categorie);
+    setIsModalOpen(true); 
+  };
 
+  const handleConfirm = async () => {
+    try {
+      if (mode === 'delete') {
+        if (!editing?.id) return; 
+        await Axios.delete(`/productType/${editing.id}`);
+        message.success('Catégorie supprimée');
+      } else {
+        const values = await form.validateFields();
+        
+        if (mode === 'edit') {
+         
+          if (!editing?.id) {
+            message.error("Erreur : ID de catégorie introuvable");
+            return;
+          }
+          await Axios.patch(`/productType/${editing.id}`, { 
+            nameCategory: values.name 
+          });
+          message.success('Catégorie modifiée');
+        } else {
+          await Axios.post('/productType', { nameCategory: values.name });
+          message.success('Catégorie créée');
+        }
+      }
+      
+      setIsModalOpen(false);
+      // Rafraîchir les données
+      fetchData(page, pageSize, search); 
+    } catch (err) {
+      console.error("Erreur complète:", err);
+      if (err.response?.status === 409) {
+        form.setFields([{ name: 'name', errors: ['Ce nom existe déjà.'] }]);
+      } else {
+        message.error(err.response?.data?.message || "Erreur lors de l'opération");
+      }
+    }
+  };
 
-  const openAdd = () => {
-    setEditing(null);
-    setMode('create'); 
-    form.resetFields();
-    setIsModalOpen(true);
-  };
+  const columns = [
+    { title: 'ID', dataIndex: 'id', width: 100 },
+    { title: 'Nom de la catégorie', dataIndex: 'name' },
+    {
+      title: 'Actions',
+      width: 140,
+      render: (_, record) => (
+        <Space>
+          {/* On passe bien 'record' qui contient notre 'id' transformé */}
+          <Button type="primary" icon={<EditOutlined />} onClick={() => handleOpenEdit(record)} />
+          <Button type="primary" danger icon={<DeleteOutlined />} onClick={() => handleOpenDelete(record)} />
+        </Space>
+      )
+    }
+  ];
 
-  const openEdit = (categorie) => {
-    setEditing(categorie);
-    setMode('edit'); 
-    form.setFieldsValue({ name: categorie.name }); 
-    setIsModalOpen(true);
-  };
+  return (
+    <div className="details-panel">
+      <h6 className={styles.pageTitle}>Catégories</h6><hr/>
+      
+      <TableHeader 
+        search={search} 
+        onSearch={(val) => { setSearch(val); fetchData(1, pageSize, val); }} 
+        onAdd={handleOpenAdd} 
+        placeholder="Rechercher une catégorie..." 
+      />
 
-  const handleDelete = (categorie) => {
-    setEditing(categorie); 
-    setMode('delete'); 
-    setIsModalOpen(true); 
-  };
+      <CustomTable 
+        styles={styles} 
+        columns={columns} 
+        dataSource={categories} 
+        loading={loading} 
+        page={page} 
+        pageSize={pageSize} 
+        total={total} 
+        onChange={fetchData} 
+      />
 
-
-  const handleDeleteSubmit = async () => {
- 
-    try {
-      await Axios.delete(`/productType/${editing.id}`); 
-      
-      message.success(' Catégorie supprimée avec succès');
-      handleCancel();       
-      const newTotal = total - 1;
-      let newPage = page;      
-      if (categories.length === 1 && page > 1 && newTotal > 0) {
-        newPage = page - 1;
-      } else if (newTotal === 0) {
-        newPage = 1;
-      }
-      
-      fetchCategories(newPage, pageSize, search); 
-      
-    } catch (err) {
-        console.error('Erreur de suppression:', err);
-        
-    }
-  };
-
-
-
-  const submitForm = async (values) => {
-    const currentMode = mode; 
-    try {
-      
-      if (currentMode === 'delete') {
-          return;
-      }
-      
-      if (currentMode === 'edit' && editing) {
-        await Axios.patch(`/productType/${editing.id}`, { nameCategory: values.name });
-
-      } else if (currentMode === 'create') {
-        await Axios.post('/productType', { nameCategory: values.name });
-      }
-
-      handleCancel();
-      
-   fetchCategories(currentMode === 'create' ? 1 : page, pageSize, search);
-
-    } catch (err) {
-      console.error(err);
-      
-      if (err.response?.status === 409) {
-        form.setFields([
-          {
-            name: 'name', 
-            errors: [' Cette catégorie existe déjà. Veuillez en choisir un autre nom.'],
-          },
-        ]);
-      } else {
-        message.error(err.response?.data?.message || ` Erreur lors de l'opération ${currentMode}`);
-        handleCancel();
-      }
-    }
-  };
-
-
-  const columns = useMemo(() => [
-    { title: 'ID', dataIndex: 'id', key: 'id', width: 200 },
-    { title: 'Nom de la catégorie', dataIndex: 'name', key: 'name' }, 
-    {
-      title: 'Actions',
-      key: 'actions',
-      width: 140,
-      render: (_, record) => (
-        <Space size="small">
-          <Button 
-            type="primary" 
-            shape="square"
-            icon={<EditOutlined />} 
-            onClick={() => openEdit(record)} 
-          />
-          <Button 
-            type="primary" 
-            danger 
-            shape="square"
-            icon={<DeleteOutlined />} 
-            onClick={() => handleDelete(record)} 
-          />
-        </Space>
-      )
-    }
-  ], []); 
- 
-  const handleSearchChange = (e) => {
-    const val = e.target.value;
-    setSearch(val);
-    fetchCategories(1, pageSize, val); 
-  };
-  
-
-
-  return (
-    <div className="details-panel">
-        <h6 className={styles.pageTitle}>Catégories</h6>
-       <hr/>
-        
-      <Space style={{ marginBottom: 16 }}>
-        <Input.Search
-          placeholder="Rechercher par nom"
-          value={search}
-          onSearch={nom => { 
-                setSearch(nom); 
-                fetchCategories(1, pageSize, nom); 
-            }}
-          onChange={handleSearchChange}
-          style={{ width: 300 }}
-          allowClear
-        />
-        <Button type="primary" icon={<PlusOutlined />} onClick={openAdd}>Ajouter</Button>
-      </Space>
-
-      <Table
-        className={styles.customTable}
-        columns={columns}
-        dataSource={categories}
-        loading={loading}
-        pagination={{
-          current: page,
-          pageSize,
-          total, 
-          onChange: (page, taille) => fetchCategories(page, taille, search)
-        }}
-        rowKey="id"
-      />
-      
-      <Modal
-        title={mode === 'delete' ? 'Confirmation de suppression' : editing ? 'Modifier la catégorie' : 'Nouvelle catégorie'}
-        open={isModalOpen}
-        onCancel={handleCancel}
-        closable={false}
-        maskClosable={false}
-        footer={
-            mode === 'delete' ? [
-                <Button key="cancel-del" onClick={handleCancel} icon={<RollbackOutlined />}>Annuler</Button>,
-                <Button key="submit-del" type="primary" danger onClick={handleDeleteSubmit}>Supprimer</Button>
-            ] : [
-                <Button key="cancel" onClick={handleCancel} icon={<RollbackOutlined />}>Annuler</Button>,
-                <Button key="submit" type="primary" onClick={() => form.submit()}>{editing ? 'Modifier' : 'Créer'}</Button>
-            ]
-        }
-      >
-
-        {mode === 'delete' ? (
-            <div>
-                <p>Êtes-vous sûr de vouloir supprimer la catégorie suivante ?</p>
-                <p style={{ fontWeight: 'bold', color: '#ff4d4f' }}>{editing?.name || '—'} (ID: {editing?.id || '—'})</p>
-            </div>
-        ) : (
-          <Form 
-                form={form} 
-                layout="vertical" 
-                onFinish={submitForm}
-                initialValues={mode === 'edit' ? { name: editing?.name } : {}} 
-            >
-            <Form.Item 
-                name="name" 
-                label="Nom de la catégorie" 
-                rules={[
-                    { required: true, message: 'Le nom est requis' }, 
-                    
-                ]}
-            >
-              <Input />
-            </Form.Item>
-          </Form>
-        )}
-      </Modal>
-    </div>
-  );
+      <CrudModal 
+        open={isModalOpen} 
+        mode={mode} 
+        onCancel={() => setIsModalOpen(false)} 
+        onConfirm={handleConfirm}
+        title={mode === 'delete' ? 'Confirmation' : (editing ? 'Modifier la catégorie' : 'Nouvelle Catégorie')}
+      >
+        {mode === 'delete' ? (
+          <p>Voulez-vous supprimer <b>{editing?.name}</b> ?</p>
+        ) : (
+          <Form form={form} layout="vertical">
+            <Form.Item 
+              name="name" 
+              label="Nom de la catégorie" 
+              rules={[{ required: true, message: 'Le nom est obligatoire' }]}
+            >
+              <Input  />
+            </Form.Item>
+          </Form>
+        )}
+      </CrudModal>
+    </div>
+  );
 };
 
 export default Categories;

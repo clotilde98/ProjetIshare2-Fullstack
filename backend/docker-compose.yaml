@@ -1,0 +1,31 @@
+services:
+  web:
+    build: .
+    command:  node server.js
+    ports:
+      - "3002:3002"
+    depends_on:
+      - db
+    environment:
+      - PORT=${PORT}
+      - HOSTDB=db
+      - USERDB=${USERDB}
+      - PASSWORDDB=${PASSWORDDB}
+      - DBNAME=${DBNAME}
+
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: ${USERDB}
+      POSTGRES_PASSWORD: ${PASSWORDDB}
+      POSTGRES_DB: ${DBNAME}
+    ports:
+      - "5432:5432"  
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./Scripts/SQL/initDB.sql:/docker-entrypoint-initdb.d/initDB.sql
+
+ 
+
+volumes:
+  postgres_data: 
