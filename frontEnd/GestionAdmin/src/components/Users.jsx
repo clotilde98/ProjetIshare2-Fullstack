@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Form, Button, message, Select, Input, InputNumber, Row, Col, Space, Modal } from "antd";
+import { Form, Button, message, Select, Input, InputNumber, Row, Col, Space } from "antd";
 import { EditOutlined, DeleteOutlined, FilterOutlined } from "@ant-design/icons";
 import useStyle from '../styles/table.jsx';
 import Axios from "../services/api";
 import "../styles/body.css";
+
+import { getUserFormErrors } from "./errorHandler";
 
 // Import des composants partagés
 import { useTableLogic } from "../hook/TableLogic";
@@ -134,8 +136,12 @@ const Users = () => {
             handleCancel();
             handleTableChange();
         } catch (err) {
-            const msg = err.response?.data?.message || "Erreur lors de l'opération";
-            Modal.error({ title: "Action impossible", content: String(msg) });
+        const serverFieldsErrors = getUserFormErrors(err);
+        if (serverFieldsErrors) {
+            form.setFields(serverFieldsErrors);
+        }
+          const msg = err.response?.data?.message || "Erreur lors de l'opération";
+            Modal.error({ title: "Action impossible", content: String(msg) }); 
         }
     };
 
@@ -205,10 +211,10 @@ const Users = () => {
                     <p>Supprimer <b>{deletingUser?.username}</b> ?</p>
                 ) : (
                     <Form form={form} layout="vertical" onFinish={handleFormSubmit}>
-                        <Form.Item name="username" label="Nom d'utilisateur" rules={[{ required: true }]}>
+                        <Form.Item name="username" label="Nom d'utilisateur"  rules={[{ required: true }]}>
                             <Input />
                         </Form.Item>
-                        <Form.Item name="email" label="Email" rules={[{ required: true, type: 'email' }]}>
+                        <Form.Item name="email" label="Email" hasFeedback rules={[{ required: true, type: 'email' }]}>
                             <Input />
                         </Form.Item>
 
