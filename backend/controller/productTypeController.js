@@ -1,5 +1,6 @@
 import {pool} from "../database/database.js";
 import * as typeProductModel from "../model/productType.js";
+import { readCategoryProductFromID } from "../model/productType.js";
 
 /**
  * @swagger
@@ -14,12 +15,14 @@ import * as typeProductModel from "../model/productType.js";
  *           type: string
  * 
  *   responses:
- *     CategoryReaded:
+ *     CategoriesRead:
  *       description: Category successfully retrieved
  *       content:
  *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/Category'
+ *            schema:
+ *              type: array
+ *              items: 
+ *                 $ref: '#/components/schemas/Category'
  */
 
 
@@ -52,24 +55,7 @@ export const getCategories = async (req, res) => {
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/Category'
- *     
- *     ExistingType:
- *       description: The requested category already exists (duplicates are not allowed).
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               error:
- *                 type: string
- *                 example: "Conflict"
- *               message:
- *                 type: string
- *                 example: "Category already exists"
- *               code:
- *                 type: string
- *                 example: "DUPLICATE_CATEGORY"
+ *             $ref: '#/components/schemas/Category'   
  */
 
 export const createTypeProduct = async (req, res) => {
@@ -77,27 +63,25 @@ export const createTypeProduct = async (req, res) => {
         const { nameCategory } = req.body;
         
         if (!nameCategory) {
-             return res.status(400).send("Le nom de la catégorie est requis.");
+             return res.status(400).send("Category name required.");
         }
 
-        const categoryData = { nameCategory }; 
-
-        const existingType = await typeProductModel.getCategories(pool, categoryData);
+        const existingType = await typeProductModel.getCategories(pool, {nameCategory});
         
-        if (existingType && existingType.rows && existingType.rows.length > 0) {
+        if (existingType.rows.length > 0) {
             return res.status(409).send("Type already exists");
         }
 
-        const productCreated = await typeProductModel.createTypeProduct(pool, categoryData);
+        const productCreated = await typeProductModel.createTypeProduct(pool, {nameCategory});
         
         if (productCreated) {
-            return res.status(201).send(productCreated);
+            return res.status(201).send({productCreated});
         } 
         
 
     } catch(err) {
         
-        res.status(500).send(err.message);
+        res.status(500).send("Internal server error " + err.message);
     }
 };
 
@@ -108,17 +92,10 @@ export const createTypeProduct = async (req, res) => {
  *     TypeProductUpdated:
  *       description: The requested type of product is successfully updated
  *       content:
- *         text/plain:
- *           schema:
- *             type: string
- *             example: "Type product updated successfully"
- *     TypeProductNotFound:
- *       description: The requested type of product was not found
- *       content:
- *         text/plain:
- *           schema:
- *             type: string
- *             example: "Type product not found"
+ *         application/json: 
+ *              schema: 
+ *                $ref: '#/components/schemas/Category'
+ *             
  */
 
 export const updateTypeProduct = async (req, res) => {
@@ -126,22 +103,18 @@ export const updateTypeProduct = async (req, res) => {
         const idCategory = parseInt(req.params.id, 10); 
         
         if (isNaN(idCategory)) {
-            return res.status(404).json({ message: "Catégorie non trouvée." });
+            return res.status(400).json({ message: "Category ID invalid" });
         }
         
         const nameCategory = req.body.nameCategory;
         
-        const updated = await typeProductModel.updateTypeProduct(pool, { 
+        const updatedCategory = await typeProductModel.updateTypeProduct(pool, { 
             idCategory: idCategory, 
             nameCategory: nameCategory 
         });
-
-        if (updated) {
-           
-            return res.sendStatus(204); 
-        } else {
-            return res.status(404).send("Catégorie non trouvée.");
-        }
+        
+        return res.status(200).send({updatedCategory}); 
+        
 
     } catch (err) {
         
@@ -150,36 +123,21 @@ export const updateTypeProduct = async (req, res) => {
 };
 
 
-/**
- * @swagger
- * components: 
- *     responses: 
- *          TypeProductDeleted: 
- *                  description: The requested type of product is deleted. 
- *                  content: 
- *                      text/plain: 
- *                          schema: 
- *                              type: string
- *                          
- *                      
- */
-
-
 
 export const deleteTypeProduct = async (req, res) => {
     try{
         const idCategory = req.params.id; 
 
         if (!idCategory) {
-            return res.status(400).send("ID de catégorie est requis pour la suppression.");
+            return res.status(400).send("Category ID is required");
         }
         
         const deleted = await typeProductModel.deleteTypeProduct(pool, { idCategory });
         
         if (deleted) {
-		    res.sendStatus(204);
+		    res.status(200).send("Category is deleted");
         } else {
-            res.status(404).send("Catégorie non trouvée ou non supprimée.");
+            res.status(404).send("Category not found");
         }
 
     }catch(err){
