@@ -66,13 +66,13 @@ export const createTypeProduct = async (req, res) => {
              return res.status(400).send("Category name required.");
         }
 
-        const existingType = await typeProductModel.getCategories(pool, nameCategory);
+        const existingType = await typeProductModel.getCategories(pool, {nameCategory});
         
         if (existingType.rows.length > 0) {
             return res.status(409).send("Type already exists");
         }
 
-        const productCreated = await typeProductModel.createTypeProduct(pool, nameCategory);
+        const productCreated = await typeProductModel.createTypeProduct(pool, {nameCategory});
         
         if (productCreated) {
             return res.status(201).send({productCreated});

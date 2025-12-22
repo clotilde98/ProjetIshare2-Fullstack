@@ -1,11 +1,13 @@
-import axios from 'axios';
 import { useFonts } from 'expo-font';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Alert, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Button } from 'react-native-paper';
 import InputComponent from './input.jsx';
+import Axios from '../../src/service/api.js';
+import * as tokenService from '../../src/service/token.js';
+import { useContext } from 'react';
+import { AuthContext } from '../../src/context/authContext.js';
 
-import * as SecureStore from 'expo-secure-store';
 
 
 
@@ -18,26 +20,20 @@ import {
 } from '@react-native-google-signin/google-signin';
 
 
-const Axios = axios.create ({
-
-    baseURL:'http://192.168.0.11:3002'
-
-    
-});
-
-    
-
-
-export default function Connexion({setUserInfo}) {
+export default function Connexion() {
     const [fontsLoaded] = useFonts({
         Jaro: require('../../assets/fonts/jaro.ttf'), 
     });
+
+    const {user, setUser} = useContext(AuthContext);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
 
 
+    useEffect(() => {
+      alert("User courant : " + JSON.stringify(user, null, 2));
+    }, [user]);
 
- //email, idToken, username, streetNumber, street, photo, isAdmin, addressID}
 
 
     const handleGoogleSignIn = async () => {
@@ -50,43 +46,38 @@ export default function Connexion({setUserInfo}) {
             }
             );
         if (isSuccessResponse(response)) {
-            setUserInfo(response.data);
-
-            const res = await Axios.post("/loginWithGoogle", {
-            email: response.data.user.email,
-            idToken: response.data.idToken,
-            username: "skudle",
-            streetNumber: 1,
-            street: "rue de l europe",
-            photo: null,
-            isAdmin: false,
-            addressID: 1
-          });
-
-          await SecureStore.setItemAsync("jwt", res.data.token);
-
-          
+            try {
+              const res = await Axios.post("/loginWithGoogle", {
+                idToken: response.data.idToken,
+              });
+              await tokenService.saveToken(res.data.token);
+              setUser(res.data.user);
+            } catch (err){
+              Alert.alert(
+                "Erreur backend",
+                `\nMessage: ${err.response.data}`
+              );
+            }
+            
         } else {
-            console.log("Sign in was cancelled by the user")
+            alert("Sign in was cancelled by the user")
         }
         } catch (error){
-            
             if (isErrorWithCode(error)) {
                 switch (error.code) {
                 case statusCodes.IN_PROGRESS:
                     // operation (eg. sign in) already in progress
-                    Alert.alert("sign in is in progress");
+                    alert("sign in is in progress");
                     break;
                 case statusCodes.PLAY_SERVICES_NOT_AVAILABLE:
                     // Android only, play services not available or outdated
-                    Alert.alert("play service not available")
+                    alert("play service not available")
                     break;
-                default:
-                    // some other error happened
+                
                 }
             } else {
-                console.log(error);
-                // an error that's not related to google sign in occurred
+                
+                // an error that's not related tro google sign in occurred
                 Alert.alert("an error that's not related to google sign in occurred");
             }
         }
@@ -96,45 +87,45 @@ export default function Connexion({setUserInfo}) {
     const handleGoogleSignOut = async () => {
         try {
         await GoogleSignin.signOut();
-        setUserInfo(null);
+        tokenService.removeToken();
+        setUser(null);
         } catch (error){
-        Alert.alert("Failed to log out");
+          Alert.alert("Failed to log out");
         }
     }
 
 
-  function handleSubmit() {
-    if (email && password){
-      axios.post('http://192.168.0.11:3002/login/', {
-        email,
-        password
-      })
-      .then(res => {
-        SecureStore.setItemAsync("jwt", res.data.token);
-      })
-      .catch(err => console.error(err.response.data));
+  async function handleSubmit() {
+    if (!email || !password) return;
+
+    try {
+        const res = await Axios.post(
+          '/login',
+          { email, password }
+        );
+        await tokenService.saveToken(res.data.token)
+        setUser(res.data.user);
+    } catch (err) {
+      const status = err.response?.status;
+      const message = err.response?.data;
+
+      if (status === 401) {
+        Alert.alert(
+          "Erreur de connexion", message
+        );
+      } else {
+        Alert.alert(message);
+      }
     }
-    
   }
+
 
   if (!fontsLoaded) {
     return <Text>Chargement...</Text>; 
   }
 
   return (
-    <View style={styles.container}>
-
-
-            <Pressable style={styles.singInTextWithGoogle} onPress={handleGoogleSignOut}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
-            <Image source={require('../../assets/images/google-icon.png')} style={{ width: 24, height: 24, marginRight: 10 }} />
-            <Text style={{ fontWeight: 'bold', fontSize: 16 }}>Sign out</Text>
-        </View>
-    </Pressable>
-
-
-
-    
+    <View style={styles.container}>    
 
       <Text style={styles.text}>Welcome !</Text>
       <View>
@@ -153,13 +144,6 @@ export default function Connexion({setUserInfo}) {
         <Text style={styles.orText}> Or </Text>
         <View style={styles.line}></View>
       </View>
-
-      {/***<Pressable style={styles.googleButton} onPress={() => promptAsync()}>
-        <View style={styles.singInTextWithGoogle}>
-          <Icon name="google" size={24} color="blue" style={{ marginRight: 10 }} />
-          <Text>Sign In with Google</Text>
-        </View>
-      </Pressable>***/}
 
     <Pressable style={styles.singInTextWithGoogle} onPress={handleGoogleSignIn}>
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>

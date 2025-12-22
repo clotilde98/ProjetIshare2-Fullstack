@@ -3,8 +3,9 @@ import {createPostCategory, deletePostCategoriesForPostID} from '../model/postCa
 import * as postModel from '../model/postDB.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import {saveImage} from '../middleware/photo/saveImage.js';
+import {saveImage} from '../middleware/saveImage.js';
 import * as uuid from 'uuid'
+import { readCategoryProductFromID } from "../model/productType.js";
 
 
 const __filename = fileURLToPath(import.meta.url);

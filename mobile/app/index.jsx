@@ -1,32 +1,98 @@
-import { useState } from "react";
-import { Text, View } from "react-native";
+/*import {AuthContext, AuthProvider } from '../src/context/authContext';
+import A from './components/a.jsx';
+import B from './components/b.jsx';
 import Login from './components/login.jsx';
-import { useEffect } from "react";
-import * as SecureStore from 'expo-secure-store';
+import { NavigationContainer } from '@react-navigation/native';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
-
-import {
-  GoogleSignin,
-} from '@react-native-google-signin/google-signin';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
 
 GoogleSignin.configure({
   webClientId: '1027280401462-sd77d2qaggcilr0q9u3hp87vce2j27aa.apps.googleusercontent.com',
 });
 
+const Tab = createBottomTabNavigator();
+const Stack = createNativeStackNavigator();
+
+// Bottom tabs (A and B screens)
+function MainTabs() {
+  return (
+    <Tab.Navigator screenOptions={{ headerShown: false }}>
+      <Tab.Screen name="A" component={A} options={{
+          tabBarIcon: () => <Ionicons name="home-outline" size={24} color="black" />,
+        }} />
+      <Tab.Screen name="B" component={B} />
+    </Tab.Navigator>
+  );
+}
+
+// Root navigator
+export default function Index() {
+  return (
+    <AuthProvider>
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="Login" component={Login} />
+        <Stack.Screen name="Main" component={MainTabs} />
+      </Stack.Navigator>
+    </AuthProvider>
+  );
+}
+*/
+
+
+import { AuthProvider, AuthContext } from '../src/context/authContext';
+import A from './components/a.jsx';
+import B from './components/b.jsx';
+import Login from './components/login.jsx';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import { useContext } from 'react';
+
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
+
+GoogleSignin.configure({
+  webClientId: '1027280401462-sd77d2qaggcilr0q9u3hp87vce2j27aa.apps.googleusercontent.com',
+});
+
+const Tab = createBottomTabNavigator();
+const Stack = createNativeStackNavigator();
+
+function MainTabs() {
+  return (
+    <Tab.Navigator screenOptions={{ headerShown: false }}>
+      <Tab.Screen
+        name="A"
+        component={A}
+        options={{
+          tabBarIcon: () => <Ionicons name="home-outline" size={24} color="black" />,
+        }}
+      />
+      <Tab.Screen name="B" component={B} />
+    </Tab.Navigator>
+  );
+}
+
+function RootNavigator() {
+  const { user } = useContext(AuthContext); 
+
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      {user ? (
+        <Stack.Screen name="Main" component={MainTabs} />
+      ) : (
+        <Stack.Screen name="Login" component={Login} />
+      )}
+    </Stack.Navigator>
+  );
+}
 
 export default function Index() {
-  const [userInfo, setUserInfo] = useState(null);
-  useEffect(() => {
-    if (userInfo) {
-      console.log(userInfo);
-    }
-  }, [userInfo]);
-
-    
   return (
-    <View style={{flex: 1, justifyContent: "center"}}>
-      <Login setUserInfo={setUserInfo}></Login>
-      {userInfo ? <Text>{JSON.stringify(userInfo, null, 2)}</Text> : null}
-    </View >
+    <AuthProvider>
+      <RootNavigator />
+    </AuthProvider>
   );
 }

@@ -19,13 +19,13 @@ CREATE TABLE Client (
     username VARCHAR(50) UNIQUE NOT NULL,
     email VARCHAR(100) UNIQUE NOT NULL,
     password VARCHAR(255),
-    street VARCHAR(100) NOT NULL,
-    street_number INT NOT NULL,
+    street VARCHAR(100),
+    street_number INT,
     CHECK (street_number > 0),
     registration_date DATE DEFAULT NOW(),
     photo VARCHAR(255) NULL,
     is_admin BOOLEAN DEFAULT FALSE,
-    address_id INT NOT NULL REFERENCES Address(id) ON DELETE CASCADE
+    address_id INT REFERENCES Address(id) ON DELETE CASCADE
 );
 
 

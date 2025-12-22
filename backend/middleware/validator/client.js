@@ -85,7 +85,7 @@ const updateClientSchema =  vine.object({
  */
 
 const loginSchema = vine.object({
-    email: vine.string().email(),
+    email: vine.string().email().optional(),
     password: vine.string().optional(),
     idToken: vine.string().trim().optional(),
 });

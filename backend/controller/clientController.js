@@ -5,7 +5,7 @@ import 'dotenv/config';
 import jwt from "jsonwebtoken";
 import path from 'path';
 import { fileURLToPath } from 'url';
-import {saveImage} from '../middleware/photo/saveImage.js';
+import {saveImage} from '../middleware/saveImage.js';
 import * as uuid from 'uuid'
 
 
@@ -60,8 +60,11 @@ import * as uuid from 'uuid'
 
 export const createUser = async (req, res) => {
   try {
-    const {username, email, password, street, streetNumber, addressID} = req.body;
-
+    const {username, email, password, street, streetNumber} = req.body;
+    let {addressID} = req.body;
+    if (!addressID){
+        addressID = null;
+    }
     const photo = req.file;
     let user = await userModel.getUserByEmail(pool, email)
     const __filename = fileURLToPath(import.meta.url);

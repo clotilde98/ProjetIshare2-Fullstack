@@ -10,7 +10,7 @@ import {
 
 import {checkJWT} from '../middleware/identification/jwt.js'
 import {postValidatorMiddleware} from '../middleware/validation.js';
-import {upload} from '../middleware/photo/upload.js';
+import {upload} from '../middleware/upload.js';
 
 
 const router = Router();

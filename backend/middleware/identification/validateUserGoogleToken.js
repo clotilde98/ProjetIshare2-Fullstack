@@ -19,8 +19,7 @@ export const validateGoogleToken = async (idToken) => {
         return {
             id: payload.sub,
             email: payload.email,
-            name: payload.name,
-            picture: payload.picture,
+            name: payload.name
         };
     } catch (err) {
         throw new Error("Invalid Google token");
