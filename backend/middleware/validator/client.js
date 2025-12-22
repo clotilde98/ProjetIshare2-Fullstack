@@ -28,9 +28,6 @@ import vine from '@vinejs/vine';
 
 
 const addClientSchema = vine.object({
-    username: vine.string().trim(),
-    street : vine.string().trim(),
-    streetNumber : vine.string(), 
     email: vine.string().email().trim(),
     password: vine.string()
 });

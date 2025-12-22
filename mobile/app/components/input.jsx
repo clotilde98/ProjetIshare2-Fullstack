@@ -11,7 +11,7 @@ export default function Input({ textValue, secureTextEntry, secureEye, onChangeT
         placeholder={textValue}
         secureTextEntry={hidden}
         style={{
-          height: 60,
+          height: 45,
           width: '80%',
           borderColor: 'gray',
           borderWidth: 1,
@@ -43,6 +43,6 @@ const styles = StyleSheet.create({
   eye : {
     position: 'absolute',
     right : 15,
-    top : 17,
+    top : 9,
   }
 });

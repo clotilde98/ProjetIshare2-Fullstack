@@ -8,7 +8,7 @@ import * as tokenService from '../../src/service/token.js';
 import { useContext } from 'react';
 import { AuthContext } from '../../src/context/authContext.js';
 
-
+import { Poppins_400Regular } from '@expo-google-fonts/poppins';
 
 
 
@@ -20,19 +20,16 @@ import {
 } from '@react-native-google-signin/google-signin';
 
 
-export default function Connexion() {
+export default function Connexion({isSignUp, navigation}) {
     const [fontsLoaded] = useFonts({
         Jaro: require('../../assets/fonts/jaro.ttf'), 
+        Poppins: Poppins_400Regular,
     });
 
-    const {user, setUser} = useContext(AuthContext);
+
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-
-
-    useEffect(() => {
-      alert("User courant : " + JSON.stringify(user, null, 2));
-    }, [user]);
+    const [secondPassword, setSecondPassword] = useState('');
 
 
 
@@ -98,11 +95,26 @@ export default function Connexion() {
   async function handleSubmit() {
     if (!email || !password) return;
 
+    if (isSignUp){
+      if (!secondPassword || secondPassword !== password){
+        return alert("Password must match");
+      }
+    }
+
     try {
-        const res = await Axios.post(
+      let res;
+      if (isSignUp){
+        res = await Axios.post(
+          '/users',
+          { email, password }
+        );
+      } else {
+        res = await Axios.post(
           '/login',
           { email, password }
         );
+      }
+
         await tokenService.saveToken(res.data.token)
         setUser(res.data.user);
     } catch (err) {
@@ -126,18 +138,34 @@ export default function Connexion() {
 
   return (
     <View style={styles.container}>    
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <Text
+          style={[
+            styles.text,
+            isSignUp && { fontFamily: 'HachiMaruPop', fontWeight: "bold", fontSize: 35 }
+          ]}
+        >
+          {isSignUp ? "Create an account" : "Welcome !"}
+        </Text>
+      </View> 
 
-      <Text style={styles.text}>Welcome !</Text>
+
+
       <View>
-        <InputComponent textValue="Email" secureTextEntry={false} secureEye={false} onChangeText={setEmail} />
+        <Text style={styles.loginMode}>{isSignUp ? "Sign up":"Login"}</Text>
+        <InputComponent textValue="Email" secureTextEntry={false} secureEye={false} onChangeText={setEmail}/>
         <InputComponent textValue="Password" secureTextEntry={true} secureEye={true} onChangeText={setPassword} />
-        <Pressable onPress={handleSubmit}>
-          <Text style={styles.forgotText}>Forgot your password?</Text>
-        </Pressable>
+        {isSignUp ? (<InputComponent textValue="Confirm Password" secureTextEntry={true} secureEye={true} onChangeText={setSecondPassword} />):("")}
+        {isSignUp ? (""): (
+          <Pressable onPress={handleSubmit}>
+            <Text style={styles.forgotText}>Forgot your password?</Text>
+          </Pressable>
+          )}
+        
       </View>
       
       
-      <Button style={styles.button} buttonColor= 'black' textColor="white" contentStyle={{ height: 50 }} onPress={handleSubmit}>Sign In</Button>
+      <Button style={styles.button} buttonColor= 'black' textColor="white" contentStyle={{ height: 50 }} onPress={handleSubmit}>Sign {isSignUp ? "Up":"In"}</Button>
 
       <View style={styles.orLine}>
         <View style={styles.line}></View>
@@ -148,17 +176,19 @@ export default function Connexion() {
     <Pressable style={styles.singInTextWithGoogle} onPress={handleGoogleSignIn}>
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
             <Image source={require('../../assets/images/google-icon.png')} style={{ width: 24, height: 24, marginRight: 10 }} />
-            <Text style={{ fontWeight: 'bold', fontSize: 16 }}>Sign In with Google</Text>
+            <Text style={{ fontWeight: 'bold', fontSize: 16 }}>Sign {isSignUp ? "Up":"In"} with Google</Text>
         </View>
     </Pressable>
       
+      <View style={{ flexDirection: 'column', alignItems: 'center', margin: 15 }}>
+        <Text style={{fontWeight:"bold", margin:15}}>{isSignUp ? "You already have an account?":"Don't have an account?"}</Text>
+        
+        <Pressable onPress={() => (isSignUp ? navigation.navigate("Signup") : navigation.navigate("Login")) }>
+          <Text style={[styles.signUp, { color: "gray" }]}>
+            {isSignUp ? "Sign Up" : "Sign In"}
+          </Text>
+        </Pressable>
 
-      <View>
-        <Text style={{fontWeight:"bold", margin:15}}>Don't have an account ?</Text>
-      </View>
-
-      <View style={styles.signUp}>
-        <Text style={{color:"gray"}}>Sign Up</Text>
       </View>
 
     </View>
@@ -178,15 +208,24 @@ const styles = StyleSheet.create({
   },
   text : {
     marginTop: 35,
-    marginBottom: 30,
+    marginBottom: 23,
     fontFamily: 'Jaro', 
     fontSize: 46,
+  },
+
+  loginMode : {
+    fontFamily: "Poppins",
+    fontWeight:"bold",
+    fontSize: 24,
+    marginBottom: 25,
+    marginLeft: 5
   },
 
   button: {
     width: '80%',
     borderRadius: 6,
-    
+    marginBottom: 10,
+    marginTop:10,
   },
 
   forgotText: {

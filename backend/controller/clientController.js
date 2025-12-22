@@ -7,6 +7,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import {saveImage} from '../middleware/saveImage.js';
 import * as uuid from 'uuid'
+import { faker } from '@faker-js/faker';
 
 
 /**
@@ -60,11 +61,12 @@ import * as uuid from 'uuid'
 
 export const createUser = async (req, res) => {
   try {
-    const {username, email, password, street, streetNumber} = req.body;
-    let {addressID} = req.body;
-    if (!addressID){
-        addressID = null;
+    const {email, password, streetNumber, street, addressID} = req.body;
+    let {username} = req.body;
+    if (!username){
+        username = faker.internet.username();
     }
+
     const photo = req.file;
     let user = await userModel.getUserByEmail(pool, email)
     const __filename = fileURLToPath(import.meta.url);

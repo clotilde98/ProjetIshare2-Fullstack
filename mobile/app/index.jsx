@@ -83,8 +83,9 @@ function RootNavigator() {
       {user ? (
         <Stack.Screen name="Main" component={MainTabs} />
       ) : (
-        <Stack.Screen name="Login" component={Login} />
+        <Stack.Screen name="Login" component={Login} initialParams={{ isSignUp: true }}/>
       )}
+      <Stack.Screen name="Signup" component={Login} initialParams={{ isSignUp: false }}/>
     </Stack.Navigator>
   );
 }

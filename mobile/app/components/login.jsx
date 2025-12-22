@@ -1,16 +1,29 @@
 import { ImageBackground, StyleSheet, Text, View } from 'react-native';
 import Connexion from './connexion.jsx';
+import { useContext } from 'react';
+import { AuthContext } from '../../src/context/authContext.js';
+import { useEffect } from 'react';
 
 
 
+export default function Login({route, navigation}){
+    
+    const {user, setUser} = useContext(AuthContext);
+    const {isSignUp} = route.params;
 
-export default function Login({navigation}){
+
+    useEffect(() => {
+        alert("User courant : " + JSON.stringify(user, null, 2));
+        if (user){
+            navigation.navigate("Main")
+        }
+    }, [user]);
 
     return (
         <View style={styles.container}>
             <ImageBackground source={require('../../assets/images/background1.jpg')} style ={styles.image}>
             <Text style={styles.title}>iShare</Text>
-            <Connexion></Connexion>
+            <Connexion isSignUp={isSignUp} navigation={navigation} ></Connexion>
             </ImageBackground>
             
         </View>
