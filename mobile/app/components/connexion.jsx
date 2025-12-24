@@ -26,6 +26,8 @@ export default function Connexion({isSignUp, navigation}) {
         Poppins: Poppins_400Regular,
     });
 
+    const { user, setUser } = useContext(AuthContext);
+
 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -48,6 +50,7 @@ export default function Connexion({isSignUp, navigation}) {
                 idToken: response.data.idToken,
               });
               await tokenService.saveToken(res.data.token);
+              console.log(res.data.token);
               setUser(res.data.user);
             } catch (err){
               Alert.alert(
@@ -185,7 +188,7 @@ export default function Connexion({isSignUp, navigation}) {
         
         <Pressable onPress={() => (isSignUp ? navigation.navigate("Signup") : navigation.navigate("Login")) }>
           <Text style={[styles.signUp, { color: "gray" }]}>
-            {isSignUp ? "Sign Up" : "Sign In"}
+            {isSignUp ? "Sign In" : "Sign Up"}
           </Text>
         </Pressable>
 

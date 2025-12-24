@@ -43,8 +43,8 @@ export default function Index() {
 
 
 import { AuthProvider, AuthContext } from '../src/context/authContext';
-import A from './components/a.jsx';
-import B from './components/b.jsx';
+import ressourcesPage from './components/ressourcesPage.jsx';
+import createPost from './components/createPost.jsx';
 import Login from './components/login.jsx';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -63,14 +63,15 @@ const Stack = createNativeStackNavigator();
 function MainTabs() {
   return (
     <Tab.Navigator screenOptions={{ headerShown: false }}>
-      <Tab.Screen
-        name="A"
-        component={A}
+      <Tab.Screen name="CreatePost" component={createPost} />
+        <Tab.Screen
+        name="RessourcesPage"
+        component={ressourcesPage}
         options={{
           tabBarIcon: () => <Ionicons name="home-outline" size={24} color="black" />,
         }}
       />
-      <Tab.Screen name="B" component={B} />
+      
     </Tab.Navigator>
   );
 }
