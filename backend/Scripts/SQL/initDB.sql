@@ -77,8 +77,8 @@ CREATE TABLE Comment (
     date DATE DEFAULT CURRENT_DATE,
     id_post INT NOT NULL,
     id_customer INT NOT NULL,
-    CONSTRAINT fk_post FOREIGN KEY (id_post) REFERENCES Post(id),
-    CONSTRAINT fk_customer FOREIGN KEY (id_customer) REFERENCES Client(id)
+    CONSTRAINT fk_post FOREIGN KEY (id_post) REFERENCES Post(id) ON DELETE CASCADE,
+    CONSTRAINT fk_customer FOREIGN KEY (id_customer) REFERENCES Client(id) ON DELETE CASCADE
 );
 
 

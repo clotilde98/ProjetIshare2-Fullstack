@@ -93,6 +93,28 @@ export const getPost = async (req, res) => {
     }
 };
 
+export const getMyPosts = async (req, res) => {
+    try {
+
+        const userID = req.user.id;
+        const posts = await postModel.readMyPosts(pool, { clientID:userID });
+
+
+        if (posts.length > 0) {
+            for (const post of posts) {
+                post.photo = post.photo
+                ? `${req.protocol}://${req.get('host')}/images/${post.photo}.jpeg`
+                : null;
+            }
+            }
+
+        res.status(200).json(posts);
+
+    } catch (err) {
+        res.status(500).send("Internal server error : " + err.message);
+    }
+};
+
 
 /**
  * @swagger
@@ -139,6 +161,16 @@ export const getPosts = async (req, res) => {
              page: parseInt(page) || 1, 
             limit: parseInt(limit) || 10   
         });
+
+        if (posts.rows.length > 0){
+            for (const post of posts.rows) {
+                post.photo = post.photo
+                    ? `${req.protocol}://${req.get('host')}/images/${post.photo}.jpeg`
+                    : null;
+            }
+        }
+        
+
 
         return res.status(200).json(posts);
 
@@ -251,6 +283,9 @@ export const updatePost = async (req, res) => {
                 await saveImage(photo.buffer, imageName, destFolderImages);
             }
 
+            client = await pool.connect();
+            await client.query('BEGIN');
+
 
             let categoriesProduct = [];
             if (req.body.categoriesProduct) {
@@ -258,30 +293,26 @@ export const updatePost = async (req, res) => {
                 if (!Array.isArray(categoriesProduct) || categoriesProduct.length === 0) {
                     return res.status(400).send("Post category required.");
                 }
-            } else {
-                return res.status(400).send("Post category required.")
-            }
 
-            for (const categoryID of categoriesProduct) {
-                const category = await readCategoryProductFromID(pool, categoryID);
-                if (!category) {
-                    return res.status(400).send(`Category product with ID ${categoryID} doesn't exist`);
+                for (const categoryID of categoriesProduct) {
+                    const category = await readCategoryProductFromID(pool, categoryID);
+                    if (!category) {
+                        return res.status(400).send(`Category product with ID ${categoryID} doesn't exist`);
+                    }
                 }
-            }
 
-            client = await pool.connect();
-            await client.query('BEGIN');
-
-            await deletePostCategoriesForPostID(client, postID);
-
-
-            for (const categoryID of categoriesProduct) {
-                await createPostCategory(client, { IDCategory: categoryID, IDPost: postID });
+                await deletePostCategoriesForPostID(client, postID);
+                for (const categoryID of categoriesProduct) {
+                    await createPostCategory(client, { IDCategory: categoryID, IDPost: postID });
+                }
             }
 
             
             const updatedPost = await postModel.updatePost(client, postID, req.body)
-
+            updatedPost.photo = post.photo
+                    ? `${req.protocol}://${req.get('host')}/images/${post.photo}.jpeg`
+                    : null;
+            
 
             await client.query('COMMIT');
 
@@ -320,7 +351,8 @@ export const deletePost = async (req, res) => {
         }
 
     } catch (err) {
-        res.sendStatus(500).send(err.message);
+        console.log(err.message);
+        res.status(500).send(err.message);
     }
 };
 

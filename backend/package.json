@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon server.js",
+    "dev": "npm run initDB && nodemon server.js",
     "initDB": "node Scripts/JS/initDB.js",
     "genDoc": "node ./swagger/swagger_jsdoc.js",
     "start:docker": "npm run initDB && npm run dev"

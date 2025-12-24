@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import {checkJWT} from '../middleware/identification/jwt.js'
-import {getComments, createComment, updateComment, deleteComment} from '../controller/commentController.js';
+import {getComments, createComment, updateComment, deleteComment, getCommentsByPostID} from '../controller/commentController.js';
 import {commentValidatorMiddleware} from '../middleware/validation.js';
 
 const router = Router();
@@ -48,6 +48,8 @@ const router = Router();
 
 
 router.get('/', checkJWT, getComments);
+
+router.get('/post/:id', checkJWT, getCommentsByPostID);
 
 /**
  * @swagger

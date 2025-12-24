@@ -65,7 +65,7 @@ export const updatePost = async(SQLClient, id, {description, title, numberOfPlac
 
     if(queryValues.length > 0){
         queryValues.push(id);
-        query += `${querySet.join(", ")} WHERE id = $${queryValues.length}`;
+        query += `${querySet.join(", ")} WHERE id = $${queryValues.length} RETURNING *`;
         const result = await SQLClient.query(query, queryValues);
         return result.rows[0];
     } else {
@@ -82,6 +82,11 @@ export const readPost = async (SQLClient, {id}) => {
     const {rows} = await SQLClient.query("SELECT * FROM Post WHERE id = $1", [id]);
     return rows[0];
 };
+
+export const readMyPosts = async (SQLClient, {clientID}) => {
+    const {rows} = await SQLClient.query("SELECT * FROM Post WHERE client_id = $1", [clientID]);
+    return rows;
+}
 
 
 export const searchPostByCategory = async (SQLClient,  nameCategory) => {

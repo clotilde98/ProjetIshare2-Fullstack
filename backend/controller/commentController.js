@@ -1,6 +1,5 @@
 import {pool} from "../database/database.js";
 import * as commentModel from "../model/comment.js";
-
 import * as postModel from "../model/postDB.js"
 
 
@@ -23,6 +22,16 @@ import * as postModel from "../model/postDB.js"
  *         id_costumer:
  *           type: integer
  */
+
+
+export const getCommentsByPostID = async (req, res) => {
+    try {
+        const rows = await commentModel.getCommentsByPostID(pool, {postID: req.params.id})
+        return res.status(200).send({rows});
+    } catch (e) {
+        res.status(500).send({message: "Internal server error : " + e.message});
+    }
+}
 
 /**
  * @swagger

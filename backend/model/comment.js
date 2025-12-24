@@ -20,6 +20,12 @@ export const createComment = async (SQLClient, { content, idPost, idCustomer }) 
     return rows[0];
 };
 
+
+export const getCommentsByPostID = async (SQLClient, {postID}) => {
+    const {rows} = await SQLClient.query("SELECT * FROM Comment WHERE id_post = $1", [postID])
+    return rows;
+}
+
 export const updateComment = async (SQLClient, { id, content }) => {
     let query = "UPDATE Comment SET ";
     const querySet = [];

@@ -5,7 +5,8 @@ import {
   createPost,
   updatePost,
   deletePost,
-  searchPostByCategory
+  searchPostByCategory,
+  getMyPosts
 } from '../controller/postController.js';
 
 import {checkJWT} from '../middleware/identification/jwt.js'
@@ -80,7 +81,7 @@ router.post("/", checkJWT, upload.single('photo'), postValidatorMiddleware.creat
  *       500:
  *         description: Server error
  */
-
+router.get("/myPosts", checkJWT, getMyPosts); 
 
 router.get("/byCategory", checkJWT, searchPostByCategory); 
 
@@ -135,7 +136,6 @@ router.get("/byCategory", checkJWT, searchPostByCategory);
 
 
 
-
 router.get("/", checkJWT, getPosts); 
 
 /**
@@ -167,6 +167,10 @@ router.get("/", checkJWT, getPosts);
  *       500:
  *         description: Server error 
  */
+
+
+
+
 
 
 
