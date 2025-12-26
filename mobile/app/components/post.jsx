@@ -10,6 +10,7 @@ export default function Post({ post, onDelete }) {
     const [selectedOption, setSelectedOption] = useState(post.post_status);
     const [nbComments, setNbComments] = useState(null);
 
+
     const handleDelete = async () => {
         try {
             const id = post.id;

@@ -52,6 +52,10 @@ export default function Connexion({isSignUp, navigation}) {
               await tokenService.saveToken(res.data.token);
               console.log(res.data.token);
               setUser(res.data.user);
+              if (isSignUp){
+                console.log('p');
+                navigation.navigate("PostPage");
+              }
             } catch (err){
               Alert.alert(
                 "Erreur backend",
@@ -120,6 +124,10 @@ export default function Connexion({isSignUp, navigation}) {
 
         await tokenService.saveToken(res.data.token)
         setUser(res.data.user);
+
+        if (isSignUp){
+          navigation.navigate("Username");
+        }
     } catch (err) {
       const status = err.response?.status;
       const message = err.response?.data;
