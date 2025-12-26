@@ -77,9 +77,22 @@ export default function PostPage(){
 
                 setComments(commentsWithUsers);
             } catch (err) {
-                Alert.alert("Erreur", err.response?.data || "Erreur commentaires");
+                Alert.alert("Erreur", err.response?.data || "Erreur de recuperation de commentaires");
             }
         }
+
+
+    async function handleBooking() {
+        try {
+            const res = await Axios.post("reservations", {
+                postID: post.id
+            })
+            Alert.alert("Reservation cree avec succes");
+            
+        } catch (err) {
+            Alert.alert("Erreur", err.response?.data || "Erreur de creation de reservation");
+        }
+    }
 
 
     async function fetchUser(id) {
@@ -95,7 +108,7 @@ export default function PostPage(){
             const res = await Axios.get(`/address/${id}`);
             setPostAddress(res.data.address);
         } catch (err){
-            Alert.alert("Erreur", "Impossible de mettre à jour le statut. " + err.response.data);
+            Alert.alert("Erreur", "Impossible de recuperer l'addresse de l'annonce. " + err.response.data);
         }
     }
 
@@ -161,6 +174,8 @@ export default function PostPage(){
                             imgSize={40}
                             username={comment.user.username}
                             content={comment.content}
+                            post={post}
+                            onCommentCreated={fetchComments}
                         />
                     ))}
 
@@ -173,6 +188,8 @@ export default function PostPage(){
                         imgSize={40}
                         content={'Add a comment...'}
                         isCurrentUser={true}
+                        post={post}
+                        onCommentCreated={fetchComments}
                     />
                 </View>   
 
@@ -180,7 +197,7 @@ export default function PostPage(){
                     <View style={{ alignItems: 'center', marginTop: 30, marginBottom: 200 }}>
                         <TouchableOpacity
                             style={styles.button}
-                            onPress={() => Alert.alert("Bouton pressé !")}
+                            onPress={handleBooking}
                         >
                             <Text style={styles.textInput}>Book</Text>
                         </TouchableOpacity>
@@ -201,8 +218,6 @@ const styles = StyleSheet.create({
 
     container: {
         height: '100%',
-        borderWidth: 5,
-        borderColor: 'yellow',
         backgroundColor: '#FFCCBB'
     },
 

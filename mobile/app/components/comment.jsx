@@ -1,13 +1,33 @@
 import { Avatar } from '@kolking/react-native-avatar';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TextInput, Image, Pressable, Alert } from 'react-native';
 import { Poppins_400Regular, Poppins_700Bold, useFonts } from '@expo-google-fonts/poppins';
+import { useState } from 'react';
+import Axios from '../../src/service/api';
 
-export default function Comment({ imgSource, imgSize, username=null, content, isCurrentUser=false }) {
+export default function Comment({ imgSource, imgSize, username=null, content, isCurrentUser=false, post, onCommentCreated }) {
 
     const [fontsLoaded] = useFonts({
         Poppins_400Regular,
         Poppins_700Bold,
     });
+
+    const [comment, setComment] = useState(null);
+
+
+    async function createComment(){
+        try {
+            const res = await Axios.post("/comments", {
+                content: comment,
+                idPost: post.id
+            })
+            Alert.alert("Commentaire créé avec succès");
+            onCommentCreated();
+        } catch (err){
+            Alert.alert("Erreur", err.response?.data || "Erreur lors de la creation de commentaire");
+        }
+    }
+
+    
 
     if (!fontsLoaded) return null;
 
@@ -22,9 +42,29 @@ export default function Comment({ imgSource, imgSize, username=null, content, is
                     </Text>
                 )}
 
-                <Text style={[styles.content, { fontFamily: isCurrentUser ? '' : 'Poppins_400Regular', fontWeight : isCurrentUser ? '300': '100' }]}>
-                    {content}
-                </Text>
+                {isCurrentUser ? (
+                    <View style={{flexDirection: 'row', justifyContent:'space-between', alignItems: 'center'}}>
+                        <TextInput
+                            value={comment}
+                            onChangeText={setComment}
+                            placeholder="Add a comment..."
+    
+                        />
+
+                        <Pressable onPress={createComment}>
+                            <Image
+                                style={{ marginRight: 25, width: 24, height: 24 }}
+                                source={require("../../assets/images/icon-send.png")}
+                            />
+                        </Pressable>
+
+                    </View>)
+                    :
+                    (<Text style={[styles.content, { fontFamily: isCurrentUser ? '' : 'Poppins_400Regular', fontWeight : isCurrentUser ? '300': '100' }]}>
+                        {content}
+                    </Text>)}
+
+                
             </View>
         </View>
     );
