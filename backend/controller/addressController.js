@@ -23,6 +23,17 @@ export const importPostalData = async (req, res) => {
   }
 };
 
+
+
+export const getAddressByID = async (req, res) => {
+  try {
+    const id = req.params.id;
+    const address = await addressModel.getAddressByID(pool, {id})
+    return res.status(200).send({address});
+  } catch (err) {
+      res.status(500).send("Internal server error " + err.message); 
+  }};
+
 /**
  * @swagger
  * components:

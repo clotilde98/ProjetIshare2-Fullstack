@@ -263,6 +263,44 @@ export const getOwnUser = async (req, res) => {
 };
 
 
+export const getUserById = async (req, res) => {
+    try {
+
+        const clientID = req.params.id;
+
+        const user = await userModel.getProfileById(pool, clientID); 
+
+        if (!user) {
+            return res.status(404).send("User not found.");
+        }
+
+        const photoUrl = user.photo
+        ? `${req.protocol}://${req.get('host')}/images/${user.photo}.jpeg` 
+        : `${req.protocol}://${req.get('host')}/images/unknown_person.jpeg`;
+
+        user.photo = photoUrl;
+
+        delete(user.registration_date);
+        delete(user.isadmin);
+        delete(user.street);
+        delete(user.street_number);
+        delete(user.googleid);
+        delete(user.email);
+        delete(user.address_id);
+
+        res.status(200).json({
+            user
+        });
+
+
+
+
+    } catch (err) {
+        res.status(500).send("Internal server error " + err.message); 
+    }
+}
+
+
 
 /**
  * @swagger

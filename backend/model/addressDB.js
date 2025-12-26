@@ -37,8 +37,15 @@ export const importPostalData = async (client) => {
 };
 
 export const getAllCities = async (SQLClient) => {
-  const { rows } = await SQLClient.query(
-`SELECT id, city, postal_code FROM Address ORDER BY postal_code ASC`  );
-  return rows;
+    const { rows } = await SQLClient.query(
+  `SELECT id, city, postal_code FROM Address ORDER BY postal_code ASC`  );
+    return rows;
+};
+
+
+export const getAddressByID = async (SQLClient, {id}) => {
+    const { rows } = await SQLClient.query(
+  `SELECT * FROM Address WHERE id = $1`, [id]  );
+    return rows[0];
 };
 
