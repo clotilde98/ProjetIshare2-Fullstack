@@ -53,8 +53,7 @@ export default function Connexion({isSignUp, navigation}) {
               console.log(res.data.token);
               setUser(res.data.user);
               if (isSignUp){
-                console.log('p');
-                navigation.navigate("PostPage");
+                navigation.navigate('PostPage', { postId: 6 });
               }
             } catch (err){
               Alert.alert(

@@ -11,14 +11,6 @@ export default function Login({route, navigation}){
     const {user, setUser} = useContext(AuthContext);
     const {isSignUp} = route.params;
 
-
-    useEffect(() => {
-        alert("User courant : " + JSON.stringify(user, null, 2));
-        if (user){
-            navigation.navigate("Main")
-        }
-    }, [user]);
-
     return (
         <View style={styles.container}>
             <ImageBackground source={require('../../assets/images/background1.jpg')} style ={styles.image}>
