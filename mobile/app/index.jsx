@@ -50,8 +50,14 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useContext } from 'react';
-
+import Language from './components/language.jsx'
+import Notifications  from './components/notification.jsx';
+import Accueil from './components/accueil.jsx';
+import UserProfil from './components/userProfil.jsx';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import Toast from 'react-native-toast-message';
+import Setting from './components/setting.jsx'; 
+
 
 GoogleSignin.configure({
   webClientId: '1027280401462-sd77d2qaggcilr0q9u3hp87vce2j27aa.apps.googleusercontent.com',
@@ -63,7 +69,11 @@ const Stack = createNativeStackNavigator();
 function MainTabs() {
   return (
     <Tab.Navigator screenOptions={{ headerShown: false }}>
+      <Tab.Screen name="Notifications" component={Notifications} />
+      <Tab.Screen name="Language" component={Language} />
+      <Tab.Screen name="Accueil" component={Accueil} />
       <Tab.Screen name="CreatePost" component={createPost} />
+      <Tab.Screen name="Setting" component={Setting}/>
         <Tab.Screen
         name="RessourcesPage"
         component={ressourcesPage}
@@ -73,6 +83,7 @@ function MainTabs() {
       />
       
     </Tab.Navigator>
+    
   );
 }
 
@@ -87,14 +98,22 @@ function RootNavigator() {
         <Stack.Screen name="Login" component={Login} initialParams={{ isSignUp: true }}/>
       )}
       <Stack.Screen name="Signup" component={Login} initialParams={{ isSignUp: false }}/>
+      <Stack.Screen 
+        name="UserProfil" 
+        component={UserProfil} 
+        options={{ title: 'UserProfil' }} 
+      />
     </Stack.Navigator>
   );
 }
 
 export default function Index() {
   return (
+
     <AuthProvider>
       <RootNavigator />
+      <Toast />
     </AuthProvider>
+
   );
 }

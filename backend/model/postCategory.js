@@ -20,3 +20,38 @@ export const deletePostCategoriesForPostID = async (SQLClient, postID) => {
   return rowCount > 0;
 
 }
+
+export const getPostswithAllCategories = async (SQLClient) => {
+  const { rows } = await SQLClient.query(`
+    SELECT  
+      p.id,
+      p.post_date,
+      p.description,
+      p.title,
+      p.number_of_places,
+      p.post_status,
+      p.photo,
+      p.street,
+      p.street_number,
+      p.address_id,
+      p.client_id,
+      STRING_AGG(c.name_category, ', ') AS categories
+    FROM Post_Category pc
+    INNER JOIN Post p ON pc.id_ad = p.id
+    INNER JOIN Category_product c ON c.id_category = pc.id_category
+    GROUP BY 
+      p.id,
+      p.post_date,
+      p.description,
+      p.title,
+      p.number_of_places,
+      p.post_status,
+      p.photo,
+      p.street,
+      p.street_number,
+      p.address_id,
+      p.client_id
+  `);
+
+  return rows;
+};

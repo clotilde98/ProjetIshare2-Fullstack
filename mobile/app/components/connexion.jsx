@@ -7,7 +7,7 @@ import Axios from '../../src/service/api.js';
 import * as tokenService from '../../src/service/token.js';
 import { useContext } from 'react';
 import { AuthContext } from '../../src/context/authContext.js';
-
+import {useTranslation} from 'react-i18next'; 
 import { Poppins_400Regular } from '@expo-google-fonts/poppins';
 
 
@@ -27,8 +27,7 @@ export default function Connexion({isSignUp, navigation}) {
     });
 
     const { user, setUser } = useContext(AuthContext);
-
-
+    const { t } = useTranslation();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [secondPassword, setSecondPassword] = useState('');
@@ -44,6 +43,7 @@ export default function Connexion({isSignUp, navigation}) {
                 prompt: 'select_account'
             }
             );
+            
         if (isSuccessResponse(response)) {
             try {
               const res = await Axios.post("/loginWithGoogle", {
@@ -52,6 +52,7 @@ export default function Connexion({isSignUp, navigation}) {
               await tokenService.saveToken(res.data.token);
               console.log(res.data.token);
               setUser(res.data.user);
+              console.log("d");
             } catch (err){
               Alert.alert(
                 "Erreur backend",
@@ -82,18 +83,6 @@ export default function Connexion({isSignUp, navigation}) {
             }
         }
     }
-    
-
-    const handleGoogleSignOut = async () => {
-        try {
-        await GoogleSignin.signOut();
-        tokenService.removeToken();
-        setUser(null);
-        } catch (error){
-          Alert.alert("Failed to log out");
-        }
-    }
-
 
   async function handleSubmit() {
     if (!email || !password) return;
@@ -136,7 +125,7 @@ export default function Connexion({isSignUp, navigation}) {
 
 
   if (!fontsLoaded) {
-    return <Text>Chargement...</Text>; 
+    return <Text>{t('loadingText')}</Text>; 
   }
 
   return (

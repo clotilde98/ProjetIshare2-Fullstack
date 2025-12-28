@@ -1,5 +1,5 @@
 import { pool } from "../database/database.js";
-import {createPostCategory, deletePostCategoriesForPostID} from '../model/postCategory.js'
+import {createPostCategory, deletePostCategoriesForPostID, getPostswithAllCategories} from '../model/postCategory.js'
 import * as postModel from '../model/postDB.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -378,4 +378,24 @@ export const searchPostByCategory = async(req, res) => {
     }catch(err){
         res.status(500).send(err.message);
     }
+}
+
+
+
+export const getPostsWithoutFilters= async(req, res) => {
+    try {
+        const posts = await getPostswithAllCategories(pool); 
+        
+        if (posts.length > 0) {
+            for (const post of posts) {
+                post.photo = post.photo
+                ? `${req.protocol}://${req.get('host')}/images/${post.photo}.jpeg`
+                : null;
+            }
+        }
+        res.status(200).send(posts);
+    }catch(err){
+        res.status(500).send(err.message);
+    }
+
 }

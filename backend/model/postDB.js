@@ -95,6 +95,41 @@ export const searchPostByCategory = async (SQLClient,  nameCategory) => {
     return rows;
 };
 
+export const searchPostswithAllCategoriesByCategory = async (SQLClient, {nameCategory}) => {
+  const { rows } = await SQLClient.query(`
+    SELECT  
+      p.id,
+      p.post_date,
+      p.description,
+      p.title,
+      p.number_of_places,
+      p.post_status,
+      p.photo,
+      p.street,
+      p.street_number,
+      p.address_id,
+      p.client_id,
+      STRING_AGG(c.name_category, ', ') AS categories
+    FROM Post_Category pc
+    INNER JOIN Post p ON pc.id_ad = p.id
+    INNER JOIN Category_product c ON c.id_category = pc.id_category
+    WHERE c.name_category=$1
+    GROUP BY 
+      p.id,
+      p.post_date,
+      p.description,
+      p.title,
+      p.number_of_places,
+      p.post_status,
+      p.photo,
+      p.street,
+      p.street_number,
+      p.address_id,
+      p.client_id
+  `, [nameCategory]);
+
+  return rows;
+};
 
 
 export const getAllCategoriesFromPostID = async (SQLClient, id) => {

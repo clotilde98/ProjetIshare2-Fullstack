@@ -6,7 +6,8 @@ import {
   updatePost,
   deletePost,
   searchPostByCategory,
-  getMyPosts
+  getMyPosts, 
+  getPostsWithoutFilters
 } from '../controller/postController.js';
 
 import {checkJWT} from '../middleware/identification/jwt.js'
@@ -134,7 +135,7 @@ router.get("/byCategory", checkJWT, searchPostByCategory);
  *         description: Server Error
  */
 
-
+router.get("/allPostsCategories", checkJWT, getPostsWithoutFilters);
 
 router.get("/", checkJWT, getPosts); 
 
