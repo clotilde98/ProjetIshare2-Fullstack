@@ -142,6 +142,7 @@ export const createUserWithAdmin = async (req, res) => {
 
 export const updateUser = async (req, res) => {
     try {
+        
         let userId = req.user.id;
         if (req.params.id){
             if (req.user.isAdmin){
@@ -170,13 +171,14 @@ export const updateUser = async (req, res) => {
             updateData.photo = imageName;
         }
 
-        if (updateData.password) { 
+        if (currentUser.password && updateData.password) { 
             const pepper = process.env.PEPPER;
             
             if (!req.user.isAdmin) {
                 if (!updateData.oldPassword) {
                     return res.status(401).send("Old password required.");
                 }
+
                 const validOldPassword = await argon2.verify(
                     currentUser.password, 
                     updateData.oldPassword + pepper
@@ -251,6 +253,8 @@ export const getOwnUser = async (req, res) => {
         : null;
 
         user.photo = photoUrl;
+
+        console.log(user); 
 
         res.status(200).json({
             user
