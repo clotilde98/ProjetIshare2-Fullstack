@@ -1,7 +1,7 @@
 import { useEffect, useState, useContext } from "react";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useTranslation } from 'react-i18next';
-import { View, Text, Alert, Image, ImageBackground, StyleSheet, Dimensions } from "react-native";
+import { View, Text, Alert, Image, ImageBackground, StyleSheet, Dimensions, ScrollView } from "react-native";
 import Axios from "../../src/service/api.js";
 import { AuthContext } from '../../src/context/authContext.js';
 import { Poppins_400Regular, Poppins_700Bold, useFonts } from '@expo-google-fonts/poppins';
@@ -10,6 +10,7 @@ import { Avatar } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import * as tokenService from "../../src/service/token.js";
 import { Pressable } from 'react-native';
+
 
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 
@@ -48,17 +49,20 @@ export default function Setting() {
   async function deleteUserFromApi() {
     try {
       await Axios.delete('/users/');
+      navigation.navigate('Login');
       setUser(null);
+
     } catch (err) {
-      Alert.alert(t('error'), t('deleteAccount'));
+      Alert.alert(t('error'), t('deleteAccount'),'Status: ${err.response?.status}');
     }
   }
-
   const handleGoogleSignOut = async () => {
     try {
       await GoogleSignin.signOut();
       tokenService.removeToken();
+      navigation.navigate('Login');
       setUser(null);
+       
     } catch {
       Alert.alert(t('error'), t("logOut"));
     }
@@ -68,10 +72,10 @@ export default function Setting() {
     if (user && user.address_id) {
       fetchUserAddress();
     }
-  }, [user.address_id]);
+  }, [user]);
 
   if (!fontsLoaded) {
-    return <Text>{t('chargementText')}</Text>;
+    return <Text>{t('loadingText')}</Text>;
   }
 
   return (
@@ -80,21 +84,19 @@ export default function Setting() {
       style={styles.image}
       resizeMode="cover"
     >
-
+       <ScrollView>
       <View style={styles.titleProfileContainer}>
         <Text style={styles.title}>{t('profileTitle')}</Text>
       </View>
 
       <View style={styles.container}>
 
-        {/* PROFILE */}
         <View style={styles.profileContainer}>
-          <Avatar.Image source={{ uri: user.photo }} size={width * 0.35} />
-          <Text style={styles.username}>{user.username}</Text>
-          <Text style={styles.email}>{user.email}</Text>
+          <Avatar.Image source={{ uri: user?.photo }} size={width * 0.35} />
+          <Text style={styles.username}>{user?.username}</Text>
+          <Text style={styles.email}>{user?.email}</Text>
         </View>
 
-        {/* ADDRESS */}
         <View style={styles.addressContainer}>
           <Text style={styles.addressTitle}>{t('address')}</Text>
           <Text style={styles.addressText}>
@@ -104,7 +106,6 @@ export default function Setting() {
           </Text>
         </View>
 
-        {/* ACTIONS */}
         <View style={styles.containerRows}>
 
           <Pressable onPress={() => navigation.navigate('UserProfil')} style={({pressed}) => [styles.row,   pressed && styles.buttonPressed] }>
@@ -141,6 +142,7 @@ export default function Setting() {
 
         </View>
       </View>
+      </ScrollView>
     </ImageBackground>
   );
 }
@@ -164,13 +166,14 @@ const styles = StyleSheet.create({
 
   container: {
     width: width * 0.85,
-    maxHeight: height * 0.85,
+    maxHeight: height * 0.95,
     backgroundColor: 'white',
     borderRadius: 15,
     alignItems: 'center',
     paddingVertical: height * 0.03,
     marginTop: height * 0.02,
-    paddingBottom: height * 0.02
+    paddingBottom: height * 0.09
+    
   },
 
   profileContainer: {

@@ -1,41 +1,11 @@
-{/*import { useEffect } from 'react';
-import Toast from 'react-native-toast-message';
-import io from 'socket.io-client';
-
-useEffect(() => {
-    const socket= io("http://192.168.0.12:3002", 
-       {query: {userId: currentUser.id}}
-    ); 
-
-    socket.on('newReservation', (reservation) => {
-
-    Toast.show({
-        type:'success', 
-        text1: 'Nouvelle réservation', 
-        text2: `Quelqu’un a réservé : ${reservation.client_id}`})
-
-
-    })
-}
-
-
-
-, [])*/}
-
 import { Poppins_400Regular, Poppins_700Bold, useFonts } from '@expo-google-fonts/poppins';
-import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { FlatList, StyleSheet, Text, View, Modal, Button, TouchableOpacity } from 'react-native';
 import { Card, Checkbox } from 'react-native-paper';
 import SearchBar from './searchBar.jsx';
-import i18next from '../../src/service/i18next.js';
 import {useTranslation} from 'react-i18next'; 
 import Axios from '../../src/service/api.js';
 import AntDesign from 'react-native-vector-icons/AntDesign';
-import * as React from 'react';
-
-
-
 
 
 
@@ -65,21 +35,10 @@ async function getPostsFromApi() {
     try {
         const response = await  Axios.get("/posts/allPostsCategories"); 
         const data = response.data;
-    
-    if(Array.isArray(data)){
+        
         setPosts(data);
-        console.log(data); 
-    }else{
-        console.error("allPostsCategorie ne retourne pas un tableau valide:", data);
-    }
-
     }catch(err) {
-        if(err.response){
-          console.error("Erreur API:", err.response.data, "Status:", err.response.status);
-        } else {
-          console.error("Erreur réseau ou autre:", err.message);
-        }
-
+       Alert.alert(t('error.errorText'), err.response? `${message}\n\nStatus: ${err.response?.status}` : err.response?.data ? err.response.data : err.toString()); 
     }
     
     } 
@@ -99,11 +58,7 @@ async function getCategoriesFromApi(){
 
  
     }catch(err){
-        if(err.response){
-          console.error("Erreur API:", err.response.data, "Status:", err.response.status);
-        } else {
-          console.error("Erreur réseau ou autre:", err.message);
-        }
+        Alert.alert(t('error.errorText'), err.response? `${message}\n\nStatus: ${err.response?.status}` : err.response?.data ? err.response.data : err.toString()); 
     }
 }
 
@@ -119,11 +74,7 @@ async function getFilteredPosts(category){
         setSelectedCategory(category.name_category); 
         setPosts(data);
     }catch(err){
-        if(err.response){
-          console.error("Erreur API:", err.response.data, "Status:", err.response.status);
-        } else {
-          console.error("Erreur réseau ou autre:", err.message);
-        }
+       Alert.alert(t('error.errorText'), err.response? `${message}\n\nStatus: ${err.response?.status}` : err.response?.data ? err.response.data : err.toString()); 
     }
 }
 
@@ -133,7 +84,7 @@ useEffect(() => {
 }, []);
 
  if (!fontsLoaded) {
-      return <Text>Chargement...</Text>;
+      return <Text>{t('loadingText')}</Text>;
     }
   
   const handlePress = async (categorie) => {
@@ -147,7 +98,6 @@ useEffect(() => {
 
 
   if (!Object.values(checkedCategories).some(v => v === true)) {
-    // ➜ PLUS AUCUN FILTRE
     setSelectedCategory("");
     getPostsFromApi();
   } else {
@@ -203,7 +153,7 @@ const renderItem = ({ item }) => {
                         <AntDesign name="close" size={22} color="#333" />
                      </TouchableOpacity> 
 
-                    <Text style={styles.titleModal}>Filtres</Text>
+                    <Text style={styles.titleModal}>{t('filtersText')}</Text>
                     {categories.map(categorie => {
                         return(
                             <View key={categorie.id_category} style={styles.containerfilters}>
@@ -243,7 +193,7 @@ const renderItem = ({ item }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFCCBB', // sans espace
+    backgroundColor: '#FFCCBB',
     paddingHorizontal: 12,
     paddingTop: 30,
   },

@@ -14,7 +14,7 @@
     "questionpart1": "What is your",
     "textUsername": "username?",  
     "usernameInput": "Username", 
-    "Next": "", 
+    "Next": "next", 
     "textAddress": "address?", 
     "localisationButtonText": "Locate me",
     "streetInputText": "Street", 

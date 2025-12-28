@@ -9,7 +9,7 @@ import {checkJWT} from '../middleware/identification/jwt.js'
 import { mustBeAdmin } from '../middleware/identification/mustBeAdmin.js';
 import {clientValidatorMiddleware} from '../middleware/validation.js';
 import { getAllStats } from '../controller/dashboardController.js';
-
+import { getAddressByID } from '../controller/addressController.js';
 import productTypeRouter from './productTypeRoute.js'
 
 const router = Router();
@@ -19,6 +19,7 @@ router.use('/posts', postRouter);
 router.use('/reservations', reservationRouter);
 router.use('/comments', commentRouter);
 router.use('/productType', productTypeRouter);
+router.use("/address/:id", checkJWT, getAddressByID);
 
 /**
  * @swagger

@@ -382,6 +382,8 @@ export const searchPostByCategory = async(req, res) => {
 
 
 
+
+
 export const getPostsWithoutFilters= async(req, res) => {
     try {
         const posts = await getPostswithAllCategories(pool); 

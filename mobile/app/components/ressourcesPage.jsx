@@ -5,10 +5,11 @@ import { useState } from 'react';
 import { useEffect } from 'react';
 import { Alert } from 'react-native';
 import Axios from '../../src/service/api.js';
-
+import { useIsFocused } from '@react-navigation/native';
 
 export default function RessourcesPage() {
   const [posts, setPosts] = useState([]);
+  const isFocused = useIsFocused();
 
   const fetchPosts = async () => {
 
@@ -22,8 +23,10 @@ export default function RessourcesPage() {
   }
 
   useEffect(() => {
-    fetchPosts();
-  }, []);
+    if (isFocused) {
+      fetchPosts();
+    }
+  }, [isFocused]);
 
 
   return (

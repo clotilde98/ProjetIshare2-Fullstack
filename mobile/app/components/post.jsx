@@ -11,7 +11,7 @@ export default function Post({ post, onDelete }) {
     const [nbComments, setNbComments] = useState(null);
 
     const handleDelete = async () => {
-        try {
+        try {  
             const id = post.id;
             const res = await Axios.delete(`/posts/${id}`);
             Alert.alert("Succès", res.data);

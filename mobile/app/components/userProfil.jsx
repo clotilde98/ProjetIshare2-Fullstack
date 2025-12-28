@@ -64,7 +64,7 @@ export default function UserProfil() {
       const data = await response.json();
       Alert.alert(t('succes.modification'), JSON.stringify(data));
     } catch (err) {
-      Alert.alert(t('error.errorText'), err.response?.data ? err.response.data : err.toString());
+      Alert.alert(t('error.errorText'), err.response? `${message}\n\nStatus: ${err.response?.status}` : err.response?.data ? err.response.data : err.toString()); 
     }
   };
 
@@ -96,7 +96,7 @@ export default function UserProfil() {
   useEffect(() => { fetchCities() }, []);
 
   if (!fontsLoaded) {
-    return <Text>{t('chargementText')}</Text>;
+    return <Text>{t('loadingText')}</Text>;
   }
 
   return (

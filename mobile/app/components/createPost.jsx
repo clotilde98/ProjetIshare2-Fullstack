@@ -67,30 +67,27 @@ export default function CreatePost () {
             }
         }
 
-
         try {
-            // Créer un FormData
+        
             const formData = new FormData();
 
-            // Ajouter des champs texte
             formData.append("title", postTitle);
             formData.append("description", descriptionText);
             formData.append("addressID", selectedCity[0]);
-            formData.append("categoriesProduct", JSON.stringify(selectedFoodTypes)); // si c'est un tableau
+            formData.append("categoriesProduct", JSON.stringify(selectedFoodTypes)); 
             formData.append("numberOfPlaces", selectedNbOfPeople[0]);
             formData.append("street", streetText);
             formData.append("streetNumber", streetNumberText);
 
-            // Ajouter un fichier image (depuis ImagePicker)
+        
             if (image) {
             formData.append("photo", {
-                uri: image,           // URI de l'image
-                name: "photo.jpg",    // nom du fichier
-                type: "image/jpeg",   // type MIME
+                uri: image,        
+                name: "photo.jpg",    
+                type: "image/jpeg",  
             });
             }
 
-            // Envoyer la requête
             const response = await Axios.post("posts", formData, {
             headers: {
                 "Content-Type": "multipart/form-data",

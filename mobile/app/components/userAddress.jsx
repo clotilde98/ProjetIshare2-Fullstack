@@ -25,12 +25,7 @@ export default function UserAddress (){
     const [postalCode, setPostalCode] = useState(""); 
     const [postalCodes, setPostalCodes]=useState([]); 
 
-    const [errorMessage, setErrorMessage] = useState('');
-
-
-    
-
-    
+ 
 async function getAllCitiesFromApi() {
 
   try {
@@ -49,7 +44,6 @@ async function getAllCitiesFromApi() {
 
       setCities(tabCities);
       setPostalCodes(tabPostalCodes);
-      setErrorMessage('');
 
   } catch (error) {
       Alert.alert(t('error.errorText'), err.response? `${message}\n\nStatus: ${err.response?.status}` : err.response?.data ? err.response.data : err.toString()); 
@@ -64,7 +58,7 @@ useEffect(() => {
 
 
     if (!fontsLoaded) {
-    return <Text>{t('chargementText')}</Text>; 
+    return <Text>{t('loadingText')}</Text>; 
     }
 
     return(

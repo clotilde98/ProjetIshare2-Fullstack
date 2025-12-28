@@ -7,7 +7,8 @@ import {
   createUser,
   getUsers,
   getOwnUser,
-  createUserWithAdmin
+  createUserWithAdmin, 
+  getUserById
 } from "../controller/clientController.js";
 
 import {clientValidatorMiddleware} from '../middleware/validation.js';
@@ -160,6 +161,10 @@ router.get("/", checkJWT, mustBeAdmin, getUsers);
  *       500:
  *         description: Server error
  */
+
+
+
+router.get("/:id", checkJWT, getUserById);
 
 
 router.delete("/", checkJWT, deleteUser); 

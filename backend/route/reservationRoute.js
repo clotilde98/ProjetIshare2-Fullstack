@@ -314,5 +314,6 @@ router.patch("/:id", checkJWT, reservationValidatorMiddleware.updateReservationV
 
 router.delete("/:id", checkJWT, deleteReservation);
 
+
 export default router;
 

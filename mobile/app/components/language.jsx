@@ -1,10 +1,10 @@
 import { Poppins_400Regular, Poppins_700Bold, useFonts } from '@expo-google-fonts/poppins';
-
 import { useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { ImageBackground, FlatList, StyleSheet, Text, TouchableOpacity, View, Image } from 'react-native';
 import i18next, { languageResources } from '../../src/service/i18next';
 import AntDesign from 'react-native-vector-icons/AntDesign';
+
 export default function Language(){
 
 
@@ -25,7 +25,7 @@ export default function Language(){
 
 
   if (!fontsLoaded) {
-    return <Text>{t('hargementText')}</Text>;
+    return <Text>{t('loadingText')}</Text>;
   }
 
     return (
@@ -59,9 +59,6 @@ export default function Language(){
         </ImageBackground>
 
     ); 
-
-
-
 
 }
 
