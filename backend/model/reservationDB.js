@@ -14,6 +14,30 @@ export const readReservation = async (SQLClient, {id}) => {
     return rows[0];
 };
 
+export const readMyReservations = async (SQLClient, {clientID}) => {
+    const query = `
+        SELECT 
+            r.id AS reservation_id,
+            p.id AS post_id,
+            p.title,
+            p.street,
+            p.street_number,
+            p.photo,
+            a.city,
+            a.postal_code,
+            c.username AS owner_name,
+            c.photo AS owner_photo
+        FROM Reservation r
+        JOIN Post p ON r.post_id = p.id
+        JOIN Address a ON p.address_id = a.id
+        JOIN Client c ON p.client_id = c.id
+        WHERE r.client_id = $1
+        ORDER BY r.reservation_date DESC
+    `;
+    const {rows} = await SQLClient.query(query, [clientID]);
+    return rows;
+};
+
 export const readReservationsByClientID = async (SQLClient, {id}) => {
     const {rows} = await SQLClient.query("SELECT * FROM reservation WHERE client_id = $1", [id]);
     return rows;

@@ -93,23 +93,28 @@ export const getReservation = async (req, res) => {
     }
 };
 
-
-
-
 export const getMyReservations = async (req, res) => {
     try {
-        let userID = req.user.id;
-        const reservations = await reservationModel.readReservationsByClientID(pool, {id:userID});
-        if (reservations.length > 0){
-            res.status(200).send({reservations});
-        } else {
-            res.status(404).send("Client reservation not found");
-        }
+        const userID = req.user.id;
+        const rows = await reservationModel.readMyReservations(pool, { clientID: userID });
 
-    } catch (err){
-        res.status(500).send(err.message);
+        const reservations = rows.map(row => ({
+            id: row.reservation_id,
+            title: row.title,
+            address: `${row.street_number} ${row.street}`,
+            location: `${row.postal_code} ${row.city}`,
+            image: row.photo ? `${req.protocol}://${req.get('host')}/images/${row.photo}.jpeg` : null,
+            ownerName: row.owner_name,
+            ownerPhoto: row.owner_photo ? `${req.protocol}://${req.get('host')}/images/${row.owner_photo}.jpeg` : null
+        }));
+
+        res.status(200).json(reservations);
+    } catch (err) {
+        res.status(500).send("Erreur : " + err.message);
     }
-}
+};
+
+
 
 export const getReservationsByClientID = async (req, res) => {
     try {
