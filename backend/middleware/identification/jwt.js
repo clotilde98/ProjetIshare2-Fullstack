@@ -14,7 +14,7 @@ dotenv.config();
  *   
  *   responses:
  *     UnauthorizedError:
- *       description: Access token is missing or invalid
+ *       description: Access token is missing or is invalid
  *       content:
  *         application/json:
  *           schema:
@@ -25,7 +25,7 @@ dotenv.config();
  *                 example: "Unauthorized"
  *               message:
  *                 type: string
- *                 example: "JWT is missing or invalid"
+ *                 example: "JWT is missing or is invalid"
  */
 export const checkJWT = async (req, res, next) => {
     try {

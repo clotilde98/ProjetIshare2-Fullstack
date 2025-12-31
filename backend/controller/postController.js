@@ -1,10 +1,11 @@
 import { pool } from "../database/database.js";
-import {createPostCategory, deletePostCategoriesForPostID} from '../model/postCategory.js'
+import {createPostCategory, deletePostCategoriesForPostID, getPostswithAllCategories} from '../model/postCategory.js'
 import * as postModel from '../model/postDB.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import {saveImage} from '../middleware/photo/saveImage.js';
+import {saveImage} from '../middleware/saveImage.js';
 import * as uuid from 'uuid'
+import { readCategoryProductFromID } from "../model/productType.js";
 
 
 const __filename = fileURLToPath(import.meta.url);
@@ -25,71 +26,44 @@ const destFolderImages = path.join(__dirname, '../middleware/photo/');
  *         id:
  *           type: integer
  *           description: Unique identifier for the post
- *           example: 1
- *         postDate:
+ *         post_date:
  *           type: string
  *           format: date
  *           description: Date when the post was created
- *           example: "2023-10-15"
  *         description:
  *           type: string
  *           description: Detailed content of the post
- *           example: "This is a detailed description of the post..."
  *         title:
  *           type: string
  *           description: Title of the post
- *           example: "My First Post"
- *         numberOfPlaces:
+ *         number_of_places:
  *           type: integer
- *           description: Number of available places (if applicable)
- *           example: 10
- *         postStatus:
+ *         post_status:
  *           type: string
  *           description: Current status of the post
- *           enum: [draft, published, archived]
- *           example: "published"
+ *           enum: [available, unavailable]
  *         photo:
  *           type: string
- *           description: URL or path to the post's photo
- *           example: "/images/post1.jpg"
+ *           description: A local URL pointing to an image on the development server
  *         street:
  *           type: string
  *           description: Street name for location-based posts
- *           example: "Main Street"
- *         streetNumber:
+ *         street_number:
  *           type: string
- *           description: Street number (string to handle cases like "123A")
- *           example: "123"
- *         addressId:
+ *         address_id:
  *           type: integer
  *           description: Reference to the address
- *           example: 5
- *         clientId:
+ *         client_id:
  *           type: integer
- *           description: Reference to the client/author
- *           example: 7
+ *           description: Reference to the client
  * 
  *   responses:
- *     PostReaded:
+ *     PostResponse:
  *       description: The searched post has been found and read
  *       content:
  *         application/json:
  *           schema:
  *             $ref: '#/components/schemas/Post'
- * 
- *     PostNotFound:
- *       description: The searched post does not exist
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               error:
- *                 type: string
- *                 example: "Post not found"
- *               code:
- *                 type: string
- *                 example: "POST_NOT_FOUND"
  */
 
 export const getPost = async (req, res) => {
@@ -106,7 +80,35 @@ export const getPost = async (req, res) => {
             return res.status(404).send("Post not found");
         }
 
+        const photoUrl = post.photo
+        ? `${req.protocol}://${req.get('host')}/images/${post.photo}.jpeg` 
+        : null;
+
+        post.photo = photoUrl;
+
         res.status(200).json(post);
+
+    } catch (err) {
+        res.status(500).send("Internal server error : " + err.message);
+    }
+};
+
+export const getMyPosts = async (req, res) => {
+    try {
+
+        const userID = req.user.id;
+        const posts = await postModel.readMyPosts(pool, { clientID:userID });
+
+
+        if (posts.length > 0) {
+            for (const post of posts) {
+                post.photo = post.photo
+                ? `${req.protocol}://${req.get('host')}/images/${post.photo}.jpeg`
+                : null;
+            }
+            }
+
+        res.status(200).json(posts);
 
     } catch (err) {
         res.status(500).send("Internal server error : " + err.message);
@@ -118,20 +120,40 @@ export const getPost = async (req, res) => {
  * @swagger
  * components:
  *   responses:
- *     AllPostsReaded:
+ *     AllPostsRead:
  *       description: All posts have been successfully retrieved.
  *       content:
  *         application/json:
  *           schema:
  *             type: array
  *             items:
- *               $ref: '#/components/schemas/Post'
+ *              allOf: 
+ *               - $ref: '#/components/schemas/Post'
+ *               - type: object     
+ *                 properties: 
+ *                      places_restantes: 
+ *                             type: integer
+ *                      username: 
+ *                             type: integer
+ *                      categories: 
+ *                             type: string
+ *                      postal_code:        
+ *                             type: string  
+ *                      city: 
+ *                             type: string                
  */
 
 
 export const getPosts = async (req, res) => {
     try {
-        const { city, postStatus, page,limit} = req.query;
+        const { city, postStatus} = req.query;
+
+        const page = req.query.page ? Number(req.query.page) : 1;
+        const limit = req.query.limit ? Number(req.query.limit) : 10;
+
+        if (Number.isNaN(page) || Number.isNaN(limit)) {
+            return res.status(400).send("Page and limit must be numbers");
+        }
 
         const posts = await postModel.getPosts(pool, {
             city,
@@ -139,6 +161,16 @@ export const getPosts = async (req, res) => {
              page: parseInt(page) || 1, 
             limit: parseInt(limit) || 10   
         });
+
+        if (posts.rows.length > 0){
+            for (const post of posts.rows) {
+                post.photo = post.photo
+                    ? `${req.protocol}://${req.get('host')}/images/${post.photo}.jpeg`
+                    : null;
+            }
+        }
+        
+
 
         return res.status(200).json(posts);
 
@@ -149,24 +181,6 @@ export const getPosts = async (req, res) => {
 
 
 
-/**
- * @swagger
- * components:
- *   responses:
- *     PostCreated:
- *       description: Thanks to the transaction, the user was identified and linked to the post, and a row was created in the PostCategory table.
- *       content:
- *         text/plain:
- *           schema:
- *             type: string
- *
- *     UnauthorizedToAccess:
- *       description: User is not authorized to access this resource because this is neither a user nor an administrator
- *       content:
- *         text/plain:
- *           schema:
- *             type: string
- */
 
 
 
@@ -197,6 +211,14 @@ export const createPost = async (req, res) => {
         } else {
             return res.status(400).send("Post category required.")
         }
+
+        for (const categoryID of categoriesProduct) {
+            const category = await readCategoryProductFromID(pool, categoryID);
+            if (!category) {
+                return res.status(404).send(`Category product with ID ${categoryID} not found`);
+            }
+        }
+
 
         client = await pool.connect();
         await client.query('BEGIN');
@@ -261,6 +283,9 @@ export const updatePost = async (req, res) => {
                 await saveImage(photo.buffer, imageName, destFolderImages);
             }
 
+            client = await pool.connect();
+            await client.query('BEGIN');
+
 
             let categoriesProduct = [];
             if (req.body.categoriesProduct) {
@@ -268,23 +293,26 @@ export const updatePost = async (req, res) => {
                 if (!Array.isArray(categoriesProduct) || categoriesProduct.length === 0) {
                     return res.status(400).send("Post category required.");
                 }
-            } else {
-                return res.status(400).send("Post category required.")
-            }
 
-            client = await pool.connect();
-            await client.query('BEGIN');
+                for (const categoryID of categoriesProduct) {
+                    const category = await readCategoryProductFromID(pool, categoryID);
+                    if (!category) {
+                        return res.status(400).send(`Category product with ID ${categoryID} doesn't exist`);
+                    }
+                }
 
-            await deletePostCategoriesForPostID(client, postID);
-
-
-            for (const categoryID of categoriesProduct) {
-                await createPostCategory(client, { IDCategory: categoryID, IDPost: postID });
+                await deletePostCategoriesForPostID(client, postID);
+                for (const categoryID of categoriesProduct) {
+                    await createPostCategory(client, { IDCategory: categoryID, IDPost: postID });
+                }
             }
 
             
             const updatedPost = await postModel.updatePost(client, postID, req.body)
-
+            updatedPost.photo = post.photo
+                    ? `${req.protocol}://${req.get('host')}/images/${post.photo}.jpeg`
+                    : null;
+            
 
             await client.query('COMMIT');
 
@@ -323,7 +351,8 @@ export const deletePost = async (req, res) => {
         }
 
     } catch (err) {
-        res.sendStatus(500).send(err.message);
+        console.log(err.message);
+        res.status(500).send(err.message);
     }
 };
 
@@ -349,4 +378,26 @@ export const searchPostByCategory = async(req, res) => {
     }catch(err){
         res.status(500).send(err.message);
     }
+}
+
+
+
+
+
+export const getPostsWithoutFilters= async(req, res) => {
+    try {
+        const posts = await getPostswithAllCategories(pool); 
+        
+        if (posts.length > 0) {
+            for (const post of posts) {
+                post.photo = post.photo
+                ? `${req.protocol}://${req.get('host')}/images/${post.photo}.jpeg`
+                : null;
+            }
+        }
+        res.status(200).send(posts);
+    }catch(err){
+        res.status(500).send(err.message);
+    }
+
 }

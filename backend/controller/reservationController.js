@@ -5,9 +5,46 @@ import {readPost} from '../model/postDB.js'
 
 import * as reservationModel from '../model/reservationDB.js';
 
+import {sendNotification} from '../../backend/websocket.js'; 
+
 
 
 const VALID_STATUS = ['confirmed', 'cancelled', 'withdrawal']; 
+
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     Reservation:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *         reservation_date:
+ *           type: string
+ *           format: date
+ *         reservation_status:
+ *           type: string
+ *         post_id:
+ *           type: integer
+ *         client_id:
+ *           type: integer
+ *         title: 
+ *           type: string
+ *         username: 
+ *           type: string
+ *
+ *   responses:
+ *     ReservationsList:
+ *       description: List of reservations depending on the function used
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: array
+ *             items:
+ *               $ref: '#/components/schemas/Reservation'
+ */
+
 
 export const getReservations = async (req, res) => { 
     try {
@@ -114,6 +151,20 @@ export const getReservationsByPostID = async (req, res) => {
 }
 
 
+/**
+ * @swagger
+ * components:
+ *   responses:
+ *       ReservationResponse: 
+ *            description:  The reservation object is returned   
+ *            content: 
+ *              application/json: 
+ *                     schema: 
+ *                       $ref: '#/components/schemas/Reservation'  
+ */
+
+
+
 export const createReservation = async (req, res) => {
     try {
         let userID = req.user.id; 
@@ -129,6 +180,7 @@ export const createReservation = async (req, res) => {
 
         const post = await readPost(pool, { id: postID });
         if (!post) return res.status(404).send("Post doesn't exist");
+
 
         if (post.client_id === userID) {
             return res.status(403).send("You can't make a reservation for a post that you posted");
@@ -149,6 +201,21 @@ export const createReservation = async (req, res) => {
         }
 
         const newReservation = await reservationModel.createReservation(pool, userID, req.body); 
+
+
+        const informationPostReservation = await reservationModel.getReservationWithPostTitle(pool, {clientID: userID , postID}); 
+        console.log(informationPostReservation.username); 
+        const notification = {
+            type: 'reservation', 
+            message:  `${informationPostReservation.username} a réservé ton post "${post.title}"`,
+            postId: postID, 
+            reserverId: userID
+
+        }; 
+
+        console.log(informationPostReservation.client_id);
+        sendNotification(informationPostReservation.owner_id, notification);
+
         res.status(201).json({ reservation: newReservation });
 
     } catch (err) {
@@ -157,20 +224,43 @@ export const createReservation = async (req, res) => {
 }
 
 
+
+
+
+
 export const updateReservation = async (req, res) => {
     try {
         const reservationID = Number(req.params.id);
+
+        const { reservationStatus, postID, providedClientID} = req.body
+
+        let userID = req.user.id; 
+
+        if (providedClientID) {
+            if (req.user.isAdmin) {
+                userID = providedClientID;
+            } else {
+                return res.status(403).send("Admin privilege required");
+            }
+        }
+
         if (Number.isNaN(reservationID)) return res.status(400).send("Invalid reservation ID");
+
 
         const reservation = await reservationModel.readReservation(pool, {id:reservationID});
         if (!reservation) return res.status(404).send("Reservation not found");
+
 
         if (reservation.client_id !== req.user.id && !req.user.isAdmin) {
             return res.status(403).send("Admin privilege required.");
         }
 
+        const post = await readPost(pool, {id:reservation.post_id});
 
-        const { reservationStatus, postID, clientID} = req.body
+        if (post.client_id === userID) {
+            return res.status(403).send("Impossible to create a reservation. User is the owner of the post.");
+        }
+        
 
         if (reservationStatus){
             if (!VALID_STATUS.includes(reservationStatus)){
@@ -180,12 +270,9 @@ export const updateReservation = async (req, res) => {
             }
         }
 
+        const updatedReservation = await reservationModel.updateReservation(pool, { id: reservationID, clientID:providedClientID, postID, reservationStatus })
 
-        await reservationModel.updateReservation(pool, { id: reservationID, reservationStatus, 
-            postID,            
-            clientID})
-
-       return res.status(200).json(updateReservation);
+       return res.status(200).json(updatedReservation);
         
     } catch (err){
         res.status(500).send(err.message);
@@ -216,3 +303,4 @@ export const deleteReservation = async (req, res) => {
         res.status(500).send("Internal server error : " + err.message);
     }
 };
+

@@ -3,11 +3,15 @@ import express from 'express';
 import {default as Router} from './route/index.js';
 import path from "path";
 import { fileURLToPath } from 'url';
-
+import { initWebSocket } from './websocket.js';
 import cors from 'cors';
 
 const app = express();
 const port = 3002;
+
+initWebSocket();
+ 
+
 
 
 const __filename = fileURLToPath(import.meta.url);

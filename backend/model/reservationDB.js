@@ -30,6 +30,28 @@ export const readReservationsByPostID = async (SQLClient, {id}) => {
 };
 
 
+export const getReservationWithPostTitle = async (SQLClient, {clientID, postID}) => {
+  const { rows } = await SQLClient.query(
+    `SELECT 
+        r.*, 
+        p.title AS post_title, 
+        reserver.username, 
+        p.client_id AS owner_id
+     FROM Reservation r
+     JOIN Post p ON r.post_id = p.id
+     JOIN Client owner ON p.client_id = owner.id
+     JOIN Client reserver ON r.client_id = $2
+     WHERE r.post_id = $1`,
+
+    [postID, clientID]
+  );
+  return rows[0];
+};
+
+
+
+
+
 export const updateReservation = async(SQLClient, {id, clientID,postID, reservationStatus}) => {
     let query = "UPDATE reservation SET ";
     const querySet = [];
@@ -52,8 +74,9 @@ export const updateReservation = async(SQLClient, {id, clientID,postID, reservat
 
     if(queryValues.length > 0){
         queryValues.push(id);
-        query += `${querySet.join(", ")} WHERE id = $${queryValues.length}`;
-        return await SQLClient.query(query, queryValues);
+        query += `${querySet.join(", ")} WHERE id = $${queryValues.length} RETURNING *`;
+        const result = await SQLClient.query(query, queryValues);
+        return result.rows[0] || null;
     } else {
         throw new Error("No field given");
     }

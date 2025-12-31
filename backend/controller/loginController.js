@@ -50,7 +50,7 @@ export const login = async (req, res) => {
             process.env.JWT_SECRET,
             { expiresIn: "24h" }
         );
-        res.status(200).send({ token });
+        res.status(200).send({ user, token });
     } catch (err){
         res.status(500).send(err.message);
     }
@@ -59,16 +59,20 @@ export const login = async (req, res) => {
 
 export const loginWithGoogle = async (req, res) => {
     try {
-        const { email, idToken, username, streetNumber, street, addressID} = req.body;
-        const userInfo = await validateGoogleToken(idToken);
+        console.log("test");
+        const { idToken} = req.body;
+        if (!idToken) {
+            return res.status(400).json({ message: "idToken missing" });
+        }
 
-  
-        //const photo = req.file ? `${req.protocol}://${req.get('host')}/images/${req.file.filename}`  : null;   
-        let user = await userModel.getUserByEmail(pool, email)
+        const googleUser = await validateGoogleToken(idToken);
 
+        const { id: googleId, email, name, photo } = googleUser;
+        let user = await getUserByEmail(pool, email);
 
+        
         if (!user){
-            user = await createUser(pool, {googleId: userInfo.id, username, email: userInfo.email, streetNumber, street, imageName:null, addressID})
+            user = await createUser(pool, {googleId, username:name, email, password:null, streetNumber:null, street:null, photo, isAdmin:false, addressID:null})
         }
 
         const token = jwt.sign(
@@ -80,7 +84,7 @@ export const loginWithGoogle = async (req, res) => {
             process.env.JWT_SECRET,
             { expiresIn: "24h" }
         );
-        res.status(200).send({ token });
+        res.status(200).send({ user, token });
     } catch (err){
         res.status(500).send(err.message);
     }

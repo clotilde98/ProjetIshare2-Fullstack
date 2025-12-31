@@ -65,7 +65,7 @@ export const updatePost = async(SQLClient, id, {description, title, numberOfPlac
 
     if(queryValues.length > 0){
         queryValues.push(id);
-        query += `${querySet.join(", ")} WHERE id = $${queryValues.length}`;
+        query += `${querySet.join(", ")} WHERE id = $${queryValues.length} RETURNING *`;
         const result = await SQLClient.query(query, queryValues);
         return result.rows[0];
     } else {
@@ -83,12 +83,18 @@ export const readPost = async (SQLClient, {id}) => {
     return rows[0];
 };
 
+export const readMyPosts = async (SQLClient, {clientID}) => {
+    const {rows} = await SQLClient.query("SELECT * FROM Post WHERE client_id = $1", [clientID]);
+    return rows;
+}
+
 
 export const searchPostByCategory = async (SQLClient,  nameCategory) => {
     const query = "SELECT * FROM Post p INNER JOIN Post_category pc ON p.id = pc.id_ad INNER JOIN Category_product cp ON cp.id_category = pc.id_category WHERE cp.name_category=$1";
     const {rows} = await SQLClient.query(query, [nameCategory]);
     return rows;
 };
+
 
 
 
@@ -135,9 +141,11 @@ export const getPosts = async (SQLClient, { city, postStatus, page = 1, limit = 
         const dataQuery = `
             SELECT 
                 p.id, 
-                p.title, 
-                p.number_of_places ,
+                p.title,
                 p.address_id,
+                p.client_id, 
+                p.photo,
+                p.post_date,
                 (
                     p.number_of_places - (
                         -- Calcul des réservations confirmées pour ce post

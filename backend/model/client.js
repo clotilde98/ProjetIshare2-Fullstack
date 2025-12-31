@@ -12,18 +12,20 @@ export const createUser = async (SQLClient, { googleId = null, username, email, 
   }
   
   
-  const { rows } = await SQLClient.query(
-    `INSERT INTO Client (googleId, username, email, password, street_number, street, photo, is_admin, address_id) VALUES ($1, $2, $3, $4, $5, $6, $7 ,$8, $9) RETURNING *`,
-    [googleId, username, email, password, streetNumber, street, photo, isAdmin, addressID]
-  );
-  return rows[0];
+  const { rows } = await SQLClient.query(
+    `INSERT INTO Client (googleId, username, email, password, street_number, street, photo, is_admin, address_id) VALUES ($1, $2, $3, $4, $5, $6, $7 ,$8, $9) RETURNING *`,
+    [googleId, username, email, password, streetNumber, street, photo, isAdmin, addressID]);
+
+    const user = rows[0];
+    delete user.password;
+    return user;
 };
 
 
 
 export const getUserById = async (SQLClient, id) => {
   const { rows } = await SQLClient.query(
-    `SELECT id,  username,  email,  password,  is_admin AS isAdmin
+    `SELECT googleId, id, username, email, street, street_number, registration_date, photo, is_admin AS isAdmin, address_id
      FROM Client
      WHERE id = $1`,
     [id]
@@ -33,7 +35,7 @@ export const getUserById = async (SQLClient, id) => {
 
 export const getUserByEmail = async (SQLClient, email) => {
   const { rows } = await SQLClient.query(
-    `SELECT googleId, id, username, email, password, is_admin AS isAdmin
+    `SELECT googleId, password, id, username, email, street, street_number, registration_date, photo, is_admin AS isAdmin, address_id
      FROM Client
      WHERE email = $1`,
     [email]
@@ -43,7 +45,7 @@ export const getUserByEmail = async (SQLClient, email) => {
 
 export const getUserByUsernameOrEmail = async (SQLClient, username, email) => {
     const { rows } = await SQLClient.query(
-        `SELECT id, username, email 
+        `SELECT googleId, id, username, email, street, street_number, registration_date, photo, is_admin AS isAdmin, address_id
          FROM Client
          WHERE username = $1 OR email = $2`,
         [username, email] 
@@ -54,14 +56,14 @@ export const getUserByUsernameOrEmail = async (SQLClient, username, email) => {
 
 export const getProfileById = async (SQLClient, id) => {
     const { rows } = await SQLClient.query(
-        `SELECT id,  username,  email,  street,  street_number AS streetNumber, photo
+        `SELECT googleId, id, username, email, street, street_number, registration_date, photo, is_admin AS isAdmin, address_id
         FROM  Client
         WHERE id = $1`,
         [id]
     );
     return rows[0];
 };
-  
+  
 export const updateUser = async (SQLClient, id, { username, email, password, photo, isAdmin, street, streetNumber,addressID }) => {
     let query = "UPDATE Client SET ";
     const querySet = []; 
@@ -108,10 +110,14 @@ export const updateUser = async (SQLClient, id, { username, email, password, pho
 
     if (queryValues.length > 0) {
         queryValues.push(id); 
-        query += `${querySet.join(", ")} WHERE id = $${queryValues.length}`;
-
+        query += `${querySet.join(", ")} WHERE id = $${queryValues.length} RETURNING *`;
         const result = await SQLClient.query(query, queryValues);
-        return result.rowCount > 0;
+        const user = result.rows[0];
+
+        delete user.password;
+
+        return user;
+
     } else {
         throw new Error("No field given (client name)");
     }
@@ -177,9 +183,9 @@ export const getUsers = async (SQLClient, { name, role, page = 1, limit = 10 }) 
 };
 
 export const deleteUser = async (SQLClient, id) => {
-  const { rowCount } = await SQLClient.query(
-    'DELETE FROM Client WHERE id = $1',
-    [id]
-  );
-  return rowCount > 0;
+  const { rowCount } = await SQLClient.query(
+    'DELETE FROM Client WHERE id = $1',
+    [id]
+  );
+  return rowCount > 0;
 };

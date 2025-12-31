@@ -1,6 +1,5 @@
 import {pool} from "../database/database.js";
 import * as commentModel from "../model/comment.js";
-
 import * as postModel from "../model/postDB.js"
 
 
@@ -24,6 +23,16 @@ import * as postModel from "../model/postDB.js"
  *           type: integer
  */
 
+
+export const getCommentsByPostID = async (req, res) => {
+    try {
+        const rows = await commentModel.getCommentsByPostID(pool, {postID: req.params.id})
+        return res.status(200).send({rows});
+    } catch (e) {
+        res.status(500).send({message: "Internal server error : " + e.message});
+    }
+}
+
 /**
  * @swagger
  * components:
@@ -33,10 +42,8 @@ import * as postModel from "../model/postDB.js"
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             properties:
- *               id:
- *                 type: integer
+ *              $ref: '#/components/schemas/Comment'
+ *             
  */
 
 export const createComment = async (req, res) => {
@@ -78,15 +85,9 @@ export const createComment = async (req, res) => {
  *     CommentUpdated:
  *       description: The Comment updated in the database
  *       content:
- *         text/plain:
- *           schema:
- *             type: string
- *     CommentNotFound:
- *       description: Comment not found
- *       content:
  *         application/json:
  *           schema:
- *             type: string
+ *             $ref: '#/components/schemas/Comment' 
  * 
  */
 
@@ -106,7 +107,7 @@ export const updateComment = async (req, res) => {
         if (comment.id_customer === userID || req.user.isAdmin){
             const updated = await commentModel.updateComment(pool, { id: commentID, content: req.body.content });
 
-            return res.status(200).send(updated);
+            return res.status(200).send({updated});
         } else {
             return res.status(403).send("Admin privilege required.");
         }
@@ -116,19 +117,6 @@ export const updateComment = async (req, res) => {
     }
 };
 
-
-/**
- * @swagger
- * components:
- *   responses:
- *     CommentDeleted:
- *       description: The comment has been deleted from the database
- *       content:
- *         text/plain:
- *           schema:
- *             type: string
- *
- */
 
 
 export const deleteComment = async(req, res) =>{
@@ -158,14 +146,21 @@ export const deleteComment = async(req, res) =>{
  * @swagger
  * components:
  *   responses:
- *     CommentsReaded:
+ *     CommentsRead:
  *       description: All the comments that correspond to the given date
  *       content:
  *         application/json:
  *           schema:
  *             type: array
  *             items:
- *               $ref: '#/components/schemas/Comment'
+ *               allOf: 
+ *               - $ref: '#/components/schemas/Comment'
+ *               - type: object 
+ *                 properties: 
+ *                      post_title: 
+ *                          type: string 
+ *                      username: 
+ *                          type: string
  */
 
 

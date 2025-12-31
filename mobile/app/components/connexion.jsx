@@ -1,12 +1,13 @@
-import axios from 'axios';
 import { useFonts } from 'expo-font';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Alert, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Button } from 'react-native-paper';
 import InputComponent from './input.jsx';
-
-import * as SecureStore from 'expo-secure-store';
-
+import Axios from '../../src/service/api.js';
+import * as tokenService from '../../src/service/token.js';
+import { useContext } from 'react';
+import { AuthContext } from '../../src/context/authContext.js';
+import { Poppins_400Regular } from '@expo-google-fonts/poppins';
 
 
 
@@ -18,26 +19,17 @@ import {
 } from '@react-native-google-signin/google-signin';
 
 
-const Axios = axios.create ({
-
-    baseURL:'http://192.168.0.11:3002'
-
-    
-});
-
-    
-
-
-export default function Connexion({setUserInfo}) {
+export default function Connexion({isSignUp, navigation}) {
     const [fontsLoaded] = useFonts({
         Jaro: require('../../assets/fonts/jaro.ttf'), 
+        Poppins: Poppins_400Regular,
     });
+
+    const { user, setUser } = useContext(AuthContext);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [secondPassword, setSecondPassword] = useState('');
 
-
-
- //email, idToken, username, streetNumber, street, photo, isAdmin, addressID}
 
 
     const handleGoogleSignIn = async () => {
@@ -50,103 +42,120 @@ export default function Connexion({setUserInfo}) {
             }
             );
         if (isSuccessResponse(response)) {
-            setUserInfo(response.data);
-
-            const res = await Axios.post("/loginWithGoogle", {
-            email: response.data.user.email,
-            idToken: response.data.idToken,
-            username: "skudle",
-            streetNumber: 1,
-            street: "rue de l europe",
-            photo: null,
-            isAdmin: false,
-            addressID: 1
-          });
-
-          await SecureStore.setItemAsync("jwt", res.data.token);
-
-          
+            try {
+              const res = await Axios.post("/loginWithGoogle", {
+                idToken: response.data.idToken,
+              });
+              await tokenService.saveToken(res.data.token);
+              
+              setUser(res.data.user);
+              navigation.navigate('MainTabs');
+              
+            } catch (err){
+              Alert.alert(
+                "Erreur backend",
+                `\nMessage: ${err.response.data}`
+              );
+            }
+            
         } else {
-            console.log("Sign in was cancelled by the user")
+            alert("Sign in was cancelled by the user")
         }
         } catch (error){
-            
             if (isErrorWithCode(error)) {
                 switch (error.code) {
                 case statusCodes.IN_PROGRESS:
                     // operation (eg. sign in) already in progress
-                    Alert.alert("sign in is in progress");
+                    alert("sign in is in progress");
                     break;
                 case statusCodes.PLAY_SERVICES_NOT_AVAILABLE:
                     // Android only, play services not available or outdated
-                    Alert.alert("play service not available")
+                    alert("play service not available")
                     break;
-                default:
-                    // some other error happened
+                
                 }
             } else {
-                console.log(error);
-                // an error that's not related to google sign in occurred
+                
+                // an error that's not related tro google sign in occurred
                 Alert.alert("an error that's not related to google sign in occurred");
             }
         }
     }
-    
 
-    const handleGoogleSignOut = async () => {
-        try {
-        await GoogleSignin.signOut();
-        setUserInfo(null);
-        } catch (error){
-        Alert.alert("Failed to log out");
-        }
+    async function handleSubmit() {
+    if (!email || !password) return;
+
+    if (isSignUp){
+      if (!secondPassword || secondPassword !== password){
+        return alert("Password must match");
+      }
     }
 
+    try {
+      let res;
+      if (isSignUp){
+        res = await Axios.post(
+          '/users',
+          { email, password }
+        );
+      } else {
+        res = await Axios.post(
+          '/login',
+          { email, password }
+        );
+      }
 
-  function handleSubmit() {
-    if (email && password){
-      axios.post('http://192.168.0.11:3002/login/', {
-        email,
-        password
-      })
-      .then(res => {
-        SecureStore.setItemAsync("jwt", res.data.token);
-      })
-      .catch(err => console.error(err.response.data));
+        await tokenService.saveToken(res.data.token)
+        setUser(res.data.user);
+    } catch (err) {
+      const status = err.response?.status;
+      const message = err.response?.data;
+
+      if (status === 401) {
+        Alert.alert(
+          "Erreur de connexion", message
+        );
+      } else {
+        Alert.alert(message);
+      }
     }
-    
   }
+
 
   if (!fontsLoaded) {
     return <Text>Chargement...</Text>; 
   }
 
   return (
-    <View style={styles.container}>
+    <View style={styles.container}>    
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <Text
+          style={[
+            styles.text,
+            isSignUp && { fontFamily: 'HachiMaruPop', fontWeight: "bold", fontSize: 35 }
+          ]}
+        >
+          {isSignUp ? "Create an account" : "Welcome !"}
+        </Text>
+      </View> 
 
 
-            <Pressable style={styles.singInTextWithGoogle} onPress={handleGoogleSignOut}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
-            <Image source={require('../../assets/images/google-icon.png')} style={{ width: 24, height: 24, marginRight: 10 }} />
-            <Text style={{ fontWeight: 'bold', fontSize: 16 }}>Sign out</Text>
-        </View>
-    </Pressable>
 
-
-
-    
-
-      <Text style={styles.text}>Welcome !</Text>
       <View>
-        <InputComponent textValue="Email" secureTextEntry={false} secureEye={false} onChangeText={setEmail} />
+        <Text style={styles.loginMode}>{isSignUp ? "Sign up":"Login"}</Text>
+        <InputComponent textValue="Email" secureTextEntry={false} secureEye={false} onChangeText={setEmail}/>
         <InputComponent textValue="Password" secureTextEntry={true} secureEye={true} onChangeText={setPassword} />
-        <Pressable onPress={handleSubmit}>
-          <Text style={styles.forgotText}>Forgot your password?</Text>
-        </Pressable>
+        {isSignUp ? (<InputComponent textValue="Confirm Password" secureTextEntry={true} secureEye={true} onChangeText={setSecondPassword} />):("")}
+        {isSignUp ? (""): (
+          <Pressable onPress={handleSubmit}>
+            <Text style={styles.forgotText}>Forgot your password?</Text>
+          </Pressable>
+          )}
+        
       </View>
       
       
-      <Button style={styles.button} buttonColor= 'black' textColor="white" contentStyle={{ height: 50 }} onPress={handleSubmit}>Sign In</Button>
+      <Button style={styles.button} buttonColor= 'black' textColor="white" contentStyle={{ height: 50 }} onPress={handleSubmit}>Sign {isSignUp ? "Up":"In"}</Button>
 
       <View style={styles.orLine}>
         <View style={styles.line}></View>
@@ -154,27 +163,22 @@ export default function Connexion({setUserInfo}) {
         <View style={styles.line}></View>
       </View>
 
-      {/***<Pressable style={styles.googleButton} onPress={() => promptAsync()}>
-        <View style={styles.singInTextWithGoogle}>
-          <Icon name="google" size={24} color="blue" style={{ marginRight: 10 }} />
-          <Text>Sign In with Google</Text>
-        </View>
-      </Pressable>***/}
-
     <Pressable style={styles.singInTextWithGoogle} onPress={handleGoogleSignIn}>
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
             <Image source={require('../../assets/images/google-icon.png')} style={{ width: 24, height: 24, marginRight: 10 }} />
-            <Text style={{ fontWeight: 'bold', fontSize: 16 }}>Sign In with Google</Text>
+            <Text style={{ fontWeight: 'bold', fontSize: 16 }}>Sign {isSignUp ? "Up":"In"} with Google</Text>
         </View>
     </Pressable>
       
+      <View style={{ flexDirection: 'column', alignItems: 'center', margin: 15 }}>
+        <Text style={{fontWeight:"bold", margin:15}}>{isSignUp ? "You already have an account?":"Don't have an account?"}</Text>
+        
+        <Pressable onPress={() => (isSignUp ? navigation.navigate("Signup") : navigation.navigate("Login")) }>
+          <Text style={[styles.signUp, { color: "gray" }]}>
+            {isSignUp ? "Sign In" : "Sign Up"}
+          </Text>
+        </Pressable>
 
-      <View>
-        <Text style={{fontWeight:"bold", margin:15}}>Don't have an account ?</Text>
-      </View>
-
-      <View style={styles.signUp}>
-        <Text style={{color:"gray"}}>Sign Up</Text>
       </View>
 
     </View>
@@ -194,15 +198,24 @@ const styles = StyleSheet.create({
   },
   text : {
     marginTop: 35,
-    marginBottom: 30,
+    marginBottom: 23,
     fontFamily: 'Jaro', 
     fontSize: 46,
+  },
+
+  loginMode : {
+    fontFamily: "Poppins",
+    fontWeight:"bold",
+    fontSize: 24,
+    marginBottom: 25,
+    marginLeft: 5
   },
 
   button: {
     width: '80%',
     borderRadius: 6,
-    
+    marginBottom: 10,
+    marginTop:10,
   },
 
   forgotText: {

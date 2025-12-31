@@ -5,8 +5,9 @@ import 'dotenv/config';
 import jwt from "jsonwebtoken";
 import path from 'path';
 import { fileURLToPath } from 'url';
-import {saveImage} from '../middleware/photo/saveImage.js';
+import {saveImage} from '../middleware/saveImage.js';
 import * as uuid from 'uuid'
+import { faker } from '@faker-js/faker';
 
 
 /**
@@ -20,16 +21,25 @@ import * as uuid from 'uuid'
  *           type: integer
  *         username:
  *           type: string
- *         street:
- *           type: string
- *         streetNumber:
- *           type: integer
- *         photo:
- *           type: string
  *         email:
  *           type: string
- *         password:
+ *         photo:
  *           type: string
+ *           nullable: true
+ *         googleid: 
+ *           type: string
+ *           nullable: true 
+ *         street: 
+ *           type: string
+ *         street_number: 
+ *           type: integer 
+ *         registration_date: 
+ *           type: string
+ *           format: date 
+ *         isadmin: 
+ *           type: boolean
+ *         address_id: 
+ *           type: integer
  */
 
 /**
@@ -41,15 +51,21 @@ import * as uuid from 'uuid'
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             properties:
- *               token:
- *                 type: string
+ *             allOf: 
+ *               - $ref: '#/components/schemas/Client'
+ *               - type: object
+ *                 properties:
+ *                      token:
+ *                         type: string
  */
 
 export const createUser = async (req, res) => {
   try {
-    const {username, email, password, street, streetNumber, addressID} = req.body;
+    const {email, password, streetNumber, street, addressID} = req.body;
+    let {username} = req.body;
+    if (!username){
+        username = faker.internet.username();
+    }
 
     const photo = req.file;
     let user = await userModel.getUserByEmail(pool, email)
@@ -74,7 +90,7 @@ export const createUser = async (req, res) => {
                   process.env.JWT_SECRET,
                   { expiresIn: "24h" }
               );
-              res.status(200).send({ token });
+              res.status(200).send({ token, user });
     } else {
       res.status(409).send("User account already exists");
     }
@@ -82,6 +98,50 @@ export const createUser = async (req, res) => {
     res.status(500).send(err.message);
   }
 }
+
+
+
+
+
+
+export const getUserById = async (req, res) => {
+    try {
+
+        const clientID = req.params.id;
+
+        const user = await userModel.getProfileById(pool, clientID); 
+
+        if (!user) {
+            return res.status(404).send("User not found.");
+        }
+
+        const photoUrl = user.photo
+        ? `${req.protocol}://${req.get('host')}/images/${user.photo}.jpeg` 
+        : `${req.protocol}://${req.get('host')}/images/unknown_person.jpeg`;
+
+        user.photo = photoUrl;
+
+        delete(user.registration_date);
+        delete(user.isadmin);
+        delete(user.street);
+        delete(user.street_number);
+        delete(user.googleid);
+        delete(user.email);
+        delete(user.address_id);
+
+        res.status(200).json({
+            user
+        });
+
+
+
+
+    } catch (err) {
+        res.status(500).send("Internal server error " + err.message); 
+    }
+}
+
+
 
 export const createUserWithAdmin = async (req, res) => {
     try {
@@ -115,7 +175,7 @@ export const createUserWithAdmin = async (req, res) => {
                 { expiresIn: "24h" }
             );
             
-            res.status(200).send({ token });
+            res.status(200).send({ token, user });
         } else {
             res.status(409).send("User account already exists");
         }
@@ -124,33 +184,9 @@ export const createUserWithAdmin = async (req, res) => {
     }
 }
 
-/**
- * @swagger
- * components:
- *   responses:
- *     UpdatedUser:
- *       description: The user updated in the database
- *       content:
- *         text/plain:
- *           schema:
- *             type: string
- *     InvalidOldPassword:
- *       description: Incorrect old password
- *       content:
- *         text/plain:
- *           schema:
- *             type: string
- *     UserNotFound:
- *       description: User not found
- *       content:
- *         text/plain:
- *           schema:
- *             type: string
- */
-
-
 export const updateUser = async (req, res) => {
     try {
+        
         let userId = req.user.id;
         if (req.params.id){
             if (req.user.isAdmin){
@@ -179,20 +215,21 @@ export const updateUser = async (req, res) => {
             updateData.photo = imageName;
         }
 
-        if (updateData.password) { 
+        if (currentUser.password && updateData.password) { 
             const pepper = process.env.PEPPER;
             
             if (!req.user.isAdmin) {
                 if (!updateData.oldPassword) {
-                    return res.status(400).send("Old password required.");
+                    return res.status(401).send("Old password required.");
                 }
+
                 const validOldPassword = await argon2.verify(
                     currentUser.password, 
                     updateData.oldPassword + pepper
                 );
 
                 if (!validOldPassword) {
-                    return res.status(400).send("Old password incorrect.");
+                    return res.status(401).send("Old password incorrect.");
                 }
             }
 
@@ -206,17 +243,7 @@ export const updateUser = async (req, res) => {
     }
 };
 
-/**
- * @swagger
- * components:
- *   responses:
- *     DeletedUser:
- *       description: The user is deleted from the database
- *       content:
- *         text/plain:
- *           schema:
- *             type: string
- */
+
 
 export const deleteUser = async (req, res) => {
   try {
@@ -269,11 +296,11 @@ export const getOwnUser = async (req, res) => {
         ? `${req.protocol}://${req.get('host')}/images/${user.photo}.jpeg` 
         : null;
 
+        user.photo = photoUrl;
+
+
         res.status(200).json({
-            id: user.id,
-            username: user.username,
-            email: user.email,
-            photo: photoUrl
+            user
         });
 
 
@@ -283,18 +310,39 @@ export const getOwnUser = async (req, res) => {
 };
 
 
+
 /**
  * @swagger
  * components:
  *   responses:
- *     ReadedUser:
- *       description: The user wants to read the existing users 
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/Client'
+ *     ReadAllUsers: 
+ *          description: The admin read all users
+ *          content: 
+ *             application/json: 
+ *                  schema: 
+ *                     type: object 
+ *                     properties: 
+ *                         username: 
+ *                          type: string 
+ *                         email: 
+ *                          type: string 
+ *                         registration_date:   
+ *                          type: string 
+ *                          format: date 
+ *                         address_id: 
+ *                          type: integer 
+ *                         is_admin: 
+ *                          type: boolean 
+ *                         city: 
+ *                          type: string 
+ *                         postal_code: 
+ *                          type: string    
+ *                         street: 
+ *                          type: string 
+ *                         street_number: 
+ *                          type: integer
  *     InvalidRole:
- *       description: The role is invalid
+ *       description: role must be 'admin' or 'user'
  *       content:
  *         text/plain:
  *           schema:
@@ -302,12 +350,14 @@ export const getOwnUser = async (req, res) => {
  */
 
 
+
+
 export const getUsers = async (req, res) => {
   try {
     const { name, role, page, limit } = req.query;
 
     if (role && role !== 'admin' && role !== 'user') {
-      return res.status(400).send('Le rôle doit être "admin" ou "user".');
+      return res.status(400).send('role must be "admin" or "user"');
     }
 
     const users = await userModel.getUsers(pool, { 
