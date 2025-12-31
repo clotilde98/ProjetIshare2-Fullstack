@@ -52,7 +52,7 @@ import AntDesign from 'react-native-vector-icons/AntDesign';
 import { useContext } from 'react';
 import username from './components/username.jsx';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
-import PostPage from './components/postPage.jsx';
+import userAddress from './components/userAddress.jsx';
 
 GoogleSignin.configure({
   webClientId: '1027280401462-sd77d2qaggcilr0q9u3hp87vce2j27aa.apps.googleusercontent.com',
@@ -77,23 +77,30 @@ function MainTabs() {
   );
 }
 
+
 function RootNavigator() {
   const { user } = useContext(AuthContext); 
 
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       {user ? (
-        <Stack.Screen name="Main" component={MainTabs} />
+        // --- UTILISATEUR CONNECTÉ ---
+        <>
+          {/* En plaçant UserAddress en premier, c'est celui-ci qui s'affiche après le login */}
+          <Stack.Screen name="userAddress" component={userAddress} /> 
+          <Stack.Screen name="Main" component={MainTabs} />
+          <Stack.Screen name="ressourcesPage" component={ressourcesPage} />
+        </>
       ) : (
-        <Stack.Screen name="Login" component={Login} initialParams={{ isSignUp: true }}/>
+        // --- UTILISATEUR NON CONNECTÉ ---
+        <>
+          <Stack.Screen name="Login" component={Login} initialParams={{ isSignUp: false }}/>
+          <Stack.Screen name="Signup" component={Login} initialParams={{ isSignUp: true }}/>
+        </>
       )}
-      <Stack.Screen name="Signup" component={Login} initialParams={{ isSignUp: false }}/>
-      <Stack.Screen name="Username" component={username} />
-      <Stack.Screen name="PostPage" component={PostPage} />
     </Stack.Navigator>
   );
 }
-
 export default function Index() {
   return (
     <AuthProvider>

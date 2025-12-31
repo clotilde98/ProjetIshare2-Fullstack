@@ -1,104 +1,125 @@
-import React from 'react';
-import { View, Text, StyleSheet, ImageBackground, ScrollView } from 'react-native';
-import Post from './post'
-import { useState } from 'react';
-import { useEffect } from 'react';
-import { Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ImageBackground, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import Post from './post'; 
+import Reservation from './reservation';
+
 import Axios from '../../src/service/api.js';
 import { useIsFocused } from '@react-navigation/native';
 
 export default function RessourcesPage() {
+  const [activeTab, setActiveTab] = useState('posts');
   const [posts, setPosts] = useState([]);
+  const [reservations, setReservations] = useState([]);
   const isFocused = useIsFocused();
 
   const fetchPosts = async () => {
-
     try {
       const res = await Axios.get("/posts/myPosts/");
       setPosts(res.data);
     } catch (err) {
-      Alert.alert("Erreur backend",`\nMessage: ${err.response.data}`);
+      Alert.alert("Erreur", "Impossible de charger les posts");
     }
-  
-  }
+  };
+
+  const fetchReservations = async () => {
+    try {
+      const res = await Axios.get("/reservations/me/");
+      setReservations(res.data);
+    } catch (err) {
+      Alert.alert("Erreur", "Impossible de charger les réservations");
+    }
+  };
 
   useEffect(() => {
     if (isFocused) {
-      fetchPosts();
+      if (activeTab === 'posts') {
+        fetchPosts();
+      } else {
+        fetchReservations();
+      }
     }
-  }, [isFocused]);
-
+  }, [isFocused, activeTab]);
 
   return (
     <View style={styles.container}>
-        <ImageBackground source={require('../../assets/images/background1.jpg')} style ={styles.image}>
-          
-          <View style={styles.headerTextContainer}>
-            <Text style={styles.headerText}>My Posts</Text>
-            <Text style={styles.headerText}>My Reservations</Text>
-          </View>
+      <ImageBackground source={require('../../assets/images/background1.jpg')} style={styles.image}>
+        
+        <View style={styles.headerTabsContainer}>
+          <TouchableOpacity onPress={() => setActiveTab('posts')}>
+            <Text style={[styles.tabText, activeTab === 'posts' && styles.activeTabText]}>
+              My Posts
+            </Text>
+          </TouchableOpacity>
 
-          <View style={styles.postsContainer}>
-              <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-                {posts.length > 0 ? (
-                    posts.map((post) => <Post key={post.id} post={post} onDelete={fetchPosts}/>)
-                  ) : (
-                    <Text>Aucun post disponible</Text>
-                )}  
-              </ScrollView>
-          </View>
+          <TouchableOpacity onPress={() => setActiveTab('reservations')}>
+            <Text style={[styles.tabText, activeTab === 'reservations' && styles.activeTabText]}>
+              My Reservations
+            </Text>
+          </TouchableOpacity>
+        </View>
 
-        </ImageBackground>
+        <View style={styles.whiteCardContainer}>
+          <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+            
+            {activeTab === 'posts' ? (
+              // --- LISTE DES POSTS ---
+              posts.length > 0 ? (
+                posts.map((post) => (
+                  <Post key={post.id} post={post} onDelete={fetchPosts} />
+                ))
+              ) : (
+                <Text style={styles.emptyText}>Aucun post disponible</Text>
+              )
+            ) : (
+              // --- LISTE DES RÉSERVATIONS (Utilisation du nouveau composant) ---
+              reservations.length > 0 ? (
+    reservations.map((item) => (
+      <Reservation 
+        key={item.id} 
+        item={item} 
+        onDelete={fetchReservations} // On passe la fonction de rafraîchissement ici
+      />
+    ))
+  ) : (
+    <Text style={styles.emptyText}>Aucune réservation</Text>
+  )
+)}
+
+          </ScrollView>
+        </View>
+      </ImageBackground>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',   // centre verticalement
-    alignItems: 'center',       // centre horizontalement
-    backgroundColor: '#fff',
+  container: { flex: 1, backgroundColor: '#fff' },
+  image: { width: '100%', height: '100%', alignItems: 'center' },
+  headerTabsContainer: { 
+    flexDirection: 'row', 
+    marginTop: 100, 
+    marginBottom: 20,
+    gap: 30 
   },
-
-  headerTextContainer : {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap:20,
-    marginTop: 120,
-    marginBottom: 20
+  tabText: { 
+    fontSize: 20, 
+    fontWeight: 'bold', 
+    color: '#999' 
   },
-
-  headerText : {
-    fontWeight: 'bold',
-    fontSize: 25,
-    marginTop: 25
+  activeTabText: { 
+    color: '#000', 
+    borderBottomWidth: 2,
+    borderBottomColor: '#000' 
   },
-
-  image : {             
-    width: '100%',
-    height: '100%',
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center'
-  },
-
-  postsContainer : {
+  whiteCardContainer: {
     backgroundColor: 'white',
-    height: '90%',
-    width: '90%',
-    borderRadius: 5,
+    flex: 1,
+    width: '94%', // Un peu plus large pour mieux voir le design
+    marginBottom: 30,
+    borderRadius: 15,
+    padding: 15,
+    elevation: 3,
   },
-
-  scrollContent: {
-    padding: 16,
-    gap: 12,
-  },
-
-  post: {
-    backgroundColor: '#eee',
-    padding: 20,
-    borderRadius: 8,
-  }
-
+  scrollContent: { paddingVertical: 10 },
+  emptyText: { textAlign: 'center', marginTop: 30, color: '#999' }
 });

@@ -11,16 +11,32 @@ export default function Post({ post, onDelete }) {
     const [nbComments, setNbComments] = useState(null);
 
 
-    const handleDelete = async () => {
-        try {
-            const id = post.id;
-            const res = await Axios.delete(`/posts/${id}`);
-            Alert.alert("Succès", res.data);
-            onDelete();
-        } catch (err){
-            Alert.alert("Erreur", "Impossible de supprimer l'annonce. " + err);
-        }
-    };
+  const handleDelete = async () => {
+    Alert.alert(
+        "Supprimer l'annonce",
+        "Êtes-vous sûr de vouloir supprimer définitivement cette annonce ? ",
+        [
+            {
+                text: "Annuler",
+                style: "cancel"
+            },
+            {
+                text: "Supprimer",
+                style: "destructive", 
+                onPress: async () => {
+                    try {
+                        const id = post.id;
+                        const res = await Axios.delete(`/posts/${id}`);
+                        Alert.alert("Succès", res.data);
+                        if (onDelete) onDelete();
+                    } catch (err) {
+                        Alert.alert("Erreur", "Impossible de supprimer l'annonce. " + err);
+                    }
+                }
+            }
+        ]
+    );
+};
 
     const retrieveCommentsCountForPost = async () => {
         try {
