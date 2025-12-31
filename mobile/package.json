@@ -56,14 +56,7 @@
   },
   "devDependencies": {
     "@react-native-community/cli": "^20.0.2",
-<<<<<<< Updated upstream
     "@react-native/metro-config": "^0.83.1",
-=======
-<<<<<<< HEAD
-=======
-    "@react-native/metro-config": "^0.83.1",
->>>>>>> 20a38d92e5bfe9941d0141ee0fc4248974ac2526
->>>>>>> Stashed changes
     "@types/react": "~19.1.0",
     "@types/react-native": "^0.72.8",
     "eslint": "^9.25.0",
