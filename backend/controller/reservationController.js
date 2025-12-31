@@ -5,6 +5,8 @@ import {readPost} from '../model/postDB.js'
 
 import * as reservationModel from '../model/reservationDB.js';
 
+import {sendNotification} from '../../backend/websocket.js'; 
+
 
 
 const VALID_STATUS = ['confirmed', 'cancelled', 'withdrawal']; 
@@ -204,12 +206,31 @@ export const createReservation = async (req, res) => {
         }
 
         const newReservation = await reservationModel.createReservation(pool, userID, req.body); 
+
+
+        const informationPostReservation = await reservationModel.getReservationWithPostTitle(pool, {clientID: userID , postID}); 
+        console.log(informationPostReservation.username); 
+        const notification = {
+            type: 'reservation', 
+            message:  `${informationPostReservation.username} a réservé ton post "${post.title}"`,
+            postId: postID, 
+            reserverId: userID
+
+        }; 
+
+        console.log(informationPostReservation.client_id);
+        sendNotification(informationPostReservation.owner_id, notification);
+
         res.status(201).json({ reservation: newReservation });
 
     } catch (err) {
         res.status(500).send(err.message);
     }
 }
+
+
+
+
 
 
 export const updateReservation = async (req, res) => {
@@ -287,3 +308,4 @@ export const deleteReservation = async (req, res) => {
         res.status(500).send("Internal server error : " + err.message);
     }
 };
+

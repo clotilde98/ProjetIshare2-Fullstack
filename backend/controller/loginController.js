@@ -59,6 +59,7 @@ export const login = async (req, res) => {
 
 export const loginWithGoogle = async (req, res) => {
     try {
+        console.log("test");
         const { idToken} = req.body;
         if (!idToken) {
             return res.status(400).json({ message: "idToken missing" });

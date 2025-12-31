@@ -97,6 +97,7 @@ export const searchPostByCategory = async (SQLClient,  nameCategory) => {
 
 
 
+
 export const getAllCategoriesFromPostID = async (SQLClient, id) => {
     const query = "SELECT cp.id_category, cp.name_category FROM Category_product cp INNER JOIN Post_category pc ON cp.id_category = pc.id_category WHERE pc.id_ad=$1";
     const {rows} = await SQLClient.query(query, [id]);

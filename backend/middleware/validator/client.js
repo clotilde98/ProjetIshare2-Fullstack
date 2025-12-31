@@ -58,7 +58,7 @@ const addClientSchema = vine.object({
 const updateClientSchema =  vine.object({
     username: vine.string().trim().optional(),
     street : vine.string().trim().optional(),
-    streetNumber : vine.number().optional(), 
+    streetNumber : vine.string().optional(), 
     password: vine.string().optional(), 
     oldPassword: vine.string().optional(),
 }); 

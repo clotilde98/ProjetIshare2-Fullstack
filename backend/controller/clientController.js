@@ -99,6 +99,50 @@ export const createUser = async (req, res) => {
   }
 }
 
+
+
+
+
+
+export const getUserById = async (req, res) => {
+    try {
+
+        const clientID = req.params.id;
+
+        const user = await userModel.getProfileById(pool, clientID); 
+
+        if (!user) {
+            return res.status(404).send("User not found.");
+        }
+
+        const photoUrl = user.photo
+        ? `${req.protocol}://${req.get('host')}/images/${user.photo}.jpeg` 
+        : `${req.protocol}://${req.get('host')}/images/unknown_person.jpeg`;
+
+        user.photo = photoUrl;
+
+        delete(user.registration_date);
+        delete(user.isadmin);
+        delete(user.street);
+        delete(user.street_number);
+        delete(user.googleid);
+        delete(user.email);
+        delete(user.address_id);
+
+        res.status(200).json({
+            user
+        });
+
+
+
+
+    } catch (err) {
+        res.status(500).send("Internal server error " + err.message); 
+    }
+}
+
+
+
 export const createUserWithAdmin = async (req, res) => {
     try {
         const {username, email, password, street, streetNumber, addressID} = req.body;
@@ -142,6 +186,7 @@ export const createUserWithAdmin = async (req, res) => {
 
 export const updateUser = async (req, res) => {
     try {
+        
         let userId = req.user.id;
         if (req.params.id){
             if (req.user.isAdmin){
@@ -170,13 +215,14 @@ export const updateUser = async (req, res) => {
             updateData.photo = imageName;
         }
 
-        if (updateData.password) { 
+        if (currentUser.password && updateData.password) { 
             const pepper = process.env.PEPPER;
             
             if (!req.user.isAdmin) {
                 if (!updateData.oldPassword) {
                     return res.status(401).send("Old password required.");
                 }
+
                 const validOldPassword = await argon2.verify(
                     currentUser.password, 
                     updateData.oldPassword + pepper
@@ -252,6 +298,7 @@ export const getOwnUser = async (req, res) => {
 
         user.photo = photoUrl;
 
+
         res.status(200).json({
             user
         });
@@ -261,44 +308,6 @@ export const getOwnUser = async (req, res) => {
         res.status(500).send("Internal server error " + err.message); 
     }
 };
-
-
-export const getUserById = async (req, res) => {
-    try {
-
-        const clientID = req.params.id;
-
-        const user = await userModel.getProfileById(pool, clientID); 
-
-        if (!user) {
-            return res.status(404).send("User not found.");
-        }
-
-        const photoUrl = user.photo
-        ? `${req.protocol}://${req.get('host')}/images/${user.photo}.jpeg` 
-        : `${req.protocol}://${req.get('host')}/images/unknown_person.jpeg`;
-
-        user.photo = photoUrl;
-
-        delete(user.registration_date);
-        delete(user.isadmin);
-        delete(user.street);
-        delete(user.street_number);
-        delete(user.googleid);
-        delete(user.email);
-        delete(user.address_id);
-
-        res.status(200).json({
-            user
-        });
-
-
-
-
-    } catch (err) {
-        res.status(500).send("Internal server error " + err.message); 
-    }
-}
 
 
 

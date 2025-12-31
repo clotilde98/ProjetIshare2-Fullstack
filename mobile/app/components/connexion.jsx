@@ -7,7 +7,6 @@ import Axios from '../../src/service/api.js';
 import * as tokenService from '../../src/service/token.js';
 import { useContext } from 'react';
 import { AuthContext } from '../../src/context/authContext.js';
-
 import { Poppins_400Regular } from '@expo-google-fonts/poppins';
 
 
@@ -27,8 +26,6 @@ export default function Connexion({isSignUp, navigation}) {
     });
 
     const { user, setUser } = useContext(AuthContext);
-
-
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [secondPassword, setSecondPassword] = useState('');
@@ -50,12 +47,10 @@ export default function Connexion({isSignUp, navigation}) {
                 idToken: response.data.idToken,
               });
               await tokenService.saveToken(res.data.token);
-              console.log(res.data.token);
+              
               setUser(res.data.user);
-              if (isSignUp){
-                console.log('p');
-                navigation.navigate("PostPage");
-              }
+              navigation.navigate('MainTabs');
+              
             } catch (err){
               Alert.alert(
                 "Erreur backend",
@@ -86,20 +81,8 @@ export default function Connexion({isSignUp, navigation}) {
             }
         }
     }
-    
 
-    const handleGoogleSignOut = async () => {
-        try {
-        await GoogleSignin.signOut();
-        tokenService.removeToken();
-        setUser(null);
-        } catch (error){
-          Alert.alert("Failed to log out");
-        }
-    }
-
-
-  async function handleSubmit() {
+    async function handleSubmit() {
     if (!email || !password) return;
 
     if (isSignUp){
@@ -124,10 +107,6 @@ export default function Connexion({isSignUp, navigation}) {
 
         await tokenService.saveToken(res.data.token)
         setUser(res.data.user);
-
-        if (isSignUp){
-          navigation.navigate("Username");
-        }
     } catch (err) {
       const status = err.response?.status;
       const message = err.response?.data;
