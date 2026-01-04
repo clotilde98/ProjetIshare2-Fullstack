@@ -147,20 +147,22 @@ export default function PostPage({ route, navigation }){
 
         const loadPostData = async () => {
             try {
-                // Récupérer le post
+          
                 const resPost = await Axios.get(`/posts/${postId}`);
+                console.log(resPost);
                 const postData = resPost.data;
                 setPost(postData);
+                setPostCategories(postData.data.categories);
 
-                // Récupérer le propriétaire du post
+             
                 const owner = await fetchUser(postData.client_id);
                 setPostOwner(owner);
 
-                // Récupérer l'adresse du post
+                
                 const resAddress = await Axios.get(`/address/${postData.address_id}`);
                 setPostAddress(resAddress.data.address);
 
-                // Récupérer les commentaires
+               
                 const resComments = await Axios.get(`/comments/post/${postData.id}`);
                 const commentsWithUsers = await Promise.all(
                     resComments.data.rows.map(async (comment) => {
@@ -170,11 +172,12 @@ export default function PostPage({ route, navigation }){
                 );
                 setComments(commentsWithUsers);
 
-                // Récupérer l'adresse du post
-                const resCategories = await Axios.get(`posts/category/post/${postData.id}`);
-                setPostCategories(resCategories.data.categories);
+       
+                
+                
 
             } catch (err) {
+                console.log(err); 
                 Alert.alert("Erreur", err.response?.data || "Erreur de récupération des données");
             }
         };
@@ -378,7 +381,3 @@ const styles = StyleSheet.create({
 
 
 })
-
-
-
-

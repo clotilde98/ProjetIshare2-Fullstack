@@ -53,6 +53,7 @@
   "languageText": "Langue", 
   "deleteAccount":"Supprimer le compte",
   "informationsAddress": "Pas d'adresse définie", 
+  "commentPlacerHolder": "Ajouter un commentaire...", 
 
   
   "error": {
@@ -61,10 +62,13 @@
     "permissionImage": "Permission refusée pour accéder aux images !",
     "deleteAccount": "Impossible de supprimer le compte",
     "logOut": "Déconnexion impossible",
-    "retrieveAdress": "Impossible de récupérer l'adresse"
+    "retrieveAdress": "Impossible de récupérer l'adresse", 
+    "commentError": "Erreur lors de la création du commentaire"
+    
   },
   "sucess": {
-    "modification": "Profil modifié avec succès"
+    "modification": "Profil modifié avec succès", 
+    "commentSuccess": "Commentaire créé avec succès"
   }
 }
 

@@ -57,20 +57,25 @@
     "loadingText": "Chargement...",
     "filtersText": "filters",
     "searchBarText": "Searched by", 
+    "commentPlacerHolder": "Add a comment...", 
     
     
+
     "error": {
     "errorText": "Error", 
     "notSameInput": "The new passwords do not match", 
     "permissionImage": "Permission denied to access images!", 
     "deleteAccount": "Unable to delete the account.", 
     "logOut": "Log out impossible", 
-    "retrieveAdress": "Unable to retrieve the address"
+    "retrieveAdress": "Unable to retrieve the address", 
+    "commentError": "Error while creating comment"
+    
     
 
   },
   "sucess": {
-    "modification": "Profile updated successfully"
+    "modification": "Profile updated successfully", 
+    "commentSuccess": "Comment successfully created"
   }
 }
 

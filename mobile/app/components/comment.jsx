@@ -3,8 +3,11 @@ import { View, Text, StyleSheet, TextInput, Image, Pressable, Alert } from 'reac
 import { Poppins_400Regular, Poppins_700Bold, useFonts } from '@expo-google-fonts/poppins';
 import { useState } from 'react';
 import Axios from '../../src/service/api';
+import {useTranslation} from 'react-i18next'; 
 
 export default function Comment({ imgSource, imgSize, username=null, content, isCurrentUser=false, post, onCommentCreated }) {
+
+    const {t} = useTranslation(); 
 
     const [fontsLoaded] = useFonts({
         Poppins_400Regular,
@@ -20,10 +23,10 @@ export default function Comment({ imgSource, imgSize, username=null, content, is
                 content: comment,
                 idPost: post.id
             })
-            Alert.alert("Commentaire créé avec succès");
+            Alert.alert(t('commentSuccess'));
             onCommentCreated();
         } catch (err){
-            Alert.alert("Erreur", err.response?.data || "Erreur lors de la creation de commentaire");
+            Alert.alert(t('error'), err.response?.data || t('commentError'));
         }
     }
 
@@ -47,7 +50,7 @@ export default function Comment({ imgSource, imgSize, username=null, content, is
                         <TextInput
                             value={comment}
                             onChangeText={setComment}
-                            placeholder="Add a comment..."
+                            placeholder={t('commentPlacerHolder')}
     
                         />
 

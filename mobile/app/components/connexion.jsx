@@ -8,7 +8,7 @@ import * as tokenService from '../../src/service/token.js';
 import { useContext } from 'react';
 import { AuthContext } from '../../src/context/authContext.js';
 import { Poppins_400Regular } from '@expo-google-fonts/poppins';
-
+import {useTranslation} from 'react-i18next'; 
 
 
 import {
@@ -20,6 +20,9 @@ import {
 
 
 export default function Connexion({isSignUp, navigation}) {
+
+    const {t} = useTranslation(); 
+
     const [fontsLoaded] = useFonts({
         Jaro: require('../../assets/fonts/jaro.ttf'), 
         Poppins: Poppins_400Regular,
@@ -53,7 +56,7 @@ export default function Connexion({isSignUp, navigation}) {
               
             } catch (err){
               Alert.alert(
-                "Erreur backend",
+                t('error'+ "API"),
                 `\nMessage: ${err.response.data}`
               );
             }
@@ -65,18 +68,14 @@ export default function Connexion({isSignUp, navigation}) {
             if (isErrorWithCode(error)) {
                 switch (error.code) {
                 case statusCodes.IN_PROGRESS:
-                    // operation (eg. sign in) already in progress
                     alert("sign in is in progress");
                     break;
                 case statusCodes.PLAY_SERVICES_NOT_AVAILABLE:
-                    // Android only, play services not available or outdated
                     alert("play service not available")
                     break;
                 
                 }
             } else {
-                
-                // an error that's not related tro google sign in occurred
                 Alert.alert("an error that's not related to google sign in occurred");
             }
         }
