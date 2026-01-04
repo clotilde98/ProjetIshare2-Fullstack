@@ -1,5 +1,5 @@
 import { pool } from "../database/database.js";
-import {createPostCategory, deletePostCategoriesForPostID, getPostswithAllCategories} from '../model/postCategory.js'
+import {createPostCategory, deletePostCategoriesForPostID, getPostswithAllCategories, getPostCategories} from '../model/postCategory.js'
 import * as postModel from '../model/postDB.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -80,11 +80,16 @@ export const getPost = async (req, res) => {
             return res.status(404).send("Post not found");
         }
 
-        const photoUrl = post.photo
-        ? `${req.protocol}://${req.get('host')}/images/${post.photo}.jpeg` 
-        : null;
+      
+        post.photo = post.photo
+            ? `${req.protocol}://${req.get('host')}/images/${post.photo}.jpeg`
+            : null;
 
-        post.photo = photoUrl;
+      
+        const postCategories = await getPostCategories(pool, { IDPost: post.id });
+
+    
+        post.categories = postCategories; 
 
         res.status(200).json(post);
 
@@ -92,6 +97,7 @@ export const getPost = async (req, res) => {
         res.status(500).send("Internal server error : " + err.message);
     }
 };
+
 
 export const getMyPosts = async (req, res) => {
     try {

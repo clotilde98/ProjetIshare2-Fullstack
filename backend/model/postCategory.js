@@ -13,6 +13,25 @@ export const createPostCategory = async (SQLClient, {IDCategory, IDPost}) => {
 
 
 
+export const getPostCategories = async (SQLClient, { IDPost }) => {
+    const { rows } = await SQLClient.query(
+        `
+        SELECT c.id_category, c.name_category
+        FROM Post_category pc
+        JOIN Category_product c
+        ON pc.id_category = c.id_category
+        WHERE pc.id_ad = $1
+        `,
+        [IDPost]
+    );
+
+    return rows;
+};
+
+
+
+
+
 export const deletePostCategoriesForPostID = async (SQLClient, postID) => {
   const {rowCount} = await SQLClient.query(
     `DELETE FROM Post_Category WHERE id_ad = $1`, [postID]
