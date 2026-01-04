@@ -371,7 +371,8 @@ export const deletePost = async (req, res) => {
  */
 
 
-export const searchPostByCategory = async(req, res) => {
+
+/*export const searchPostByCategory = async(req, res) => {
     try {
          const posts = await postModel.searchPostByCategory(pool, req.query.nameCategory);
          res.status(200).send(posts);
@@ -379,25 +380,52 @@ export const searchPostByCategory = async(req, res) => {
         res.status(500).send(err.message);
     }
 }
+*/
 
-
-
-
-
-export const getPostsWithoutFilters= async(req, res) => {
+export const searchPostByCategory = async (req, res) => {
     try {
-        const posts = await getPostswithAllCategories(pool); 
-        
-        if (posts.length > 0) {
-            for (const post of posts) {
-                post.photo = post.photo
-                ? `${req.protocol}://${req.get('host')}/images/${post.photo}.jpeg`
-                : null;
-            }
-        }
-        res.status(200).send(posts);
-    }catch(err){
+        const currentUserId = req.user.id;
+        const categoryIds = req.query.ids ? req.query.ids.split(',').map(Number) : [];
+
+        if (categoryIds.length === 0) return res.status(200).json([]);
+
+        const posts = await postModel.searchPostByCategory(pool, categoryIds, currentUserId);
+
+        const formattedPosts = posts.map(post => ({
+            ...post,
+            photo: post.photo 
+                ? `${req.protocol}://${req.get('host')}/images/${post.photo}.jpeg` 
+                : null
+        }));
+
+        res.status(200).json(formattedPosts);
+    } catch (err) {
         res.status(500).send(err.message);
     }
-
 }
+
+
+
+
+export const getPostsWithoutFilters = async (req, res) => {
+    try {
+        
+
+        const currentUserId = req.user.id;
+        const { city, street } = req.query;
+
+
+        const posts = await getPostswithAllCategories(pool, currentUserId, city, street); 
+        
+        const formattedPosts = posts.map(post => ({
+            ...post,
+            photo: post.photo 
+                ? `${req.protocol}://${req.get('host')}/images/${post.photo}.jpeg` 
+                : null
+        }));
+
+        res.status(200).send(formattedPosts);
+    } catch (err) {
+        res.status(500).send(err.message);
+    }
+};

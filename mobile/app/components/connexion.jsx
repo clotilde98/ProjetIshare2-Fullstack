@@ -11,12 +11,12 @@ import { Poppins_400Regular } from '@expo-google-fonts/poppins';
 
 
 
-import {
+/*import {
     GoogleSignin,
     isErrorWithCode,
     isSuccessResponse,
     statusCodes
-} from '@react-native-google-signin/google-signin';
+} from '@react-native-google-signin/google-signin';*/
 
 
 export default function Connexion({isSignUp, navigation}) {

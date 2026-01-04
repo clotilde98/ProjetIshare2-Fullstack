@@ -3,9 +3,11 @@ import express from 'express';
 import {default as Router} from './route/index.js';
 import path from "path";
 import { fileURLToPath } from 'url';
+import dotenv from 'dotenv';
 import { initWebSocket } from './websocket.js';
 import cors from 'cors';
 
+dotenv.config();
 const app = express();
 const port = 3002;
 

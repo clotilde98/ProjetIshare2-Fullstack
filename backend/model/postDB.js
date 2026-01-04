@@ -89,11 +89,35 @@ export const readMyPosts = async (SQLClient, {clientID}) => {
 }
 
 
-export const searchPostByCategory = async (SQLClient,  nameCategory) => {
+/*export const searchPostByCategory = async (SQLClient,  nameCategory) => {
     const query = "SELECT * FROM Post p INNER JOIN Post_category pc ON p.id = pc.id_ad INNER JOIN Category_product cp ON cp.id_category = pc.id_category WHERE cp.name_category=$1";
     const {rows} = await SQLClient.query(query, [nameCategory]);
     return rows;
+};*/
+
+export const searchPostByCategory = async (SQLClient, categoryIds, currentUserId) => {
+
+ const query = `
+    SELECT  
+        p.id, p.title, p.photo,
+        a.city,
+        STRING_AGG(c.name_category, ', ') AS categories
+    FROM Post p
+    INNER JOIN Address a ON p.address_id = a.id
+    LEFT JOIN Post_Category pc ON p.id = pc.id_ad
+    LEFT JOIN Category_product c ON c.id_category = pc.id_category
+    WHERE p.client_id != $1 
+    AND p.id IN (
+        SELECT id_ad FROM Post_Category 
+        WHERE id_category = ANY($2::int[]) -- Assurez-vous du ::int[]
+    )
+    GROUP BY p.id, a.city
+`;
+  const { rows } = await SQLClient.query(query, [currentUserId, categoryIds]);
+  return rows;
 };
+
+
 
 
 

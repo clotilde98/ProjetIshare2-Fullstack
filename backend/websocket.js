@@ -5,7 +5,7 @@ import WebSocket, { WebSocketServer } from 'ws';
 export const clients = new Map(); 
 
 export function initWebSocket() {
- const wss = new WebSocketServer({ port: 8080 });
+ const wss = new WebSocketServer({ port: 8081 });
 
   wss.on('connection', (ws) => {
     ws.on('message', (message) => {

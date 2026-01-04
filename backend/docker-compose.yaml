@@ -1,17 +1,20 @@
 services:
   web:
-    build: .
+    build: . 
     command: npm run start:docker
     ports:
       - "3002:3002"
     depends_on:
       - db
     environment:
-      - PORT=${PORT}
-      - HOSTDB=db
-      - USERDB=${USERDB}
-      - PASSWORDDB=${PASSWORDDB}
-      - DBNAME=${DBNAME}
+      - PORT=3002
+      - HOSTDB=localhost
+      - PORTDB=5432
+      - USERDB=clotilde
+      - PASSWORDDB=motdepasse123
+      - DBNAME=GestionDon
+      - JWT_SECRET=MaCleSecreteSuperSecure123!
+      - PEPPER=MonPoivreSecretPourLesPasswords456!
 
   db:
     image: postgres:15-alpine

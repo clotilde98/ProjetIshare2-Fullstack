@@ -9,7 +9,7 @@
     "start": "nodemon server.js",
     "initDB": "node Scripts/JS/initDB.js",
     "genDoc": "node ./swagger/swagger_jsdoc.js",
-    "start:docker": "npm run initDB && npm run dev"
+    "start:docker": "node Scripts/JS/initDB.js && nodemon server.js"
   },
   "keywords": [],
   "author": "",

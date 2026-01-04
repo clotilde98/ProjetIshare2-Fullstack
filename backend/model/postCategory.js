@@ -21,37 +21,40 @@ export const deletePostCategoriesForPostID = async (SQLClient, postID) => {
 
 }
 
-export const getPostswithAllCategories = async (SQLClient) => {
-  const { rows } = await SQLClient.query(`
-    SELECT  
-      p.id,
-      p.post_date,
-      p.description,
-      p.title,
-      p.number_of_places,
-      p.post_status,
-      p.photo,
+export const getPostswithAllCategories = async (SQLClient, excludedClientId, userCity = null, userStreet = null) => {
+  const query = `
+    SELECT   
+      p.id, 
+      p.post_date, 
+      p.title, 
+      p.photo, 
       p.street,
-      p.street_number,
-      p.address_id,
-      p.client_id,
-      STRING_AGG(c.name_category, ', ') AS categories
-    FROM Post_Category pc
-    INNER JOIN Post p ON pc.id_ad = p.id
-    INNER JOIN Category_product c ON c.id_category = pc.id_category
+      a.city,
+      STRING_AGG(c.name_category, ', ') AS categories,
+      (CASE 
+        WHEN $2::VARCHAR IS NULL OR $3::VARCHAR IS NULL THEN 2
+        -- Priorité 0 : Même ville ET même rue
+        WHEN UPPER(a.city) = UPPER($2::VARCHAR) AND UPPER(p.street) = UPPER($3::VARCHAR) THEN 0 
+        -- Priorité 1 : Même ville
+        WHEN UPPER(a.city) = UPPER($2::VARCHAR) THEN 1 
+        -- Priorité 2 : Autre ville ou pas de match
+        ELSE 2 
+      END) AS proximity_score
+    FROM Post p
+    INNER JOIN Address a ON p.address_id = a.id
+    LEFT JOIN Post_category pc ON p.id = pc.id_ad
+    LEFT JOIN Category_product c ON c.id_category = pc.id_category
+    WHERE p.client_id != $1 
+      AND p.post_status = 'available'
     GROUP BY 
-      p.id,
-      p.post_date,
-      p.description,
-      p.title,
-      p.number_of_places,
-      p.post_status,
-      p.photo,
-      p.street,
-      p.street_number,
-      p.address_id,
-      p.client_id
-  `);
+      p.id, p.post_date, p.title, p.photo, p.street, a.city
+    ORDER BY 
+      proximity_score ASC, 
+      p.post_date DESC;
+  `;
+
+  const values = [excludedClientId, userCity || null, userStreet || null];
+  const { rows } = await SQLClient.query(query, values);
 
   return rows;
 };

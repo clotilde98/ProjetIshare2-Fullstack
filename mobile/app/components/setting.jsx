@@ -12,7 +12,7 @@ import * as tokenService from "../../src/service/token.js";
 import { Pressable } from 'react-native';
 
 
-import { GoogleSignin } from '@react-native-google-signin/google-signin';
+/*import { GoogleSignin } from '@react-native-google-signin/google-signin';*/
 
 const { height, width } = Dimensions.get('window');
 
