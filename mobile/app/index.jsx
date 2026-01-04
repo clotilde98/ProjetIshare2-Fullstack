@@ -15,6 +15,7 @@ import Toast from 'react-native-toast-message';
 import Setting from './components/setting.jsx'; 
 import username from './components/username.jsx';
 import PostPage from './components/postPage.jsx';
+import UserAddress from './components/userAddress.jsx';
 
 
 
@@ -68,6 +69,7 @@ function RootNavigator() {
         options={{ title: 'UserProfil' }} 
       />
       <Stack.Screen name="MainTabs" component={MainTabs} />
+      <Stack.Screen name="UserAddress" component={UserAddress} />
       
       <Stack.Screen name="Username" component={username} />
       

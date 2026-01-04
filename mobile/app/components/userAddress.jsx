@@ -27,6 +27,7 @@ export default function UserAddress() {
         setLoading(true);
         try {
             const response = await Axios.get("/getAllCities/");
+            console.log(response);
             const data = response.data;
             if (Array.isArray(data)) {
                 const formattedData = data.map(item => ({

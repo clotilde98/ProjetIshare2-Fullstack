@@ -21,6 +21,7 @@ export default function Username(){
                 Alert.alert("Username required");
             } else {
                 const res = await Axios.patch("users", {username});
+                navigation.navigate('UserAddress');
             }
             
         } catch (err) {

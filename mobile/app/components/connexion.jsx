@@ -47,7 +47,6 @@ export default function Connexion({isSignUp, navigation}) {
                 idToken: response.data.idToken,
               });
               await tokenService.saveToken(res.data.token);
-              
               setUser(res.data.user);
               navigation.navigate('MainTabs');
               
@@ -98,6 +97,7 @@ export default function Connexion({isSignUp, navigation}) {
           '/users',
           { email, password }
         );
+        navigation.navigate('Username');
       } else {
         res = await Axios.post(
           '/login',
