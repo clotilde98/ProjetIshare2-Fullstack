@@ -18,9 +18,9 @@ const { width } = Dimensions.get('window');
 
 
 
-export default function PostPage({ route, navigation }){
+export default function PostPage({ route, navigation, postId: propPostId }){
 
-    const { postId } = route.params;
+    const postId = route?.params?.postId ?? propPostId;
 
     if (!postId){
         return;
@@ -28,6 +28,7 @@ export default function PostPage({ route, navigation }){
 
 
     const { user, setUser } = useContext(AuthContext);
+
 
     const [postOwner, setPostOwner] = useState(null)
     const [postAddress, setPostAddress] = useState(null)
@@ -41,29 +42,6 @@ export default function PostPage({ route, navigation }){
     })
 
     const isFocused = useIsFocused();
-    
-
-    /*const post =     
-        {
-      "id": 1,
-      "title": "Don de riz",
-      "address_id": 25,
-      "client_id": 11,
-      "photo": "http://192.168.0.11:3002/images/5bda557e-0cf1-447d-9b56-f29a95024082.jpeg",
-      "post_date": "2025-12-24T23:00:00.000Z",
-      "places_restantes": "3",
-      "categories": "Legume",
-      "city": "Longueville",
-      "description": "Riz cuisiné maison disponible ce soir",
-      "username": "test",
-      "post_status": "available",
-      "street": "Avenue Louise",
-      "street_number": 45,
-      "postal_code": "1325"
-    }*/
-
-
-
 
 
     const handleShare = async () => {
@@ -81,25 +59,25 @@ export default function PostPage({ route, navigation }){
 
 
     async function fetchComments() {
-        try {
-                const id = post.id;
-                const res = await Axios.get(`/comments/post/${id}`);
+        if (!post?.id) return;
 
-                const commentsWithUsers = await Promise.all(
+        try {
+            const res = await Axios.get(`/comments/post/${post.id}`);
+
+            const commentsWithUsers = await Promise.all(
                 res.data.rows.map(async (comment) => {
                     const user = await fetchUser(comment.id_customer);
-                    return {
-                    ...comment,
-                    user,
-                    };
+                    if (!user) return null; 
+                    return { ...comment, user };
                 })
-                );
+            );
 
-                setComments(commentsWithUsers);
-            } catch (err) {
-                Alert.alert("Erreur", err.response?.data || "Erreur de recuperation de commentaires");
-            }
+            setComments(commentsWithUsers.filter(c => c !== null));
+        } catch (err) {
+            Alert.alert("Erreur", err.response?.data || "Erreur de récupération de commentaires");
         }
+    }
+
 
 
     async function handleBooking() {
@@ -116,9 +94,13 @@ export default function PostPage({ route, navigation }){
 
 
     async function fetchUser(id) {
+    try {
         const res = await Axios.get(`/users/${id}`);
-        return res.data.user;
+        return res.data?.user || null;
+    } catch (err) {
+        return null; 
     }
+}
 
 
 
@@ -147,20 +129,21 @@ export default function PostPage({ route, navigation }){
 
         const loadPostData = async () => {
             try {
-                // Récupérer le post
+          
                 const resPost = await Axios.get(`/posts/${postId}`);
                 const postData = resPost.data;
                 setPost(postData);
+                setPostCategories(postData.categories);
 
-                // Récupérer le propriétaire du post
+             
                 const owner = await fetchUser(postData.client_id);
                 setPostOwner(owner);
 
-                // Récupérer l'adresse du post
+                
                 const resAddress = await Axios.get(`/address/${postData.address_id}`);
                 setPostAddress(resAddress.data.address);
 
-                // Récupérer les commentaires
+               
                 const resComments = await Axios.get(`/comments/post/${postData.id}`);
                 const commentsWithUsers = await Promise.all(
                     resComments.data.rows.map(async (comment) => {
@@ -170,17 +153,25 @@ export default function PostPage({ route, navigation }){
                 );
                 setComments(commentsWithUsers);
 
-                // Récupérer l'adresse du post
-                const resCategories = await Axios.get(`posts/category/post/${postData.id}`);
-                setPostCategories(resCategories.data.categories);
+       
+                
+                
 
             } catch (err) {
                 Alert.alert("Erreur", err.response?.data || "Erreur de récupération des données");
             }
         };
 
-        loadPostData();
+        if (!user) {
+            navigation.navigate('Login');
+            return null;
+        } else {
+            loadPostData();
+        }
+
+       
     }, [isFocused, postId]);
+
 
 
 
@@ -293,17 +284,19 @@ export default function PostPage({ route, navigation }){
                 <View style={{gap: 20, marginLeft: 20, marginTop: 10}}>
                     <Text style={{fontWeight: 'bold', fontSize: 17}}>Comments</Text>
 
-                    {comments.map(comment => (
-                        <Comment
-                            key={comment.id}
-                            imgSource={comment.user.photo}
-                            imgSize={40}
-                            username={comment.user.username}
-                            content={comment.content}
-                            post={post}
-                            onCommentCreated={fetchComments}
-                        />
+                    {comments
+                        .filter(comment => comment.user) // garder seulement ceux avec un user
+                        .map(comment => (
+                            <Comment
+                                key={comment.id}
+                                imgSource={comment.user.photo}
+                                username={comment.user.username}
+                                content={comment.content}
+                                post={post}
+                                onCommentCreated={fetchComments}
+                            />
                     ))}
+
 
                 </View>
 

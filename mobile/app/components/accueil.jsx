@@ -1,23 +1,32 @@
 import { Poppins_400Regular, Poppins_700Bold, useFonts } from '@expo-google-fonts/poppins';
-import { useEffect, useState } from 'react';
+import { useEffect, useState,  useRef } from 'react';
 import { FlatList, StyleSheet, Text, View, Modal, Button, TouchableOpacity } from 'react-native';
 import { Card, Checkbox } from 'react-native-paper';
 import SearchBar from './searchBar.jsx';
 import {useTranslation} from 'react-i18next'; 
 import Axios from '../../src/service/api.js';
 import AntDesign from 'react-native-vector-icons/AntDesign';
-
+import { useContext } from 'react';
+import { AuthContext } from '../../src/context/authContext.js';
+import { useNavigation } from '@react-navigation/native';
 
 
 export default function Accueil(){
 
     const {t} = useTranslation(); 
+    const navigation = useNavigation(); 
 
     const [fontsLoaded]=useFonts({
         Jaro: require('../../assets/fonts/jaro.ttf'),
         Poppins_400Regular,
         Poppins_700Bold,
     })
+
+      const [notifications, setNotifications] = useState([]);
+      const ws = useRef(null);
+    
+      const { user } = useContext(AuthContext);
+    
      
     const[posts, setPosts]=useState([])
     const[search, setSearch]=useState(""); 
@@ -80,8 +89,38 @@ async function getFilteredPosts(category){
 
 useEffect(() => {
     getPostsFromApi(), 
-    getCategoriesFromApi()
-}, []);
+    getCategoriesFromApi(),
+    ws.current = new WebSocket('ws://192.168.0.119:8080');
+    
+        ws.current.onopen = () => {
+          console.log('WebSocket connecté');
+    
+          ws.current.send(JSON.stringify({
+            type: 'register',
+            userId: user.id
+          }));
+        };
+    
+        ws.current.onmessage = (event) => {
+          const data = JSON.parse(event.data);
+            Toast.show({
+            type: 'success', 
+            text1: 'Nouvelle réservation',
+            text2: data.message,
+            position: 'top',
+            visibilityTime: 6000, 
+        })
+          setNotifications(prev => [data, ...prev]);
+        };
+    
+        ws.current.onerror = (e) => console.log('WS erreur:', e.message);
+        ws.current.onclose = () => console.log('WebSocket fermé');
+    
+    
+        return () => ws.current.close();
+      }, []);
+    
+
 
  if (!fontsLoaded) {
       return <Text>{t('loadingText')}</Text>;
@@ -111,6 +150,14 @@ const renderItem = ({ item }) => {
 
    return (
     <View style={styles.cardWrapper}>
+      
+      <TouchableOpacity
+        activeOpacity={0.8}
+        onPress={() => {
+          navigation.navigate('PostPage', { postId: item.id });
+        }}
+      >
+
       <Card style={styles.card}>
         <Card.Cover source={{ uri : item.photo}} style={styles.cardImage} />
 
@@ -119,6 +166,7 @@ const renderItem = ({ item }) => {
           <Text style={styles.category}  numberOfLines={2} ellipsizeMode="tail">{categoryToDisplay}</Text>
         </Card.Content>
       </Card>
+      </TouchableOpacity>
     </View>
      ); 
     };
