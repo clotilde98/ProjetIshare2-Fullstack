@@ -17,7 +17,7 @@ const { width } = Dimensions.get('window');
 
 export default function PostPage({ route}){
 
-     const {t} = useTranslation(); 
+    const {t} = useTranslation(); 
 
     const { postId } = route.params;
 
@@ -79,7 +79,7 @@ export default function PostPage({ route}){
             const res = await Axios.post("reservations", {
                 postID: post.id
             })
-            Alert.alert("Reservation cree avec succes");
+            Alert.alert(t('success.reservationCreated'));
             
         } catch (err) {
             Alert.alert(t('error.errorText'), err.response?.data || t('error.createReservation'));
@@ -212,7 +212,7 @@ export default function PostPage({ route}){
                                     onPress={() => {
                                         const destination = `${post.street} ${post.street_number}, ${postAddress.postal_code} ${postAddress.city}`;
                                         const url = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(destination)}`;
-                                        Linking.openURL(url).catch(err => Alert.alert("Erreur", "Impossible d'ouvrir Google Maps"));
+                                        Linking.openURL(url).catch(err => Alert.alert(t('error.errorText'), t('error.openGoogleMaps')));
                                     }}
                                     >
                                         <View style={{borderWidth: 1, borderColor: 'black', flexDirection: 'row', gap: 10, backgroundColor: 'pink', borderRadius: 10, padding: 10}}>
@@ -231,7 +231,7 @@ export default function PostPage({ route}){
                 <View style={{height: width * 0.04, backgroundColor: '#FFB682'}}></View>
 
                 <View style={{marginTop: 15, marginBottom: 15, marginLeft: 20, gap: 20}}>
-                    <Text style={{fontWeight: 'bold', fontSize: 16}}>Description</Text>
+                    <Text style={{fontWeight: 'bold', fontSize: 16}}>{t('description')}</Text>
                     <Text>{post.description}</Text>
                 </View>
                 
@@ -239,7 +239,7 @@ export default function PostPage({ route}){
 
 
                 <View style={{gap: 20, marginLeft: 20, marginTop: 10}}>
-                    <Text style={{fontWeight: 'bold', fontSize: 17}}>Comments</Text>
+                    <Text style={{fontWeight: 'bold', fontSize: 17}}>{t('commentTitle')}</Text>
 
                     {comments.map(comment => (
                         <Comment
@@ -260,7 +260,7 @@ export default function PostPage({ route}){
                     <Comment
                         imgSource={user.photo}
                         imgSize={40}
-                        content={t('addCommentPlaceholder')}
+                        content={t('commentPlacerHolder')}
                         isCurrentUser={true}
                         post={post}
                         onCommentCreated={fetchComments}

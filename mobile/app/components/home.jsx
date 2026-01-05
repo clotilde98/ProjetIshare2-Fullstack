@@ -67,7 +67,6 @@ async function getPostsFromApi() {
     
     if(Array.isArray(data)){
         setPosts(data);
-        console.log(data); 
     }else{
         console.error("allPostsCategorie ne retourne pas un tableau valide:", data);
     }
@@ -87,7 +86,6 @@ async function getCategoriesFromApi(){
     try {
           const response = await  Axios.get("/productType/"); 
           const data = response.data;
-          console.log(data.rows); 
           setCategories(data.rows); 
 
         const initialChecked = {};
@@ -114,7 +112,6 @@ async function getFilteredPosts(category){
             params: {nameCategory: category.name_category}
         }); 
         const data = response.data;
-        console.log(data);
         setSelectedCategory(category.name_category); 
         setPosts(data);
     }catch(err){
