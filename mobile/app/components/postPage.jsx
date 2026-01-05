@@ -99,9 +99,10 @@ export default function PostPage({ route}){
             try {
           
                 const resPost = await Axios.get(`/posts/${postId}`);
+                console.log(resPost);
                 const postData = resPost.data;
                 setPost(postData);
-                setPostCategories(postData.data.categories);
+                setPostCategories(postData.categories);
 
              
                 const owner = await fetchUser(postData.client_id);

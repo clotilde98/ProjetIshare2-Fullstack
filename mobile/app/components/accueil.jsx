@@ -90,7 +90,7 @@ async function getFilteredPosts(category){
 useEffect(() => {
     getPostsFromApi(), 
     getCategoriesFromApi(),
-    ws.current = new WebSocket('ws://192.168.0.119:8080');
+    ws.current = new WebSocket('ws://192.168.1.15:8080');
     
         ws.current.onopen = () => {
           console.log('WebSocket connecté');
