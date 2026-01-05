@@ -8,7 +8,7 @@ import * as tokenService from '../../src/service/token.js';
 import { useContext } from 'react';
 import { AuthContext } from '../../src/context/authContext.js';
 import { Poppins_400Regular } from '@expo-google-fonts/poppins';
-import {useTranslation} from 'react-i18next'; 
+
 
 
 import {
@@ -20,9 +20,6 @@ import {
 
 
 export default function Connexion({isSignUp, navigation}) {
-
-    const {t} = useTranslation(); 
-
     const [fontsLoaded] = useFonts({
         Jaro: require('../../assets/fonts/jaro.ttf'), 
         Poppins: Poppins_400Regular,
@@ -56,7 +53,7 @@ export default function Connexion({isSignUp, navigation}) {
               
             } catch (err){
               Alert.alert(
-                t('error'+ "API"),
+                "Erreur backend",
                 `\nMessage: ${err.response.data}`
               );
             }
@@ -76,6 +73,8 @@ export default function Connexion({isSignUp, navigation}) {
                 
                 }
             } else {
+                
+               
                 Alert.alert("an error that's not related to google sign in occurred");
             }
         }

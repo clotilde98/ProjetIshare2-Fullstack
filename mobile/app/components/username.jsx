@@ -3,8 +3,12 @@ import { useState } from 'react';
 import { StyleSheet, Text, View, ImageBackground, TextInput, Alert } from 'react-native';
 import { Button } from 'react-native-paper';
 import Axios from '../../src/service/api.js';
+import { useTranslation } from 'react-i18next';
 
 export default function Username(){
+
+    const { t } = useTranslation();
+
     const [fontsLoaded]=useFonts({
         Poppins_400Regular,
         Poppins_700Bold,
@@ -12,7 +16,7 @@ export default function Username(){
     const [username, setUsername] = useState(''); 
 
     if (!fontsLoaded) {
-        return <Text>Chargement...</Text>; 
+        return <Text>{t('loadingText')}</Text>; 
     }
 
     async function handleSubmit () {
@@ -32,12 +36,12 @@ export default function Username(){
         <View style={styles.container}>
             <ImageBackground source={require('../../assets/images/background2.png')} style={styles.image} resizeMode="cover">
                 <View style={styles.textContainer}>
-                    <Text style={styles.text1}>What is your</Text>  
-                    <Text style={styles.text2}>username ?</Text>  
+                    <Text style={styles.text1}>{t('questionpart1')}</Text>  
+                    <Text style={styles.text2}>{t('textUsername')}</Text>  
                     <TextInput placeholder='Username' onChangeText={setUsername} style={styles.input}></TextInput>
                 </View>    
                 
-                <Button onPress={handleSubmit} buttonColor= 'black' textColor="white" labelStyle = {{fontSize:14, fontFamily: 'Poppins_700Bold'}} style={styles.button} >Next</Button>
+                <Button onPress={handleSubmit} buttonColor= 'black' textColor="white" labelStyle = {{fontSize:14, fontFamily: 'Poppins_700Bold'}} style={styles.button} >{t('next')}</Button>
             </ImageBackground>
             
         

@@ -4,7 +4,6 @@
     "password": "Password",
     "signUp":"Sign up",
     "signIn" : "Sign in", 
-    "signInGoogle" : "Sign in with Google", 
     "account": "Account", 
     "language": "Change Language", 
     "setting": "Setting", 
@@ -14,7 +13,7 @@
     "questionpart1": "What is your",
     "textUsername": "username?",  
     "usernameInput": "Username", 
-    "Next": "next", 
+    "Next": "Next", 
     "textAddress": "address?", 
     "localisationButtonText": "Locate me",
     "streetInputText": "Street", 
@@ -34,8 +33,7 @@
     "cancelButton": "Cancel", 
     "profileTitle": "Profile", 
     "editProfile": "Edit the profile", 
-    "deconnectButton": "Log out", 
-    "deleteCompte": "Delete the account", 
+    "deconnectButton": "Log out",  
     "bookButton": "Book", 
     "currentPasswordInput": "Current Password", 
     "newPasswordInput": "New Password", 
@@ -58,6 +56,34 @@
     "filtersText": "filters",
     "searchBarText": "Searched by", 
     "commentPlacerHolder": "Add a comment...", 
+    "commentTitle": "Comments", 
+    "orTextConnexion": "or", 
+    "withTextConnexion": "with",
+    "createAccount": "Create an account", 
+    "email":"email", 
+    "confirmText": "confirm", 
+    "postText": "Post", 
+    "selectFoodTypes": "Select Food Types",
+    "writeTitle": "Write a title",
+    "searchFoodTypes": "Search Food Types",
+    "selectCityPostalCode": "Select City and Postal Code", 
+    "searchCity": "Search City",
+    "street": "Street...",
+    "streetNumber": "Street Number...",
+    "selectNbOfPeople": "Select number of people",
+    "searchNbOfPeople": "Search amount of places",
+    "writeDescription": "Write a description...", 
+    "deletePost": "Delete a post", 
+    "confirmDeletePost": "Are you sure you want to permanently delete this post?", 
+    "reservation":"Reservation", 
+    "status": "Status",
+    "viewPost": "Check out this post:", 
+    "link":"Link", 
+    "description": "Description", 
+    "book": "book",
+    
+
+    
     
     
 
@@ -68,14 +94,39 @@
     "deleteAccount": "Unable to delete the account.", 
     "logOut": "Log out impossible", 
     "retrieveAdress": "Unable to retrieve the address", 
-    "commentError": "Error while creating comment"
+    "commentError": "Error while creating comment", 
+    "siginCancelled": "Sign in was cancelled by the user", 
+    "":"Sign in is in progress", 
+    "": "play service not available", 
+    "":"an error that's not related to google sign in occurred",
+    "passwordsError": "Password must match", 
+    "errorLogin": "Login error", 
+    "sendFailed":"Error while sending", 
+    "missingTitle": "Title is missing", 
+    "categoryRequired": "At least one category is required", 
+    "missingCity": "City is missing", 
+    "missingStreet": "Street is missing", 
+    "missingNbOfPeople": "Please select number of people", 
+    "missingDescription": "Description is missing",
+    "deletePost": "Unable to delete the post.", 
+    "loadComments": "Unable to load the number of comments for the post.", 
+    "updateStatus": "Unable to update the status.", 
+    "createReservation":"Error creating reservation",
+    "loadData": "Error fetching data", 
+    "openGoogleMaps":"Unable to open Google Maps"
+  
+
+ 
     
     
 
   },
   "sucess": {
+    "successText": "success", 
     "modification": "Profile updated successfully", 
-    "commentSuccess": "Comment successfully created"
+    "commentSuccess": "Comment successfully created", 
+    "postSuccess": "Post created successfully", 
+    "reservationCreated": "Reservation created successfully"
   }
 }
 

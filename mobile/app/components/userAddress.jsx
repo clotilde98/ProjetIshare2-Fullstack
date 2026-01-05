@@ -6,8 +6,11 @@ import { Button } from 'react-native-paper';
 import { useRouter } from 'expo-router';
 import Axios from '../../src/service/api.js';
 import { useLocation } from '../_hook/useLocation.jsx';
+import { useTranslation } from 'react-i18next';
 
 export default function UserAddress() {
+
+     const { t } = useTranslation();
     const router = useRouter();
     const [fontsLoaded] = useFonts({
         Poppins_400Regular,
@@ -48,7 +51,7 @@ export default function UserAddress() {
 
     const handleSubmit = async () => {
         if (!street.trim() || !number.trim() || !addressId) {
-            Alert.alert("Champs manquants", "Merci de remplir l'adresse complète.");
+            Alert.alert(t('error.missingFields'));
             return;
         }
 
@@ -64,14 +67,14 @@ export default function UserAddress() {
             await Axios.patch(`/users`, payload);
 
             Alert.alert(
-                "Succès", 
-                "Adresse enregistrée avec succès !",
+                t('success.success'), 
+                t('success.addressSavedSuccessfully'),
                 [{ text: "OK", onPress: () => router.replace('/components/home') }]
             );
 
         } catch (error) {
-            const errorMsg = error.response?.data?.message || "Une erreur est survenue lors de la mise à jour.";
-            Alert.alert("Erreur", errorMsg);
+            const errorMsg = error.response?.data?.message || t('error.updateError');
+            Alert.alert(t('error.errorText'), errorMsg);
         } finally {
             setLoading(false);
         }
@@ -106,20 +109,20 @@ export default function UserAddress() {
                 resizeMode="cover"
             >
                 <View style={styles.textContainer}>
-                    <Text style={styles.text1}>What is your</Text>
-                    <Text style={styles.text2}>address ?</Text>
+                    <Text style={styles.text1}>{t('questionpart1')}</Text>
+                    <Text style={styles.text2}>{t('textAddress')}</Text>
 
                    
 
                     <View style={styles.row}>
                         <TextInput
-                            placeholder="Street"
+                            placeholder={t('street')}
                             style={[styles.input, styles.street]}
                             value={street}
                             onChangeText={setStreet}
                         />
                         <TextInput
-                            placeholder="No."
+                            placeholder={t('streetNumber')}
                             style={[styles.input, styles.number]}
                             value={number}
                             keyboardType="numeric"
@@ -134,7 +137,7 @@ export default function UserAddress() {
                             search
                             labelField="label"
                             valueField="value"
-                            placeholder="Postal Code - City"
+                            placeholder={t('postalCodeCity')}
                             value={addressId}
                             onChange={item => setAddressId(item.value)}
                             placeholderStyle={styles.placeholderStyle}
@@ -152,7 +155,7 @@ export default function UserAddress() {
                             <Image source={require('../../assets/images/location_searching.png')} style={styles.icon} resizeMode="contain" />
                         )}
                     >
-                        Locate me
+                        {t('localisationButtonText')}
                     </Button>
                 </View>
 
@@ -163,7 +166,7 @@ export default function UserAddress() {
                         style={[styles.button, styles.buttonSkip]}
                         onPress={() => router.replace('/components/home')}
                     >
-                        Skip
+                        {t('"skipButtonText')}
                     </Button>
                     <Button
                         buttonColor="black"
@@ -172,7 +175,7 @@ export default function UserAddress() {
                         style={styles.button}
                         onPress={handleSubmit}
                     >
-                        Submit
+                        {t('submitButtonText')}
                     </Button>
                 </View>
             </ImageBackground> 

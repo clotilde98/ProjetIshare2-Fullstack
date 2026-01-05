@@ -11,6 +11,7 @@ import { AuthContext } from '../../src/context/authContext.js';
 import { useNavigation } from '@react-navigation/native';
 
 
+
 export default function Accueil(){
 
     const {t} = useTranslation(); 

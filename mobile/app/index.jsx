@@ -7,7 +7,6 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import { useContext } from 'react';
 import Language from './components/language.jsx'
-import Notifications  from './components/notification.jsx';
 import Accueil from './components/accueil.jsx';
 import UserProfil from './components/userProfil.jsx';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
@@ -34,7 +33,7 @@ const Stack = createNativeStackNavigator();
 function MainTabs() {
   return (
     <Tab.Navigator screenOptions={{ headerShown: false }}>
-      <Tab.Screen name="Notifications" component={Notifications} />
+  
       <Tab.Screen name="Language" component={Language} />
       <Tab.Screen name="Accueil" component={Accueil} />
       <Tab.Screen name="CreatePost" component={createPost} />

@@ -6,7 +6,12 @@ import Reservation from './reservation';
 import Axios from '../../src/service/api.js';
 import { useIsFocused } from '@react-navigation/native';
 
+import {useTranslation} from 'react-i18next'; 
+
 export default function RessourcesPage() {
+  
+  const {t} = useTranslation(); 
+
   const [activeTab, setActiveTab] = useState('posts');
   const [posts, setPosts] = useState([]);
   const [reservations, setReservations] = useState([]);
@@ -17,7 +22,7 @@ export default function RessourcesPage() {
       const res = await Axios.get("/posts/myPosts/");
       setPosts(res.data);
     } catch (err) {
-      Alert.alert("Erreur", "Impossible de charger les posts");
+      Alert.alert(t('error.errorText'), t('postsLoadError'));
     }
   };
 
@@ -26,7 +31,7 @@ export default function RessourcesPage() {
       const res = await Axios.get("/reservations/me/");
       setReservations(res.data);
     } catch (err) {
-      Alert.alert("Erreur", "Impossible de charger les réservations");
+      Alert.alert(t('error.errorText'), t('reservationsLoadError'));
     }
   };
 
@@ -47,13 +52,13 @@ export default function RessourcesPage() {
         <View style={styles.headerTabsContainer}>
           <TouchableOpacity onPress={() => setActiveTab('posts')}>
             <Text style={[styles.tabText, activeTab === 'posts' && styles.activeTabText]}>
-              My Posts
+              {t('subTitlePosts')}
             </Text>
           </TouchableOpacity>
 
           <TouchableOpacity onPress={() => setActiveTab('reservations')}>
             <Text style={[styles.tabText, activeTab === 'reservations' && styles.activeTabText]}>
-              My Reservations
+              {t('subTitleReservations"')}
             </Text>
           </TouchableOpacity>
         </View>
@@ -62,26 +67,24 @@ export default function RessourcesPage() {
           <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
             
             {activeTab === 'posts' ? (
-              // --- LISTE DES POSTS ---
               posts.length > 0 ? (
                 posts.map((post) => (
                   <Post key={post.id} post={post} onDelete={fetchPosts} />
                 ))
               ) : (
-                <Text style={styles.emptyText}>Aucun post disponible</Text>
+                <Text style={styles.emptyText}>{t('postsEmpty')}</Text>
               )
             ) : (
-              // --- LISTE DES RÉSERVATIONS (Utilisation du nouveau composant) ---
               reservations.length > 0 ? (
     reservations.map((item) => (
       <Reservation 
         key={item.id} 
         item={item} 
-        onDelete={fetchReservations} // On passe la fonction de rafraîchissement ici
+        onDelete={fetchReservations} 
       />
     ))
   ) : (
-    <Text style={styles.emptyText}>Aucune réservation</Text>
+    <Text style={styles.emptyText}>{t('reservationsEmpty')}</Text>
   )
 )}
 
@@ -114,7 +117,7 @@ const styles = StyleSheet.create({
   whiteCardContainer: {
     backgroundColor: 'white',
     flex: 1,
-    width: '94%', // Un peu plus large pour mieux voir le design
+    width: '94%',
     marginBottom: 30,
     borderRadius: 15,
     padding: 15,

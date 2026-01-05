@@ -10,23 +10,23 @@ export default function Reservation({ item, onDelete }) {
   const defaultFood = 'https://via.placeholder.com/150?text=No+Image';
 const handleDelete = async () => {
     Alert.alert(
-      "Confirmation", 
-      "Voulez-vous vraiment annuler cette réservation ?", 
+      t('confirm'), 
+      t('confirmCancelReservation'), 
       [
         {
-          text: "Non",
+          text: t('noText'),
           style: "cancel"
         },
         { 
-          text: "Oui, annuler", 
+          text: t('yesText'), 
           style: "destructive", 
           onPress: async () => {
             try {
               await Axios.delete(`/reservations/${item.id}`);
-              Alert.alert("Succès", "Réservation annulée.");
+              Alert.alert(t('success.success'), t('success.reservationCancel'));
               if (onDelete) onDelete();
             } catch (err) {
-              Alert.alert("Erreur", "Impossible d'annuler.");
+              Alert.alert(t('error.error'), t('error.unableCancel'));
             }
           }
         }
@@ -59,14 +59,14 @@ const handleDelete = async () => {
 
           <View style={styles.buttonRow}>
             <TouchableOpacity style={styles.cancelButton} onPress={handleDelete}>
-              <Text style={styles.cancelButtonText}>Cancel</Text>
+              <Text style={styles.cancelButtonText}>{t('cancelButton')}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity 
               style={styles.seeMoreButton}
               onPress={() => navigation.navigate('PostPage', { postData: item })}
             >
-              <Text style={styles.seeMoreText}>See more</Text>
+              <Text style={styles.seeMoreText}>{t('seeDetailsButton')}</Text>
             </TouchableOpacity>
           </View>
         </View>

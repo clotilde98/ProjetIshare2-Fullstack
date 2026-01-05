@@ -9,23 +9,21 @@ import Comment from './comment.jsx';
 import { useIsFocused } from '@react-navigation/native';
 import { AuthContext } from '../../src/context/authContext.js';
 import { Button } from "react-native-paper";
+import {useTranslation} from 'react-i18next'; 
 
 
 const { width } = Dimensions.get('window');
 
 
+export default function PostPage({ route}){
 
-
-
-
-export default function PostPage({ route, navigation }){
+     const {t} = useTranslation(); 
 
     const { postId } = route.params;
 
     if (!postId){
         return;
     }
-
 
     const { user, setUser } = useContext(AuthContext);
 
@@ -42,43 +40,17 @@ export default function PostPage({ route, navigation }){
 
     const isFocused = useIsFocused();
     
-
-    /*const post =     
-        {
-      "id": 1,
-      "title": "Don de riz",
-      "address_id": 25,
-      "client_id": 11,
-      "photo": "http://192.168.0.11:3002/images/5bda557e-0cf1-447d-9b56-f29a95024082.jpeg",
-      "post_date": "2025-12-24T23:00:00.000Z",
-      "places_restantes": "3",
-      "categories": "Legume",
-      "city": "Longueville",
-      "description": "Riz cuisiné maison disponible ce soir",
-      "username": "test",
-      "post_status": "available",
-      "street": "Avenue Louise",
-      "street_number": 45,
-      "postal_code": "1325"
-    }*/
-
-
-
-
-
     const handleShare = async () => {
         if (!post?.id) return;
 
         try {
             await Share.share({
-                message: `Regarde cette annonce : ${post.title}\nLien : ishare://post/${post.id}`,
+                message: `${t('viewPost')} : ${post.title}\n${t('link')}: ishare://post/${post.id}`,
             });
         } catch (error) {
-            Alert.alert("Erreur", error.message);
+            Alert.alert(t('error.errorText'), error.message);
         }
     };
-
-
 
     async function fetchComments() {
         try {
@@ -97,7 +69,7 @@ export default function PostPage({ route, navigation }){
 
                 setComments(commentsWithUsers);
             } catch (err) {
-                Alert.alert("Erreur", err.response?.data || "Erreur de recuperation de commentaires");
+                Alert.alert(t('error.errorText'), err.response?.data || t('error.loadComments'));
             }
         }
 
@@ -110,7 +82,7 @@ export default function PostPage({ route, navigation }){
             Alert.alert("Reservation cree avec succes");
             
         } catch (err) {
-            Alert.alert("Erreur", err.response?.data || "Erreur de creation de reservation");
+            Alert.alert(t('error.errorText'), err.response?.data || t('error.createReservation'));
         }
     }
 
@@ -120,28 +92,6 @@ export default function PostPage({ route, navigation }){
         return res.data.user;
     }
 
-
-
-    async function fetchPostAddress(){
-        try {
-            const id = post.address_id;
-            const res = await Axios.get(`/address/${id}`);
-            setPostAddress(res.data.address);
-        } catch (err){
-            Alert.alert("Erreur", "Impossible de recuperer l'addresse de l'annonce. " + err.response.data);
-        }
-    }
-
-
-    async function fetchPost(){
-        try {
-            const res = await Axios.get(`/posts/${postId}`);
-            setPost(res.data);
-        } catch (err){
-            Alert.alert("Erreur", "Impossible de recuperer l'annonce. " + err.response.data);
-        }
-    }
-
     useEffect(() => {
         if (!isFocused) return;
 
@@ -149,7 +99,6 @@ export default function PostPage({ route, navigation }){
             try {
           
                 const resPost = await Axios.get(`/posts/${postId}`);
-                console.log(resPost);
                 const postData = resPost.data;
                 setPost(postData);
                 setPostCategories(postData.data.categories);
@@ -172,13 +121,9 @@ export default function PostPage({ route, navigation }){
                 );
                 setComments(commentsWithUsers);
 
-       
-                
-                
-
             } catch (err) {
-                console.log(err); 
-                Alert.alert("Erreur", err.response?.data || "Erreur de récupération des données");
+            
+                Alert.alert(t('error.errorText'), err.response?.data || t('error.loadData'));
             }
         };
 
@@ -189,7 +134,7 @@ export default function PostPage({ route, navigation }){
 
 
     if (!postOwner || !postAddress || !fontsLoaded) {
-        return <Text>Chargement...</Text>;
+        return <Text>{t('loadingText')}</Text>;
     }
 
 
@@ -315,7 +260,7 @@ export default function PostPage({ route, navigation }){
                     <Comment
                         imgSource={user.photo}
                         imgSize={40}
-                        content={'Add a comment...'}
+                        content={t('addCommentPlaceholder')}
                         isCurrentUser={true}
                         post={post}
                         onCommentCreated={fetchComments}
@@ -328,7 +273,7 @@ export default function PostPage({ route, navigation }){
                             style={styles.button}
                             onPress={handleBooking}
                         >
-                            <Text style={styles.textInput}>Book</Text>
+                            <Text style={styles.textInput}>{t('book')}</Text>
                         </TouchableOpacity>
                     </View>
 

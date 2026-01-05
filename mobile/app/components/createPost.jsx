@@ -9,10 +9,13 @@ import { useState } from "react";
 import MultiSelect from 'react-native-multiple-select';
 import Axios from '../../src/service/api.js';
 import { useEffect } from "react";
-
+import {useTranslation} from 'react-i18next'; 
 
 
 export default function CreatePost () {
+
+    
+    const {t} = useTranslation(); 
 
     const [fontsLoaded] = useFonts({
             Poppins: Poppins_400Regular,
@@ -44,18 +47,18 @@ export default function CreatePost () {
     }
 
     if (!fontsLoaded) {
-        return <Text>Chargement...</Text>; 
+        return <Text>{t('loadingText')}</Text>; 
     }
 
 
     const validations = [
-        { condition: !postTitle || postTitle.trim() === "", message: "Titre manquant" },
-        { condition: !selectedFoodTypes || selectedFoodTypes.length === 0, message: "Au moins une catégorie est requise" },
-        { condition: !selectedCity || !selectedCity[0], message: "Ville manquante" },
-        { condition: !streetText || streetText.trim() === "", message: "Rue manquante" },
-        { condition: !streetNumberText || streetNumberText.trim() === "", message: "Rue manquante" },
-        { condition: !selectedNbOfPeople || selectedNbOfPeople.length === 0, message: "Veuillez selectionner un nombre de places" },
-        { condition: !descriptionText || descriptionText.trim() === "", message: "Description manquante" },
+        { condition: !postTitle || postTitle.trim() === "", message: t('error.missingTitle') },
+        { condition: !selectedFoodTypes || selectedFoodTypes.length === 0, message: t('error.categoryRequired') },
+        { condition: !selectedCity || !selectedCity[0], message: t('error.missingCity') },
+        { condition: !streetText || streetText.trim() === "", message: t('error.missingStreetNumber') },
+        { condition: !streetNumberText || streetNumberText.trim() === "", message: t('error.missingStreetNumber') },
+        { condition: !selectedNbOfPeople || selectedNbOfPeople.length === 0, message: t('error.missingNbOfPeople')},
+        { condition: !descriptionText || descriptionText.trim() === "", message: t('error.missingDescription') },
         
     ];
 
@@ -94,9 +97,9 @@ export default function CreatePost () {
             },
             });
 
-            Alert.alert("Post cree avec succes :", JSON.stringify(response.data));
+            Alert.alert(t('success.postSuccess'));
         } catch (error) {
-            Alert.alert("Erreur lors de l'envoi :", JSON.stringify(error.response.data));
+            Alert.alert(t('error.sendFailed'), JSON.stringify(error.response.data));
         }
 
 
@@ -142,16 +145,16 @@ export default function CreatePost () {
 
 
     const pickImage = async () => {
-        // Demander la permission
+       
         const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
         if (status !== 'granted') {
-        alert('Permission refusée pour accéder aux images!');
+        alert(t('permissionImage'));
         return;
         }
 
-        // Ouvrir le sélecteur d’images
+        
         const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: 'images', // <- ici on utilise une string
+        mediaTypes: 'images', 
         allowsEditing: true,
         quality: 1,
         });
@@ -167,7 +170,7 @@ export default function CreatePost () {
         <View style={styles.container}>
             <ImageBackground source={require('../../assets/images/background1.jpg')} style = {styles.image}>
             <View style={{ height: '90%', width: '100%', alignItems: 'center', gap: 10, marginBottom: 20 }}>
-                <Text style={{ fontSize: 35, fontWeight: 'bold' }}>Post</Text>
+                <Text style={{ fontSize: 35, fontWeight: 'bold' }}>{t('postText')}</Text>
                 
                 
                 <View style={styles.postForm}>
@@ -195,7 +198,7 @@ export default function CreatePost () {
                     <TextInput
                         value={postTitle}
                         onChangeText={setPostTitle}
-                        placeholder="Write a title"
+                        placeholder={t('writeTitle')}
                         style={styles.input}
                     />
 
@@ -205,8 +208,8 @@ export default function CreatePost () {
                         uniqueKey="id"
                         onSelectedItemsChange={setSelectedFoodTypes}
                         selectedItems={selectedFoodTypes}
-                        selectText="Select Food Types"
-                        searchInputPlaceholderText="Search Food Types"
+                        selectText={t('selectFoodTypes')}
+                        searchInputPlaceholderText={t('searchFoodTypes')}
                         tagRemoveIconColor="#CCC"
                         tagBorderColor="#CCC"
                         styleMainWrapper={{ width: '80%' }}       
@@ -218,8 +221,8 @@ export default function CreatePost () {
                         uniqueKey="id"
                         onSelectedItemsChange={setSelectedCity}
                         selectedItems={selectedCity}
-                        selectText="Select City and Postal Code"
-                        searchInputPlaceholderText="Search City"
+                        selectText={t('selectCityPostalCode')}
+                        searchInputPlaceholderText={t('searchCity')}
                         tagRemoveIconColor="#CCC"
                         tagBorderColor="#CCC"
                         styleMainWrapper={{ width: '80%' }}       
@@ -231,14 +234,14 @@ export default function CreatePost () {
                     <TextInput
                         value={streetText}
                         onChangeText={setStreetText}
-                        placeholder="Street..."
+                        placeholder={t('street')}
                         style={{fontSize: 16, borderWidth: 0.2, borderRadius: 10, padding: 10, width: '50%'}}
                     />
 
                     <TextInput
                         value={streetNumberText}
                         onChangeText={setStreetNumberText}
-                        placeholder="Street Number..."
+                        placeholder={t('streetNumber')}
                         style={{fontSize: 16, borderWidth: 0.2, borderRadius: 10, padding: 10, width: '50%'}}
                     />
 
@@ -248,8 +251,8 @@ export default function CreatePost () {
                         uniqueKey="id"
                         onSelectedItemsChange={setSelectedNbOfPeople}
                         selectedItems={selectedNbOfPeople}
-                        selectText="Select number of people"
-                        searchInputPlaceholderText="Search amount of places"
+                        selectText={t('selectNbOfPeople')}
+                        searchInputPlaceholderText={t('searchNbOfPeople')}
                         tagRemoveIconColor="#CCC"
                         tagBorderColor="#CCC"
                         styleMainWrapper={{ width: '80%' }}       
@@ -260,7 +263,7 @@ export default function CreatePost () {
                     <TextInput
                         value={descriptionText}
                         onChangeText={setDescriptionText}
-                        placeholder="Write a description..."
+                        placeholder={t('writeDescription')}
                         style={{fontSize: 16, borderWidth: 0.2, padding : 10, borderRadius: 10, width: '80%', minHeight: 80, flexGrow: 0.2, backgroundColor: '#FFE7C8'}}
                     />
 

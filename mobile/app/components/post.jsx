@@ -4,8 +4,12 @@ import { useState } from "react";
 import Axios from '../../src/service/api.js';
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect } from "react";
+import {useTranslation} from 'react-i18next'; 
 
 export default function Post({ post, onDelete }) {
+
+    const {t} = useTranslation(); 
+    
     const options = { day: 'numeric', month: 'long' };
     const [selectedOption, setSelectedOption] = useState(post.post_status);
     const [nbComments, setNbComments] = useState(null);
@@ -13,15 +17,15 @@ export default function Post({ post, onDelete }) {
 
   const handleDelete = async () => {
     Alert.alert(
-        "Supprimer l'annonce",
-        "Êtes-vous sûr de vouloir supprimer définitivement cette annonce ? ",
+        t('deletePost'),
+        t('confirmDeletePost'),
         [
             {
-                text: "Annuler",
+                text: t('cancel'),
                 style: "cancel"
             },
             {
-                text: "Supprimer",
+                text: t('Delete'),
                 style: "destructive", 
                 onPress: async () => {
                     try {
@@ -30,7 +34,7 @@ export default function Post({ post, onDelete }) {
                         Alert.alert("Succès", res.data);
                         if (onDelete) onDelete();
                     } catch (err) {
-                        Alert.alert("Erreur", "Impossible de supprimer l'annonce. " + err);
+                        Alert.alert(t('error.errorText'),  t('deletePost') + err);
                     }
                 }
             }
@@ -44,7 +48,7 @@ export default function Post({ post, onDelete }) {
             const res = await Axios.get(`comments/post/${id}`);
             setNbComments(res.data.rows.length);
         } catch (err){
-            Alert.alert("Erreur", "Impossible de chargement du nombre de commentaire pour l'annonce. " + err);
+            Alert.alert(t('error.errorText'), t('loadComments') + err);
         }
     }
 
@@ -61,21 +65,19 @@ export default function Post({ post, onDelete }) {
             const res = await Axios.patch(`/posts/${id}`, { postStatus: newStatus });
 
 
-            Alert.alert("Succès", res.data.message);
+            Alert.alert(t('success.successText'), res.data.message);
         } catch (error) {
-            Alert.alert("Erreur", "Impossible de mettre à jour le statut. " + error.response.data);
+            Alert.alert(t('error.errorText'), t('error.updateStatus') + error.response.data);
         }
     };
 
     return (
         <View style={styles.container}>
-            {/* Titre et date */}
             <View style={styles.postTitleContainer}>
                 <Text style={styles.title}>{post.title}</Text>
                 <Text style={styles.date}>{new Date(post.post_date).toLocaleDateString('en-GB', options)}</Text>
             </View>
 
-            {/* Image et status */}
             <View style={styles.postDataContainer}>
                 <View style={styles.imgContainer}>
                     <ImageBackground source={{ uri: post.photo }} style={styles.image} resizeMode="cover" />
@@ -83,9 +85,9 @@ export default function Post({ post, onDelete }) {
 
                 <View style={styles.postStatusContainer}>
 
-                    <Text style={styles.reservationText}>Reservation</Text>
+                    <Text style={styles.reservationText}>{t('Reservation')}</Text>
 
-                    <Text>Status</Text>
+                    <Text>{t('Status')}</Text>
                     
                     <View>
                         <Picker
@@ -96,8 +98,8 @@ export default function Post({ post, onDelete }) {
                         }}
                         style={styles.picker}
                         >
-                            <Picker.Item label="available" value="available" style={styles.pickerText} />
-                            <Picker.Item label="unavailable" value="unavailable" style={styles.pickerText} />
+                            <Picker.Item label={t('available')} value="available" style={styles.pickerText} />
+                            <Picker.Item label={t('unavailable')} value="unavailable" style={styles.pickerText} />
                         </Picker>
                     </View>
     
