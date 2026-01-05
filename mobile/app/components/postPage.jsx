@@ -1,13 +1,13 @@
 import {Linking, ImageBackground, Text, View, StyleSheet, ScrollView, Alert, Image, TouchableOpacity, Share } from "react-native";
 import { Avatar } from '@kolking/react-native-avatar';
 import { Dimensions } from 'react-native';
-import Axios from '../../src/service/api.js';
+import Axios from '../src/service/api.js';
 import { useEffect, useState, useContext } from "react";
 import { Poppins_400Regular, Poppins_700Bold, useFonts } from '@expo-google-fonts/poppins';
 import AntDesign from 'react-native-vector-icons/AntDesign';
-import Comment from './comment.jsx';
+import Comment from './components/comment.jsx';
 import { useIsFocused } from '@react-navigation/native';
-import { AuthContext } from '../../src/context/authContext.js';
+import { AuthContext } from '../src/context/authContext.js';
 import { Button } from "react-native-paper";
 
 

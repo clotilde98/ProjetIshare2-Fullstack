@@ -6,10 +6,14 @@ import SearchBar from './searchBar.jsx';
 import { useTranslation } from 'react-i18next';
 import Axios from '../../src/service/api.js';
 import AntDesign from 'react-native-vector-icons/AntDesign';
-import * as Location from 'expo-location';
+import { useLocation } from '../../src/hook/useLocation.jsx';
+import { useRouter } from 'expo-router';
 
 export default function Accueil() {
     const { t } = useTranslation();
+    const { getCurrentAddress, locating } = useLocation(); 
+    const router = useRouter();
+    
     const [fontsLoaded] = useFonts({
         Jaro: require('../../assets/fonts/jaro.ttf'),
         Poppins_400Regular,
@@ -27,27 +31,11 @@ export default function Accueil() {
     async function getPostsFromApi() {
         let city = null;
         let street = null;
-
-        try {
-            let { status } = await Location.requestForegroundPermissionsAsync();
-            
-            if (status === 'granted') {
-                const location = await Location.getCurrentPositionAsync({ 
-                    accuracy: Location.Accuracy.Balanced
-                });
-                
-                const reverseGeocode = await Location.reverseGeocodeAsync({
-                    latitude: location.coords.latitude,
-                    longitude: location.coords.longitude
-                });
-
-                if (reverseGeocode && reverseGeocode.length > 0) {
-                    const address = reverseGeocode[0];
-                    city = address.city;
-                    street = address.street;
-                }
-            }
-        } catch (error) {
+        const address = await getCurrentAddress();
+        
+        if (address) {
+            city = address.city;
+            street = address.street;
         }
 
         try {
@@ -69,7 +57,6 @@ export default function Accueil() {
             data.forEach(cat => initialChecked[cat.id_category] = false);
             setCheckedCategories(initialChecked);
         } catch (err) {
-            // Erreur silencieuse pour les catégories
         }
     }
 
@@ -107,13 +94,22 @@ export default function Accueil() {
 
     const renderItem = ({ item }) => (
         <View style={styles.cardWrapper}>
-            <Card style={styles.card}>
-                <Card.Cover source={{ uri: item.photo }} style={styles.cardImage} />
-                <Card.Content>
-                    <Text style={styles.title} numberOfLines={2}>{item.title}</Text>
-                    <Text style={styles.category} numberOfLines={1}>{item.categories}</Text>
-                </Card.Content>
-            </Card>
+            {/* On rend la carte entière cliquable */}
+            <TouchableOpacity 
+                activeOpacity={0.9} 
+              onPress={() => router.push({
+                    pathname: "/PostPage", // Doit correspondre au nom du fichier dans app/
+                    params: { postId: item.id }
+                })}
+            >
+                <Card style={styles.card}>
+                    <Card.Cover source={{ uri: item.photo }} style={styles.cardImage} />
+                    <Card.Content>
+                        <Text style={styles.title} numberOfLines={2}>{item.title}</Text>
+                        <Text style={styles.category} numberOfLines={1}>{item.categories}</Text>
+                    </Card.Content>
+                </Card>
+            </TouchableOpacity>
         </View>
     );
 

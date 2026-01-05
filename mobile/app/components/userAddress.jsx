@@ -1,226 +1,213 @@
 import { Poppins_400Regular, Poppins_700Bold, useFonts } from '@expo-google-fonts/poppins';
-import Axios from "../../src/service/api.js";
 import { useEffect, useState } from 'react';
-import { Image, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Image, StyleSheet, Text, TextInput, View, Alert, ActivityIndicator, ImageBackground } from 'react-native';
 import { Dropdown } from 'react-native-element-dropdown';
 import { Button } from 'react-native-paper';
-import { useTranslation } from 'react-i18next';
+import { useRouter } from 'expo-router';
+import Axios from '../../src/service/api.js';
+import { AuthContext } from '../../src/context/authContext';
 
+import { useContext } from 'react';
 
-export default function UserAddress (){
+import { useLocation } from '../../src/hook/useLocation.jsx';
 
-    const { t } = useTranslation();
-
-    const [fontsLoaded]=useFonts({
+export default function UserAddress() {
+    const router = useRouter();
+    const [fontsLoaded] = useFonts({
         Poppins_400Regular,
         Poppins_700Bold,
-    })
+    });
+       const { user, setUser } = useContext(AuthContext);
+    const [street, setStreet] = useState("");
+    const [number, setNumber] = useState("");
+    const [addressId, setAddressId] = useState(null); 
+    const [combinedCitiesData, setCombinedCitiesData] = useState([]); 
+    const [errorMessage, setErrorMessage] = useState('');
+    const [loading, setLoading] = useState(false);
 
-    const [street, setStreet] = useState(""); 
-    const [number, setNumber]= useState(""); 
-    
-    const [cities, setCities]=useState([]);
-    const [city, setCity] = useState("");
-    
-    const [postalCode, setPostalCode] = useState(""); 
-    const [postalCodes, setPostalCodes]=useState([]); 
+    const { getCurrentAddress, locating } = useLocation();
 
- 
-async function getAllCitiesFromApi() {
-
-  try {
-    const response = await Axios.get("/getAllCities/");
-
-    const data = response.data;
-
-      const tabCities = data.map(c => ({
-        label: c.city,
-        value: c.city
-      }));
-      const tabPostalCodes = data.map(c => ({
-        label: c.postal_code,
-        value: c.postal_code
-      }));
-
-      setCities(tabCities);
-      setPostalCodes(tabPostalCodes);
-
-  } catch (error) {
-      Alert.alert(t('error.errorText'), err.response? `${message}\n\nStatus: ${err.response?.status}` : err.response?.data ? err.response.data : err.toString()); 
-  }
-}
-
-
-
-useEffect(() => {
-  getAllCitiesFromApi();
-}, []);
-
-
-    if (!fontsLoaded) {
-    return <Text>{t('loadingText')}</Text>; 
+    async function getAllCitiesFromApi() {
+        setLoading(true);
+        try {
+            const response = await Axios.get("/getAllCities/");
+            const data = response.data;
+            if (Array.isArray(data)) {
+                const formattedData = data.map(item => ({
+                    label: `${item.postal_code} - ${item.city}`, 
+                    value: item.id 
+                }));
+                setCombinedCitiesData(formattedData);
+            }
+        } catch (error) {
+            setErrorMessage("Failed to load location data.");
+        } finally {
+            setLoading(false);
+        }
     }
 
-    return(
+    useEffect(() => {
+        getAllCitiesFromApi();
+    }, []);
 
-        <View style={styles.container}>
-            
-        <View style={styles.textContainer}>
-        <Text style={styles.text1}>{t('questionpart1')}</Text>
-        <Text style={styles.text2}>{t('textAddress')}</Text>   
+   const handleSubmit = async () => {
+    if (loading || locating) return;
 
-        <Button  textColor="black" labelStyle = {{fontSize:14, fontFamily: 'Poppins_700Bold'}} style={[styles.button, styles.buttonLocation]} icon={() => (
-            <Image source={require('../../assets/images/location_searching.png')} style={styles.icon} resizeMode="contain"/>
-        )}>Locate me</Button> 
+    if (!street.trim() || !number.trim() || !addressId) {
+        Alert.alert("Champs manquants", "Merci de remplir l'adresse complète.");
+        return;
+    }
+
+    setLoading(true);
+
+    try {
+        const payload = {
+           street: street.trim(),
+            streetNumber: String(number).trim(), 
+            addressID: Number(addressId)
+        };
+        const response = await Axios.patch(`/users`, payload);
+        if (setUser && response.data) {
+            setUser({ ...user, ...response.data });
+        }
+
+        Alert.alert(
+            "Succès", 
+            "Adresse enregistrée avec succès !",
+            [{ text: "OK", onPress: () => router.replace('/components/accueil') }]
+        );
+
+    } catch (error) {
+     const message = error.response?.data?.errors?.[0]?.message 
+                 || error.response?.data?.message 
+                 || (error.response ? "Erreur de validation" : "Impossible de contacter le serveur");
+
+    Alert.alert("Erreur", message);
+    } finally {
+        setLoading(false);
+    }
+};
+
+    const handleLocateMe = async () => {
+        const address = await getCurrentAddress();
         
-        <View style={styles.row}>
-          <TextInput
-            placeholder={t('streetInputText')}
-            style={[styles.input, styles.street]}
-            value={street}
-            onChangeText={setStreet}
-          />
-          <TextInput
-            placeholder={t('NumberInputText')}
-            style={[styles.input, styles.number]}
-            value={number}
-            onChangeText={setNumber}
-          />
+        if (address) {
+            setStreet(address.street || "");
+            setNumber(address.streetNumber || "");
+
+            if (address.city || address.postalCode) {
+                const foundCity = combinedCitiesData.find(c => 
+                    c.label.toLowerCase().includes(address.city?.toLowerCase()) || 
+                    c.label.includes(address.postalCode)
+                );
+                if (foundCity) {
+                    setAddressId(foundCity.value);
+                }
+            }
+        }
+    };
+
+    if (!fontsLoaded) return <ActivityIndicator style={{ flex: 1 }} />;
+
+    return (
+        <View style={styles.container}>
+            <ImageBackground 
+                source={require('../../assets/images/background2.png')} 
+                style={styles.backgroundImage} 
+                resizeMode="cover"
+            >
+                <View style={styles.textContainer}>
+                    <Text style={styles.text1}>What is your</Text>
+                    <Text style={styles.text2}>address ?</Text>
+
+                   
+
+                    <View style={styles.row}>
+                        <TextInput
+                            placeholder="Street"
+                            style={[styles.input, styles.street]}
+                            value={street}
+                            onChangeText={setStreet}
+                        />
+                        <TextInput
+                            placeholder="No."
+                            style={[styles.input, styles.number]}
+                            value={number}
+                            keyboardType="numeric"
+                            onChangeText={setNumber}
+                        />
+                    </View>
+
+                    <View style={styles.row}>
+                        <Dropdown
+                            style={[styles.input, styles.dropdownFull]}
+                            data={combinedCitiesData}
+                            search
+                            labelField="label"
+                            valueField="value"
+                            placeholder="Postal Code - City"
+                            value={addressId}
+                            onChange={item => setAddressId(item.value)}
+                            placeholderStyle={styles.placeholderStyle}
+                            selectedTextStyle={styles.selectedTextStyle}
+                        />
+                    </View>
+                    {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
+                     <Button
+                        textColor="black"
+                        labelStyle={{ fontSize: 14, fontFamily: 'Poppins_700Bold' }}
+                        style={[styles.button, styles.buttonLocation]}
+                        onPress={handleLocateMe}
+                       loading={locating}
+                        icon={() => (
+                            <Image source={require('../../assets/images/location_searching.png')} style={styles.icon} resizeMode="contain" />
+                        )}
+                    >
+                        Locate me
+                    </Button>
+                </View>
+
+                <View style={styles.bottomButtons}>
+                    <Button 
+                        buttonColor="#E1ACA6" 
+                        textColor="black" 
+                        style={[styles.button, styles.buttonSkip]}
+                        onPress={() => router.replace('/components/accueil')}
+                    >
+                        Skip
+                    </Button>
+                    <Button
+                        buttonColor="black"
+                        textColor="white"
+                        loading={loading}
+                        style={styles.button}
+                        onPress={handleSubmit}
+                    >
+                        Submit
+                    </Button>
+                </View>
+            </ImageBackground> 
         </View>
-
-        <View style={styles.row}>
-          <Dropdown
-            style={[styles.input, styles.dropdownCity]}
-            data={cities}
-            labelField="label"
-            valueField="value"
-            placeholder={t('CityMenuText')}
-            value={city}
-            onChange={item => setCity(item.value)}
-            placeholderStyle={{ fontSize: 16, color: '#888' }} 
-            selectedTextStyle={{ fontSize: 16, color: '#000' }} 
-            renderRightIcon={() => ( <Image source={require('../../assets/images/ArrowLineUpDown.png')} style={{ width: 18, height: 18 }}/>)}
-          />
-
-          <Dropdown
-            style={[styles.input, styles.postal]}
-            data={postalCodes}
-            labelField="label"
-            valueField="value"
-            placeholder={t('PostalCodeMenuText')}
-            value={postalCode}
-            onChange={item => setPostalCode(item.value)}
-            placeholderStyle={{ fontSize: 16, color: '#888' }} 
-            selectedTextStyle={{ fontSize: 16, color: '#000' }} 
-            renderRightIcon={() => ( <Image source={require('../../assets/images/ArrowLineUpDown.png')} style={{ width: 18, height: 18 }}/>)}
-          />
-        </View>
-      </View>
-
-      <View style={styles.bottomButtons}>
-        <Button
-          buttonColor="#E1ACA6"
-          textColor="black"
-          style={[styles.button, styles.buttonSkip]}
-        >
-          {t('skipButtonText')}
-        </Button>
-        <Button
-          buttonColor="black"
-          textColor="white"
-          labelStyle={{ fontFamily: 'Poppins_700Bold', fontSize: 14 }}
-          style={styles.button}
-        > 
-          {t('submitButtonText')}
-        </Button>
-      </View>
-    </View>
-  );
+    );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    marginLeft: 20
-  },
-
-  textContainer: {
-    paddingHorizontal: 16,
-  },
-
-  text1: {
-    fontFamily: 'Poppins_400Regular',
-    fontSize: 48,
-    fontWeight: 'bold',
-  },
-
-  text2: {
-    fontFamily: 'Poppins_400Regular',
-    fontSize: 40,
-    marginBottom: 12,
-  },
-
-  row: {
-    flexDirection: 'row',
-    gap: 8,
-    marginBottom: 10,
-  },
-
-  input: {
-    height: 36,
-    backgroundColor: 'white',
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    paddingHorizontal: 10,
-  },
-  dropdownCity: {
-      width: 156, 
-      height: 36
-  },
-  
-  street: {
-  width: 212, 
-  height: 36
-  },
-
-  number: {
-    width: 106,
-    height:36, 
-  },
-
-  postal: {
-    width: 161, 
-    height: 36
-  },
-
-  button: {
-    width: 102,
-    height: 45,
-    borderRadius: 6,
-    justifyContent: 'center',
-  },
-
-  buttonLocation: {
-    width: 145,
-    borderWidth: 2,
-    borderColor: 'black',
-    marginVertical: 12,
-    marginBottom: 20
-  },
-
-  buttonSkip: {
-    borderWidth: 2,
-    borderColor: 'black',
-  },
-
-  bottomButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginTop: 25,
-    marginRight: 30
-  },
+    container: { flex: 1 },
+    backgroundImage: { flex: 1, justifyContent: 'center', paddingLeft: 20 },
+    textContainer: { paddingHorizontal: 16 },
+    text1: { fontFamily: 'Poppins_700Bold', fontSize: 48 },
+    text2: { fontFamily: 'Poppins_400Regular', fontSize: 40, marginBottom: 12 },
+    row: { flexDirection: 'row', gap: 8, marginBottom: 10 },
+    input: { height: 40, backgroundColor: 'white', borderRadius: 8, borderWidth: 1, borderColor: '#ddd', paddingHorizontal: 10 },
+    street: { width: 220 },
+    number: { width: 80 },
+    dropdownFull: { width: 308 },
+    placeholderStyle: { fontSize: 14, color: '#888' },
+    selectedTextStyle: { fontSize: 14, color: '#000' },
+    button: { width: 110, height: 48, borderRadius: 8, justifyContent: 'center' },
+    buttonLocation: { width: 160, borderWidth: 1.5, borderColor: 'black', marginVertical: 15 },
+    buttonSkip: { borderWidth: 1.5, borderColor: 'black' },
+    bottomButtons: { flexDirection: 'row', justifyContent: 'space-around', marginTop: 30, marginRight: 20 },
+    errorText: { color: 'red', fontSize: 12, marginTop: 5 },
+    icon: { width: 18, height: 18 }
 });
-
-

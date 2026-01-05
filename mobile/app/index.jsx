@@ -15,12 +15,14 @@ import Toast from 'react-native-toast-message';
 import Setting from './components/setting.jsx'; 
 import username from './components/username.jsx';
 import PostPage from './components/postPage.jsx';
+import UserAddress from './components/userAddress.jsx';
 
 
 
 /*GoogleSignin.configure({
   webClientId: '1027280401462-sd77d2qaggcilr0q9u3hp87vce2j27aa.apps.googleusercontent.com',
-});*/
+});
+*/
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -53,33 +55,25 @@ function MainTabs() {
   );
 }
 
+
 function RootNavigator() {
   const { user } = useContext(AuthContext); 
 
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
-      {!user ? (
-        // --- ÉCRANS NON CONNECTÉS ---
-        <>
-          <Stack.Screen name="Login" component={Login} initialParams={{ isSignUp: false }} />
-          <Stack.Screen name="Signup" component={Login} initialParams={{ isSignUp: true }} />
-        </>
-      ) : (
-        // --- ÉCRANS CONNECTÉS ---
-        <>
-          {/* Si l'utilisateur est connecté mais n'a pas encore de pseudo, 
-              on peut le forcer sur la page Username en premier */}
-          {!user.username ? (
-            <Stack.Screen name="Username" component={username} />
-          ) : (
-            <Stack.Screen name="MainTabs" component={MainTabs} />
-          )}
-          
-          {/* Les autres écrans accessibles quand on est connecté */}
-          <Stack.Screen name="PostPage" component={PostPage} />
-          <Stack.Screen name="UserProfil" component={UserProfil} />
-        </>
-      )}
+      <Stack.Screen name="Login" component={Login} initialParams={{ isSignUp: true }}/>
+      <Stack.Screen name="PostPage" component={PostPage}/>
+      <Stack.Screen name="Signup" component={Login} initialParams={{ isSignUp: false }}/>
+      <Stack.Screen 
+        name="UserProfil" 
+        component={UserProfil} 
+        options={{ title: 'UserProfil' }} 
+      />
+      <Stack.Screen name="MainTabs" component={MainTabs} />
+      <Stack.Screen name="UserAddress" component={UserAddress} />
+      
+      <Stack.Screen name="Username" component={username} />
+      
     </Stack.Navigator>
   );
 }
