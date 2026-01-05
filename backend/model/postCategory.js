@@ -1,5 +1,3 @@
-
-
 export const createPostCategory = async (SQLClient, {IDCategory, IDPost}) => {
     const { rows } = await SQLClient.query(
     `INSERT INTO Post_Category (id_category, id_ad)
@@ -10,6 +8,25 @@ export const createPostCategory = async (SQLClient, {IDCategory, IDPost}) => {
   
   return rows[0];
 };
+
+
+
+export const getPostCategories = async (SQLClient, { IDPost }) => {
+    const { rows } = await SQLClient.query(
+        `
+        SELECT c.id_category, c.name_category
+        FROM Post_category pc
+        JOIN Category_product c
+        ON pc.id_category = c.id_category
+        WHERE pc.id_ad = $1
+        `,
+        [IDPost]
+    );
+
+    return rows;
+};
+
+
 
 
 
