@@ -5,10 +5,15 @@ import { Dropdown } from 'react-native-element-dropdown';
 import { Button } from 'react-native-paper';
 import { useRouter } from 'expo-router';
 import Axios from '../../src/service/api.js';
-import { useLocation } from '../_hook/useLocation.jsx';
+import { AuthContext } from '../../src/context/authContext';
 import { useTranslation } from 'react-i18next';
 
-export default function UserAddress() {
+
+import { useContext } from 'react';
+
+import { useLocation } from '../../src/hook/useLocation.jsx';
+
+export default function UserAddress({navigation}) {
 
      const { t } = useTranslation();
     const router = useRouter();
@@ -16,7 +21,7 @@ export default function UserAddress() {
         Poppins_400Regular,
         Poppins_700Bold,
     });
-
+       const { user, setUser } = useContext(AuthContext);
     const [street, setStreet] = useState("");
     const [number, setNumber] = useState("");
     const [addressId, setAddressId] = useState(null); 
@@ -30,7 +35,6 @@ export default function UserAddress() {
         setLoading(true);
         try {
             const response = await Axios.get("/getAllCities/");
-            console.log(response);
             const data = response.data;
             if (Array.isArray(data)) {
                 const formattedData = data.map(item => ({
@@ -50,36 +54,43 @@ export default function UserAddress() {
         getAllCitiesFromApi();
     }, []);
 
-    const handleSubmit = async () => {
-        if (!street.trim() || !number.trim() || !addressId) {
-            Alert.alert(t('error.missingFields'));
-            return;
+   const handleSubmit = async () => {
+    if (loading || locating) return;
+
+    if (!street.trim() || !number.trim() || !addressId) {
+        Alert.alert("Champs manquants", "Merci de remplir l'adresse complète.");
+        return;
+    }
+
+    setLoading(true);
+
+    try {
+        const payload = {
+           street: street.trim(),
+            streetNumber: String(number).trim(), 
+            addressID: Number(addressId)
+        };
+        const response = await Axios.patch(`/users`, payload);
+        if (setUser && response.data) {
+            setUser({ ...user, ...response.data });
         }
 
-        setLoading(true);
+        Alert.alert(
+            "Succès", 
+            "Adresse enregistrée avec succès !",
+            [{ text: "OK", onPress: () => navigation.navigate('MainTabs') }]
+        );
 
-        try {
-            const payload = {
-                street: street.trim(),
-                streetNumber: parseInt(number, 10), 
-                addressID: addressId
-            };
+    } catch (error) {
+     const message = error.response?.data?.errors?.[0]?.message 
+                 || error.response?.data?.message 
+                 || (error.response ? "Erreur de validation" : "Impossible de contacter le serveur");
 
-            await Axios.patch(`/users`, payload);
-
-            Alert.alert(
-                t('success.success'), 
-                t('success.addressSavedSuccessfully'),
-                [{ text: "OK", onPress: () => router.replace('/components/home') }]
-            );
-
-        } catch (error) {
-            const errorMsg = error.response?.data?.message || t('error.updateError');
-            Alert.alert(t('error.errorText'), errorMsg);
-        } finally {
-            setLoading(false);
-        }
-    };
+    Alert.alert("Erreur", message);
+    } finally {
+        setLoading(false);
+    }
+};
 
     const handleLocateMe = async () => {
         const address = await getCurrentAddress();
@@ -151,7 +162,7 @@ export default function UserAddress() {
                         labelStyle={{ fontSize: 14, fontFamily: 'Poppins_700Bold' }}
                         style={[styles.button, styles.buttonLocation]}
                         onPress={handleLocateMe}
-                        loading={locating || loading}
+                       loading={locating}
                         icon={() => (
                             <Image source={require('../../assets/images/location_searching.png')} style={styles.icon} resizeMode="contain" />
                         )}
@@ -165,9 +176,9 @@ export default function UserAddress() {
                         buttonColor="#E1ACA6" 
                         textColor="black" 
                         style={[styles.button, styles.buttonSkip]}
-                        onPress={() => router.replace('/components/home')}
+                        onPress={() => navigation.navigate('MainTabs')}
                     >
-                        {t('"skipButtonText')}
+                        skip
                     </Button>
                     <Button
                         buttonColor="black"
@@ -176,7 +187,7 @@ export default function UserAddress() {
                         style={styles.button}
                         onPress={handleSubmit}
                     >
-                        {t('submitButtonText')}
+                        submit
                     </Button>
                 </View>
             </ImageBackground> 

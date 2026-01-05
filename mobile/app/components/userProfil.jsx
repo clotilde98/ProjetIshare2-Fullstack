@@ -12,6 +12,7 @@ import { useTranslation } from 'react-i18next';
 import { Poppins_400Regular, Poppins_700Bold, useFonts } from '@expo-google-fonts/poppins';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import { useNavigation } from '@react-navigation/native';
+import { getApiBaseUrl } from "../../src/service/config.js";
 
 const { height, width } = Dimensions.get('window');
 
@@ -56,7 +57,7 @@ export default function UserProfil() {
   const handleUserUpdate = async (formData) => {
     try {
       const token = await SecureStore.getItemAsync("jwt");
-      const response = await fetch("http://192.168.0.119:3002/users/", {
+      const response = await fetch(`${getApiBaseUrl()}/users/`, {
         method: "PATCH",
         body: formData,
         headers: { "Authorization": `Bearer ${token}` }

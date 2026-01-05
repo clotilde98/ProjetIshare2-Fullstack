@@ -15,19 +15,17 @@ export const useLocation = () => {
                 return null;
             }
 
-            // 2. Obtenir les coordonnées
             const location = await Location.getCurrentPositionAsync({
                 accuracy: Location.Accuracy.High,
             });
 
-            // 3. Reverse Geocoding (Lat/Lon -> Adresse)
             const reverseGeocode = await Location.reverseGeocodeAsync({
                 latitude: location.coords.latitude,
                 longitude: location.coords.longitude,
             });
 
             if (reverseGeocode.length > 0) {
-                return reverseGeocode[0]; // Retourne l'objet adresse complet
+                return reverseGeocode[0]; 
             }
             return null;
 
@@ -42,4 +40,3 @@ export const useLocation = () => {
     return { getCurrentAddress, locating };
 };
 
-export default () => null;

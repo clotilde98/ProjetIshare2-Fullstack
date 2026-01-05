@@ -18,7 +18,7 @@ export const readMyReservations = async (SQLClient, {clientID}) => {
     const query = `
         SELECT 
             r.id AS reservation_id,
-            p.id AS post_id,
+            p.id AS postId,
             p.title,
             p.street,
             p.street_number,

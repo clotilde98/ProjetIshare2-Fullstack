@@ -2,10 +2,11 @@ import { View, Text, StyleSheet, Image, TouchableOpacity, Alert } from 'react-na
 import { Ionicons } from '@expo/vector-icons'; 
 import { useNavigation } from '@react-navigation/native';
 import Axios from '../../src/service/api.js';
+import {useTranslation} from 'react-i18next'; 
 
 export default function Reservation({ item, onDelete }) {
   const navigation = useNavigation();
-  
+  const {t} = useTranslation(); 
   const defaultAvatar = 'https://ui-avatars.com/api/?name=' + (item.ownerName);
   const defaultFood = 'https://via.placeholder.com/150?text=No+Image';
 const handleDelete = async () => {
@@ -64,7 +65,7 @@ const handleDelete = async () => {
 
             <TouchableOpacity 
               style={styles.seeMoreButton}
-              onPress={() => navigation.navigate('PostPage', { postData: item })}
+              onPress={() => navigation.navigate('PostPage', { postId: item.postId })}
             >
               <Text style={styles.seeMoreText}>{t('seeDetailsButton')}</Text>
             </TouchableOpacity>

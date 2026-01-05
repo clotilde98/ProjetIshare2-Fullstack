@@ -99,7 +99,6 @@ export const getMyReservations = async (req, res) => {
     try {
         const userID = req.user.id;
         const rows = await reservationModel.readMyReservations(pool, { clientID: userID });
-
         const reservations = rows.map(row => ({
             id: row.reservation_id,
             title: row.title,
@@ -107,7 +106,8 @@ export const getMyReservations = async (req, res) => {
             location: `${row.postal_code} ${row.city}`,
             image: row.photo ? `${req.protocol}://${req.get('host')}/images/${row.photo}.jpeg` : null,
             ownerName: row.owner_name,
-            ownerPhoto: row.owner_photo ? `${req.protocol}://${req.get('host')}/images/${row.owner_photo}.jpeg` : null
+            ownerPhoto: row.owner_photo ? `${req.protocol}://${req.get('host')}/images/${row.owner_photo}.jpeg` : null,
+            postId: row.postid
         }));
 
         res.status(200).json(reservations);
@@ -209,7 +209,7 @@ export const createReservation = async (req, res) => {
 
 
         const informationPostReservation = await reservationModel.getReservationWithPostTitle(pool, {clientID: userID , postID}); 
-        console.log(informationPostReservation.username); 
+
         const notification = {
             type: 'reservation', 
             message:  `${informationPostReservation.username} a réservé ton post "${post.title}"`,
@@ -218,7 +218,7 @@ export const createReservation = async (req, res) => {
 
         }; 
 
-        console.log(informationPostReservation.client_id);
+     
         sendNotification(informationPostReservation.owner_id, notification);
 
         res.status(201).json({ reservation: newReservation });

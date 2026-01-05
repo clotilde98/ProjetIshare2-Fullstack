@@ -9,7 +9,7 @@ import { useContext } from 'react';
 import Language from './components/language.jsx'
 import Accueil from './components/accueil.jsx';
 import UserProfil from './components/userProfil.jsx';
-import { GoogleSignin } from '@react-native-google-signin/google-signin';
+//import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import Toast from 'react-native-toast-message';
 import Setting from './components/setting.jsx'; 
 import username from './components/username.jsx';
@@ -18,9 +18,10 @@ import UserAddress from './components/userAddress.jsx';
 
 
 
-GoogleSignin.configure({
+/*GoogleSignin.configure({
   webClientId: '1027280401462-sd77d2qaggcilr0q9u3hp87vce2j27aa.apps.googleusercontent.com',
 });
+*/
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -34,18 +35,28 @@ const Stack = createNativeStackNavigator();
 function MainTabs() {
   return (
     <Tab.Navigator screenOptions={{ headerShown: false }}>
+
+      <Tab.Screen name="Accueil" component={Accueil} options={{
+          tabBarIcon: () => <AntDesign name="home" size={24} color="black" />,
+        }}/>
   
-      <Tab.Screen name="Language" component={Language} />
-      <Tab.Screen name="Accueil" component={Accueil} />
-      <Tab.Screen name="CreatePost" component={createPost} />
-      <Tab.Screen name="Setting" component={Setting}/>
+      <Tab.Screen name="Language" component={Language} options={{
+          tabBarIcon: () => <AntDesign name="global" size={24} color="black" />,
+        }}/>
+      
+      <Tab.Screen name="CreatePost" component={createPost} options={{
+          tabBarIcon: () => <AntDesign name="plus" size={24} color="black" />,
+        }}/>
+      <Tab.Screen name="Setting" component={Setting}options={{
+          tabBarIcon: () => <AntDesign name="setting" size={24} color="black" />,
+        }}/>
         <Tab.Screen
         name="RessourcesPage" component={ressourcesPage}
         options={{
-          tabBarIcon: () => <AntDesign name="copy" size={24} color="black" />,
+          tabBarIcon: () => <AntDesign name="book" size={24} color="black" />,
         }}
       />
-      <Tab.Screen name="Create Post" options={{ tabBarIcon: () => <AntDesign name="plus" size={24} color="black" />,}} component={createPost} />
+      
 
       
     </Tab.Navigator>

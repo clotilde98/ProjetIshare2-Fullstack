@@ -29,6 +29,7 @@ export default function RessourcesPage() {
   const fetchReservations = async () => {
     try {
       const res = await Axios.get("/reservations/me/");
+      console.log("res: " + JSON.stringify(res.data, null, 2));
       setReservations(res.data);
     } catch (err) {
       Alert.alert(t('error.errorText'), t('reservationsLoadError'));

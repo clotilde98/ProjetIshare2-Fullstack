@@ -21,6 +21,8 @@ export default function PostPage({ route}){
 
     const { postId } = route.params;
 
+   
+
     if (!postId){
         return;
     }
@@ -101,7 +103,7 @@ export default function PostPage({ route}){
                 const resPost = await Axios.get(`/posts/${postId}`);
                 const postData = resPost.data;
                 setPost(postData);
-                setPostCategories(postData.data.categories);
+                setPostCategories(postData.categories);
 
              
                 const owner = await fetchUser(postData.client_id);

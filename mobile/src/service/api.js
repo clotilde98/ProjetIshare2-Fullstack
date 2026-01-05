@@ -1,9 +1,15 @@
 import axios from "axios";
 import * as SecureStore from "expo-secure-store";
+import { getApiBaseUrl } from "./config.js";
+
+
 
 const Axios = axios.create({
-  baseURL: "http:/192.168.0.119:3002"
+  baseURL: getApiBaseUrl()   
 });
+
+
+
 
 Axios.interceptors.request.use(async config => {
   const token = await SecureStore.getItemAsync("jwt");

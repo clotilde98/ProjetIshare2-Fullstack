@@ -26,9 +26,6 @@ import { Poppins_400Regular, Poppins_700Bold, useFonts } from '@expo-google-font
 import { useEffect, useState } from 'react';
 import { FlatList, StyleSheet, Text, View, Modal, Button, TouchableOpacity } from 'react-native';
 import { Card, Checkbox } from 'react-native-paper';
-//import SearchBar from './searchBar.jsx';
-//import i18next from '../../src/service/i18next.js';
-//import {useTranslation} from 'react-i18next'; 
 import Axios from '../../src/service/api.js';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import * as React from 'react';
@@ -143,7 +140,6 @@ useEffect(() => {
 
 
   if (!Object.values(checkedCategories).some(v => v === true)) {
-    // ➜ PLUS AUCUN FILTRE
     setSelectedCategory("");
     getPostsFromApi();
   } else {

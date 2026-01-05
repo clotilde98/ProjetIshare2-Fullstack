@@ -9,9 +9,12 @@ import AntDesign from 'react-native-vector-icons/AntDesign';
 import { useContext } from 'react';
 import { AuthContext } from '../../src/context/authContext.js';
 import { useNavigation } from '@react-navigation/native';
+import { useLocation } from '../../src/hook/useLocation.jsx';
 
 
 export default function Accueil(){
+      const { getCurrentAddress } = useLocation(); 
+
 
     const {t} = useTranslation(); 
     const navigation = useNavigation(); 
@@ -41,22 +44,30 @@ export default function Accueil(){
 async function getPostsFromApi() {
     
 
-    try {
-        const response = await  Axios.get("/posts/allPostsCategories"); 
-        const data = response.data;
+      let city = null;
         
-        setPosts(data);
-    }catch(err) {
-       Alert.alert(t('error.errorText'), err.response? `${message}\n\nStatus: ${err.response?.status}` : err.response?.data ? err.response.data : err.toString()); 
+        const address = await getCurrentAddress();
+        
+        if (address) {
+            city = address.city;
+         
+        }
+
+        try {
+            const response = await Axios.get("/posts/allPostsCategories", {
+                params: { city }
+            });
+            setPosts(response.data);
+        } catch (err) {
+            Alert.alert(t('error.errorText'), err.message);
+        }
     }
-    
-    } 
     
 async function getCategoriesFromApi(){
     try {
           const response = await  Axios.get("/productType/"); 
           const data = response.data;
-          console.log(data.rows); 
+
           setCategories(data.rows); 
 
         const initialChecked = {};
@@ -79,7 +90,7 @@ async function getFilteredPosts(category){
             params: {nameCategory: category.name_category}
         }); 
         const data = response.data;
-        console.log(data);
+
         setSelectedCategory(category.name_category); 
         setPosts(data);
     }catch(err){
