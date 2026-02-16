@@ -17,9 +17,9 @@ const Categories = () => {
   const { data, loading, page, pageSize, total, search, setSearch, fetchData } = 
     useTableLogic('/productType', 'nameCategory', 5);
 
-  // Transformation des données pour correspondre aux colonnes
+  
   const categories = data.map(categorie => ({ 
-    id: categorie.id_category, // On garde bien l'ID ici
+    id: categorie.id_category, 
     name: categorie.name_category,
     key: categorie.id_category 
   }));
@@ -74,7 +74,7 @@ const Categories = () => {
       }
       
       setIsModalOpen(false);
-      // Rafraîchir les données
+    
       fetchData(page, pageSize, search); 
     } catch (err) {
       console.error("Erreur complète:", err);
