@@ -18,11 +18,10 @@ const Comments = () => {
   const [mode, setMode] = useState('idle'); // 'edit', 'delete'
   const [editing, setEditing] = useState(null);
 
-  // Utilisation du hook avec 'commentDate' comme clé de recherche pour le DatePicker
   const { data, loading, page, pageSize, total, search, setSearch, fetchData } = 
     useTableLogic('/comments', 'commentDate', 10);
 
-  // Mapping des données API pour correspondre aux colonnes
+
   const commentsData = data.map(comment => ({
   key: comment.id,
   id: comment.id, 
@@ -125,7 +124,6 @@ const Comments = () => {
     <div className="details-panel">
       <h6 className={styles.pageTitle}>Commentaires</h6><hr/>
       
-      {/* Utilisation du type="date" pour le DatePicker de recherche */}
       <TableHeader 
         type="date"
         search={search} 
