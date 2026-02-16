@@ -37,7 +37,7 @@ const Categories = () => {
 
   const handleOpenEdit = (categorie) => { 
     setMode('edit'); 
-    setEditing(categorie); // Contient 'id' et 'name'
+    setEditing(categorie);
     form.setFieldsValue({ name: categorie.name });
     setIsModalOpen(true);
   };
@@ -94,7 +94,7 @@ const Categories = () => {
       width: 140,
       render: (_, record) => (
         <Space>
-          {/* On passe bien 'record' qui contient notre 'id' transformé */}
+    
           <Button type="primary" icon={<EditOutlined />} onClick={() => handleOpenEdit(record)} />
           <Button type="primary" danger icon={<DeleteOutlined />} onClick={() => handleOpenDelete(record)} />
         </Space>
