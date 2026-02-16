@@ -3,7 +3,6 @@ import { Table, Input, Button, Space, DatePicker } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 
-// Datable.js
 
 export const TableHeader = ({ search, onSearch, onAdd, placeholder, type = "text", filter }) => (
   <Space style={{ marginBottom: 16, justifyContent: 'space-between' }}>
@@ -27,7 +26,7 @@ export const TableHeader = ({ search, onSearch, onAdd, placeholder, type = "text
         />
       )}
       
-      {/* Insertion du composant de filtre ici */}
+   
       {filter && <div className="table-filter-item">{filter}</div>}
     </Space>
 
