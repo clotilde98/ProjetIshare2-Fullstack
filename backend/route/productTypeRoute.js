@@ -168,4 +168,3 @@ router.delete('/:id',checkJWT,mustBeAdmin, deleteTypeProduct);
 
 
 export default router;
-

@@ -25,7 +25,7 @@ app.use(cors({
 
 app.use('/images', express.static(path.join(__dirname, 'middleware/photo')));
 app.use(express.json());
-app.use(Router);
+app.use('/api/1.0', Router);
 
 
 

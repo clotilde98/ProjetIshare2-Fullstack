@@ -7,7 +7,7 @@ export const readCategoryProductFromID = async (SQLClient, idCategory) => {
     return rows[0];
 };
 
-export const createTypeProduct = async(SQLClient, {nameCategory}) => {
+export const createTypeProduct = async(SQLClient, nameCategory) => {
  const {rows}=await SQLClient.query("INSERT INTO Category_product(name_category) VALUES ($1) RETURNING *",
      [nameCategory]
  );
@@ -36,7 +36,7 @@ export const updateTypeProduct = async (SQLClient, { idCategory, nameCategory })
 };
 
 
-export const deleteTypeProduct=async(SQLClient, {idCategory})=> {
+export const deleteTypeProduct=async(SQLClient, idCategory)=> {
   
    let query="DELETE FROM Category_product WHERE id_category=$1";
    const result = await SQLClient.query(query, [idCategory]); 

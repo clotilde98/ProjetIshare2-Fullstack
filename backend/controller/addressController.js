@@ -3,23 +3,23 @@ import * as addressModel from '../model/addressDB.js';
 
 
 export const importPostalData = async (req, res) => {
-  let address;
+  let client;
 
   try {
-    address = await pool.connect();
-    await address.query('BEGIN');
+    client = await pool.connect();
+    await client.query('BEGIN');
 
     const totalCount = await addressModel.importPostalData(client);
-    await address.query('COMMIT');
+    await client.query('COMMIT');
 
     const message = `Importation réussie de ${totalCount} villes et codes postaux.`;
     res.status(200).send(message);
   } catch (err) {
-    if (address) await client.query('ROLLBACK');
-
+    if (client) await client.query('ROLLBACK');
+    console.error("Internal server error", err);
     res.status(500).send(err.message);
   } finally {
-    if (address) address.release();
+    if (client) address.release();
   }
 };
 
@@ -31,7 +31,9 @@ export const getAddressByID = async (req, res) => {
     const address = await addressModel.getAddressByID(pool, {id})
     return res.status(200).send({address});
   } catch (err) {
+      console.error("Internal server error", err);
       res.status(500).send("Internal server error " + err.message); 
+      
   }};
 
 /**
@@ -63,6 +65,7 @@ export const getAllCities = async (req, res) => {
     const cities = await addressModel.getAllCities(pool);
     res.status(200).send(cities);
   } catch (err) {
+    console.error("Internal server error", err);
     res.status(500).send(err.message);
   }
 };

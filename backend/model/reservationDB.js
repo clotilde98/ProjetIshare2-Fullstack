@@ -1,5 +1,5 @@
 
-export const createReservation = async (SQLClient, clientID, {postID}) => {
+export const createReservation = async (SQLClient, clientID, postID) => {
     const { rows } = await SQLClient.query(
     `INSERT INTO Reservation (post_id, client_id)
      VALUES ($1, $2)
@@ -9,36 +9,12 @@ export const createReservation = async (SQLClient, clientID, {postID}) => {
   return rows[0];
 };
 
-export const readReservation = async (SQLClient, {id}) => {
+export const readReservation = async (SQLClient, id) => {
     const {rows} = await SQLClient.query("SELECT * FROM Reservation WHERE id = $1", [id]);
     return rows[0];
 };
 
-export const readMyReservations = async (SQLClient, {clientID}) => {
-    const query = `
-        SELECT 
-            r.id AS reservation_id,
-            p.id AS postId,
-            p.title,
-            p.street,
-            p.street_number,
-            p.photo,
-            a.city,
-            a.postal_code,
-            c.username AS owner_name,
-            c.photo AS owner_photo
-        FROM Reservation r
-        JOIN Post p ON r.post_id = p.id
-        JOIN Address a ON p.address_id = a.id
-        JOIN Client c ON p.client_id = c.id
-        WHERE r.client_id = $1
-        ORDER BY r.reservation_date DESC
-    `;
-    const {rows} = await SQLClient.query(query, [clientID]);
-    return rows;
-};
-
-export const readReservationsByClientID = async (SQLClient, {id}) => {
+export const readReservationsByClientID = async (SQLClient, id) => {
     const {rows} = await SQLClient.query("SELECT * FROM reservation WHERE client_id = $1", [id]);
     return rows;
 };
@@ -48,32 +24,10 @@ export const readReservationByClientIDAndByPostID = async (SQLClient, {clientID,
     return rows[0];
 };
 
-export const readReservationsByPostID = async (SQLClient, {id}) => {
+export const readReservationsByPostID = async (SQLClient, id) => {
     const {rows} = await SQLClient.query("SELECT * FROM Reservation WHERE post_id = $1", [id]);
     return rows;
 };
-
-
-export const getReservationWithPostTitle = async (SQLClient, {clientID, postID}) => {
-  const { rows } = await SQLClient.query(
-    `SELECT 
-        r.*, 
-        p.title AS post_title, 
-        reserver.username, 
-        p.client_id AS owner_id
-     FROM Reservation r
-     JOIN Post p ON r.post_id = p.id
-     JOIN Client owner ON p.client_id = owner.id
-     JOIN Client reserver ON r.client_id = $2
-     WHERE r.post_id = $1`,
-
-    [postID, clientID]
-  );
-  return rows[0];
-};
-
-
-
 
 
 export const updateReservation = async(SQLClient, {id, clientID,postID, reservationStatus}) => {
@@ -106,7 +60,7 @@ export const updateReservation = async(SQLClient, {id, clientID,postID, reservat
     }
 };
 
-export const deleteReservation = async (SQLClient, {id}) => {
+export const deleteReservation = async (SQLClient, id) => {
     const {rowCount} = await SQLClient.query("DELETE FROM Reservation WHERE id = $1", [id]);
     return rowCount > 0;
 };

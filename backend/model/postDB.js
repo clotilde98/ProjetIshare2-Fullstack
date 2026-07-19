@@ -73,20 +73,15 @@ export const updatePost = async(SQLClient, id, {description, title, numberOfPlac
     }
 };
 
-export const deletePost = async (SQLClient, {id}) => {
+export const deletePost = async (SQLClient, id) => {
     const {rowCount} = await SQLClient.query("DELETE FROM Post WHERE id = $1", [id]);
     return rowCount > 0;
 };
 
-export const readPost = async (SQLClient, {id}) => {
+export const readPost = async (SQLClient, id) => {
     const {rows} = await SQLClient.query("SELECT * FROM Post WHERE id = $1", [id]);
     return rows[0];
 };
-
-export const readMyPosts = async (SQLClient, {clientID}) => {
-    const {rows} = await SQLClient.query("SELECT * FROM Post WHERE client_id = $1", [clientID]);
-    return rows;
-}
 
 
 export const searchPostByCategory = async (SQLClient,  nameCategory) => {
@@ -95,8 +90,13 @@ export const searchPostByCategory = async (SQLClient,  nameCategory) => {
     return rows;
 };
 
-
-
+export const deleteImageFromPost = async (SQLClient, id) => {
+    const { rowCount } = await SQLClient.query(
+        "UPDATE Post SET photo = NULL WHERE id = $1",
+        [id]
+    );
+    return rowCount > 0;
+};
 
 export const getAllCategoriesFromPostID = async (SQLClient, id) => {
     const query = "SELECT cp.id_category, cp.name_category FROM Category_product cp INNER JOIN Post_category pc ON cp.id_category = pc.id_category WHERE pc.id_ad=$1";
@@ -154,7 +154,7 @@ export const getPosts = async (SQLClient, { city, postStatus, page = 1, limit = 
                         WHERE post_id = p.id 
                         AND reservation_status = 'confirmed'
                     )
-                ) AS places_restantes, 
+                ) AS number_of_places, 
                 string_agg(cp.name_category, ', ') AS categories, 
                 a.city,
                 p.description,

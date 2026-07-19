@@ -5,14 +5,13 @@ import {
   createPost,
   updatePost,
   deletePost,
-  searchPostByCategory,
-  getMyPosts, 
-  getPostsWithoutFilters
+  searchPostByCategory, 
+  deleteImageFromPost
 } from '../controller/postController.js';
 
 import {checkJWT} from '../middleware/identification/jwt.js'
 import {postValidatorMiddleware} from '../middleware/validation.js';
-import {upload} from '../middleware/upload.js';
+import {upload} from '../middleware/photo/upload.js';
 
 
 const router = Router();
@@ -82,7 +81,7 @@ router.post("/", checkJWT, upload.single('photo'), postValidatorMiddleware.creat
  *       500:
  *         description: Server error
  */
-router.get("/myPosts", checkJWT, getMyPosts); 
+
 
 router.get("/byCategory", checkJWT, searchPostByCategory); 
 
@@ -135,7 +134,8 @@ router.get("/byCategory", checkJWT, searchPostByCategory);
  *         description: Server Error
  */
 
-router.get("/allPostsCategories", checkJWT, getPostsWithoutFilters);
+
+
 
 router.get("/", checkJWT, getPosts); 
 
@@ -168,10 +168,6 @@ router.get("/", checkJWT, getPosts);
  *       500:
  *         description: Server error 
  */
-
-
-
-
 
 
 
@@ -262,5 +258,7 @@ router.patch("/:id", checkJWT, upload.single('photo'), postValidatorMiddleware.u
 
 
 router.delete("/:id", checkJWT, deletePost);      
+
+router.delete("/:id/image", checkJWT, deleteImageFromPost); 
 
 export default router;

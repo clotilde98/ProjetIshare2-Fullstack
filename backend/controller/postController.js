@@ -1,18 +1,18 @@
 import { pool } from "../database/database.js";
-import {createPostCategory, deletePostCategoriesForPostID, getPostswithAllCategories, getPostCategories} from '../model/postCategory.js'
+import {createPostCategory, deletePostCategoriesForPostID} from '../model/postCategory.js'
 import * as postModel from '../model/postDB.js';
+import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import {saveImage} from '../middleware/saveImage.js';
+import {saveImage} from '../middleware/photo/saveImage.js';
 import * as uuid from 'uuid'
+import { PAGINATION } from '../Config/pagination.js';
+import { validatePagination } from '../Utils/validationPagination.js'
 import { readCategoryProductFromID } from "../model/productType.js";
 
-
 const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const destFolderImages = path.join(__dirname, '../middleware/photo/');
-
-
+const __dirname = path.dirname(__filename); // il y a vraiment besoin ? 
+const destFolderImages = path.join(__dirname, '../middleware/photo');
 
 
 /**
@@ -65,7 +65,7 @@ const destFolderImages = path.join(__dirname, '../middleware/photo/');
  *           schema:
  *             $ref: '#/components/schemas/Post'
  */
-
+// en prod pas ouf le photoURL a cause du localhost renvoyé 
 export const getPost = async (req, res) => {
     try {
         const id = Number(req.params.id);
@@ -74,49 +74,22 @@ export const getPost = async (req, res) => {
             return res.status(400).send("Invalid post ID");
         }
 
-        const post = await postModel.readPost(pool, { id });
+        const post = await postModel.readPost(pool, id);
 
         if (!post) {
             return res.status(404).send("Post not found");
         }
 
-      
-        post.photo = post.photo
-            ? `${req.protocol}://${req.get('host')}/images/${post.photo}.jpeg`
-            : null;
+        const photoUrl = post.photo
+        ? `${req.protocol}://${req.get('host')}/images/${post.photo}.jpeg` 
+        : null;
 
-      
-        const postCategories = await getPostCategories(pool, { IDPost: post.id });
-
-    
-        post.categories = postCategories; 
+        post.photo = photoUrl;
 
         res.status(200).json(post);
 
     } catch (err) {
-        res.status(500).send("Internal server error : " + err.message);
-    }
-};
-
-
-export const getMyPosts = async (req, res) => {
-    try {
-
-        const userID = req.user.id;
-        const posts = await postModel.readMyPosts(pool, { clientID:userID });
-
-
-        if (posts.length > 0) {
-            for (const post of posts) {
-                post.photo = post.photo
-                ? `${req.protocol}://${req.get('host')}/images/${post.photo}.jpeg`
-                : null;
-            }
-            }
-
-        res.status(200).json(posts);
-
-    } catch (err) {
+        console.error("Internal server error", err); 
         res.status(500).send("Internal server error : " + err.message);
     }
 };
@@ -152,42 +125,43 @@ export const getMyPosts = async (req, res) => {
 
 export const getPosts = async (req, res) => {
     try {
-        const { city, postStatus} = req.query;
+        const { city, postStatus, limit, page} = req.query;
 
-        const page = req.query.page ? Number(req.query.page) : 1;
-        const limit = req.query.limit ? Number(req.query.limit) : 10;
+        const limitResult = validatePagination(
+          limit,
+          PAGINATION.DEFAULT_LIMIT,
+          PAGINATION.MIN_LIMIT,
+          PAGINATION.MAX_LIMIT,
+          'limit'
+        );
+    
 
-        if (Number.isNaN(page) || Number.isNaN(limit)) {
-            return res.status(400).send("Page and limit must be numbers");
-        }
+        const pageResult = validatePagination(
+            page,
+            PAGINATION.DEFAULT_PAGE,
+            PAGINATION.MIN_PAGE,
+            PAGINATION.MAX_PAGE,
+            'page'
+        );
+
 
         const posts = await postModel.getPosts(pool, {
             city,
             postStatus,
-             page: parseInt(page) || 1, 
-            limit: parseInt(limit) || 10   
+            page: pageResult.value, 
+            limit: limitResult.value   
         });
-
-        if (posts.rows.length > 0){
-            for (const post of posts.rows) {
-                post.photo = post.photo
-                    ? `${req.protocol}://${req.get('host')}/images/${post.photo}.jpeg`
-                    : null;
-            }
-        }
-        
-
 
         return res.status(200).json(posts);
 
     } catch (err) {
+        if (err.message.includes('must be a number between')) {
+      return res.status(400).json({ error: err.message });
+        }
+        console.error("Internal server error", err); 
         res.status(500).send("Internal server error : " + err.message);
     }
 }
-
-
-
-
 
 
 export const createPost = async (req, res) => {
@@ -235,7 +209,6 @@ export const createPost = async (req, res) => {
             await saveImage(photo.buffer, imageName, destFolderImages); 
         }
 
-
         const post = await postModel.createPost(client, userID, req.body);
         const postID = post.id;
 
@@ -251,7 +224,7 @@ export const createPost = async (req, res) => {
         if (client) {
             await client.query('ROLLBACK');
         }
-
+        console.error("Internal server error", err); 
         res.status(500).send("Internal server error : " + err.message);
 
     } finally {
@@ -272,7 +245,7 @@ export const updatePost = async (req, res) => {
             return res.status(400).send("Invalid post ID");
         }
         
-        const post = await postModel.readPost(pool, {id:postID});
+        const post = await postModel.readPost(pool, postID);
         
         if (!post){
             return res.status(404).send("Post not found")
@@ -289,9 +262,6 @@ export const updatePost = async (req, res) => {
                 await saveImage(photo.buffer, imageName, destFolderImages);
             }
 
-            client = await pool.connect();
-            await client.query('BEGIN');
-
 
             let categoriesProduct = [];
             if (req.body.categoriesProduct) {
@@ -299,26 +269,30 @@ export const updatePost = async (req, res) => {
                 if (!Array.isArray(categoriesProduct) || categoriesProduct.length === 0) {
                     return res.status(400).send("Post category required.");
                 }
+            } else {
+                return res.status(400).send("Post category required.")
+            }
 
-                for (const categoryID of categoriesProduct) {
-                    const category = await readCategoryProductFromID(pool, categoryID);
-                    if (!category) {
-                        return res.status(400).send(`Category product with ID ${categoryID} doesn't exist`);
-                    }
+            for (const categoryID of categoriesProduct) {
+                const category = await readCategoryProductFromID(pool, categoryID);
+                if (!category) {
+                    return res.status(400).send(`Category product with ID ${categoryID} doesn't exist`);
                 }
+            }
 
-                await deletePostCategoriesForPostID(client, postID);
-                for (const categoryID of categoriesProduct) {
-                    await createPostCategory(client, { IDCategory: categoryID, IDPost: postID });
-                }
+            client = await pool.connect();
+            await client.query('BEGIN');
+
+            await deletePostCategoriesForPostID(client, postID);
+
+
+            for (const categoryID of categoriesProduct) {
+                await createPostCategory(client, { IDCategory: categoryID, IDPost: postID });
             }
 
             
             const updatedPost = await postModel.updatePost(client, postID, req.body)
-            updatedPost.photo = post.photo
-                    ? `${req.protocol}://${req.get('host')}/images/${post.photo}.jpeg`
-                    : null;
-            
+
 
             await client.query('COMMIT');
 
@@ -329,6 +303,7 @@ export const updatePost = async (req, res) => {
 
     } catch (err){
         if (client) await client.query('ROLLBACK');
+        console.error("Internal server error", err); 
         res.status(500).send("Internal server error : " + err.message);
     } finally {
         if (client) client.release();
@@ -343,24 +318,56 @@ export const deletePost = async (req, res) => {
             return res.status(400).send("Invalid post ID");
         }
 
-        const post = await postModel.readPost(pool, {id:postID});
+        const post = await postModel.readPost(pool, postID);
 
         if (!post) {
             return res.status(404).send("Post not found");
         }
 
         if (post.client_id === userID || req.user.isAdmin){
-            await postModel.deletePost(pool, {id:postID});
+            await postModel.deletePost(pool, postID);
             res.status(200).send("Post deleted");
         } else {
             return res.status(403).send("Admin privilege required.");
         }
 
     } catch (err) {
-        console.log(err.message);
-        res.status(500).send(err.message);
+        console.error("Internal server error", err); 
+        res.sendStatus(500).send(err.message);
     }
 };
+
+export const deleteImageFromPost  = async (req, res) => {
+    try {
+        const userID = req.user.id; 
+        const postID = Number(req.params.id); 
+        if(Number.isNaN(postID)){
+            return res.status(400).send("Invalid post ID");
+        }
+        const post = await postModel.readPost(pool, postID); 
+        
+        if(!post){
+            return res.status(404).send("Post not found");
+        }
+
+        if (post.client_id === userID || req.user.isAdmin){
+            
+            const imagePath = path.join(destFolderImages, `${post.photo}.jpeg`); 
+
+            await fs.unlink(imagePath); 
+
+            await postModel.deleteImageFromPost(pool, req.params.id); 
+
+            res.status(200).send("The image in the post has been removed.");
+
+        } else {
+            return res.status(403).send("Admin privilege required.");
+        } 
+    }catch (err) {
+        console.error("Internal server error", err); 
+        res.status(500).send(err.message);
+    }
+}
 
 /**
  * @swagger
@@ -382,13 +389,10 @@ export const searchPostByCategory = async(req, res) => {
          const posts = await postModel.searchPostByCategory(pool, req.query.nameCategory);
          res.status(200).send(posts);
     }catch(err){
+        console.error("Internal server error", err); 
         res.status(500).send(err.message);
     }
 }
-
-
-
-
 
 export const getPostsWithoutFilters= async(req, res) => {
     try {
@@ -397,7 +401,7 @@ export const getPostsWithoutFilters= async(req, res) => {
         if (posts.length > 0) {
             for (const post of posts) {
                 post.photo = post.photo
-                ? `${req.protocol}://${req.get('host')}/images/${post.photo}.jpeg`
+                ? `post.photo}`
                 : null;
             }
         }

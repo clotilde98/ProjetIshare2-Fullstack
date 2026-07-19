@@ -35,23 +35,22 @@ export const login = async (req, res) => {
             return res.status(401).send("User/Password incorrect");
         }
 
-        const validPassword = await argon2.verify(user.password, password + process.env.PEPPER);
+        const validPassword = await argon2.verify(user.password, password, {secret: Buffer.from(process.env.PEPPER)});
         if (!validPassword) {
             return res.status(401).send("User/Password incorrect");
         }
 
-    
         const token = jwt.sign(
             { 
                 id: user.id, 
-                email: user.email,
                 isAdmin: user.isadmin,
             },
             process.env.JWT_SECRET,
             { expiresIn: "24h" }
         );
-        res.status(200).send({ user, token });
+        res.status(200).send({ token });
     } catch (err){
+        console.error("Internal server error", err); 
         res.status(500).send(err.message);
     }
 }
@@ -59,35 +58,30 @@ export const login = async (req, res) => {
 
 export const loginWithGoogle = async (req, res) => {
     try {
+        const { email, idToken, username, streetNumber, street, addressID} = req.body;
+        const userInfo = await validateGoogleToken(idToken);
 
-        const { idToken} = req.body;
-        if (!idToken) {
-            return res.status(400).json({ message: "idToken missing" });
-        }
+  
+        //const photo = req.file ? `${req.protocol}://${req.get('host')}/images/${req.file.filename}`  : null; 
+        let user = await userModel.getUserByEmail(pool, email)
 
-        const googleUser = await validateGoogleToken(idToken);
 
-        const { id: googleId, email, name, photo } = googleUser;
-        let user = await getUserByEmail(pool, email);
-
-        
         if (!user){
-            user = await createUser(pool, {googleId, username:name, email, password:null, streetNumber:null, street:null, photo, isAdmin:false, addressID:null})
+            user = await createUser(pool, {googleId: userInfo.id, username, email: userInfo.email, streetNumber, street, imageName:null, addressID})
         }
 
         const token = jwt.sign(
             { 
                 id: user.id, 
-                email: user.email,
+                email: payload.email,
                 isAdmin: user.isadmin,
             },
             process.env.JWT_SECRET,
             { expiresIn: "24h" }
         );
-        res.status(200).send({ user, token });
+        res.status(200).send({ token });
     } catch (err){
+        console.error("Internal server error", err); 
         res.status(500).send(err.message);
     }
 }
-
-

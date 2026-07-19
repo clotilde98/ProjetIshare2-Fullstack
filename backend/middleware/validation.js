@@ -20,7 +20,7 @@ import { createCategoryProductValidator, updateCategoryProductValidator } from "
 export const clientValidatorMiddleware = {
     addClientValidator: async (req, res, next) => {
         try {
-            req.val = await addClientValidator.validate(req.body);
+            req.body = await addClientValidator.validate(req.body);
             next();
         } catch (e) {
             if (e.messages) {
@@ -31,7 +31,7 @@ export const clientValidatorMiddleware = {
     },
     loginValidator : async (req, res, next) => {
         try {
-            req.val = await loginValidator.validate(req.body);
+            req.body = await loginValidator.validate(req.body);
             next();
         } catch (e){
             res.status(400).send(e.message);
@@ -39,7 +39,7 @@ export const clientValidatorMiddleware = {
     },
     updateClientValidator: async (req, res, next) => {
         try {
-            req.val = await updateClientValidator.validate(req.body);
+            req.body = await updateClientValidator.validate(req.body);
             next();
         } catch (e){
             res.status(400).send(e.message);
@@ -53,7 +53,7 @@ export const clientValidatorMiddleware = {
 export const commentValidatorMiddleware = {
     addCommentValidator: async (req, res, next) => {
         try {
-            req.val = await addCommentValidator.validate(req.body);
+            req.body = await addCommentValidator.validate(req.body);
             next();
         } catch (e) {
             res.status(400).send(e.messages);
@@ -61,7 +61,7 @@ export const commentValidatorMiddleware = {
     },
     updateCommentValidator: async (req, res, next) => {
         try {
-            req.val = await updateCommentValidator.validate(req.body);
+            req.body = await updateCommentValidator.validate(req.body);
             next();
         } catch (e) {
             res.status(400).send(e.messages);
@@ -73,7 +73,7 @@ export const commentValidatorMiddleware = {
 export const postValidatorMiddleware = {
     createPostValidator: async (req, res, next) => {
         try {
-            req.val = await createPostValidator.validate(req.body);
+            req.body = await createPostValidator.validate(req.body);
             next();
         } catch (e) {
             res.status(400).send(e.messages);
@@ -81,7 +81,7 @@ export const postValidatorMiddleware = {
     },
     updatePostValidator: async (req, res, next) => {
         try {
-            req.val = await updatePostValidator.validate(req.body);
+            req.body = await updatePostValidator.validate(req.body);
             next();
         } catch (e) {
             res.status(400).send(e.messages);
@@ -94,7 +94,7 @@ export const postValidatorMiddleware = {
 export const reservationValidatorMiddleware = {
     createReservationValidator: async (req, res, next) => {
         try {
-            req.val = await createReservationValidator.validate(req.body);
+            req.body = await createReservationValidator.validate(req.body);
             next();
         } catch (e) {
             res.status(400).send(e.messages);
@@ -102,7 +102,7 @@ export const reservationValidatorMiddleware = {
     },
     updateReservationValidator: async (req, res, next) => {
         try {
-            req.val = await updateReservationValidator.validate(req.body);
+            req.body = await updateReservationValidator.validate(req.body);
             next();
         } catch (e) {
             res.status(400).send(e.messages);
@@ -115,7 +115,7 @@ export const reservationValidatorMiddleware = {
 export const categoryProductValidatorMiddleware = {
     createCategoryProductValidator: async (req, res, next) => {
         try {
-            req.val = await createCategoryProductValidator.validate(req.body);
+            req.body = await createCategoryProductValidator.validate(req.body);
             next();
         } catch (e) {
             res.status(400).send(e.messages);
@@ -123,7 +123,7 @@ export const categoryProductValidatorMiddleware = {
     },
     updateCategoryProductValidator: async (req, res, next) => {
         try {
-            req.val = await updateCategoryProductValidator.validate(req.body);
+            req.body = await updateCategoryProductValidator.validate(req.body);
             next();
         } catch (e) {
             res.status(400).send(e.messages);

@@ -5,9 +5,10 @@ import 'dotenv/config';
 import jwt from "jsonwebtoken";
 import path from 'path';
 import { fileURLToPath } from 'url';
-import {saveImage} from '../middleware/saveImage.js';
+import {saveImage} from '../middleware/photo/saveImage.js';
 import * as uuid from 'uuid'
-import { faker } from '@faker-js/faker';
+import { PAGINATION } from '../Config/pagination.js';
+import { validatePagination } from '../Utils/validationPagination.js'
 
 
 /**
@@ -79,12 +80,14 @@ export const createUser = async (req, res) => {
             imageName = uuid.v4();
             await saveImage(photo.buffer, imageName, destFolderImages); 
         }
+        
+        const passwordHash = await argon2.hash(password, {secret: Buffer.from(process.env.PEPPER)});
 
-        user = await userModel.createUser(pool, {username, email, streetNumber, street, photo:imageName, isAdmin:false, addressID, password});
+
+        user = await userModel.createUser(pool, {username, email, streetNumber, street, photo:imageName, isAdmin:false, addressID, passwordHash});
         const token = jwt.sign(
                   { 
                       id: user.id, 
-                      email: user.email,
                       isAdmin: user.is_admin,
                   },
                   process.env.JWT_SECRET,
@@ -95,6 +98,7 @@ export const createUser = async (req, res) => {
       res.status(409).send("User account already exists");
     }
   } catch (err) {
+    console.error("Internal server error", err);
     res.status(500).send(err.message);
   }
 }
@@ -137,6 +141,7 @@ export const getUserById = async (req, res) => {
 
 
     } catch (err) {
+        console.error("Internal server error", err); 
         res.status(500).send("Internal server error " + err.message); 
     }
 }
@@ -155,7 +160,7 @@ export const createUserWithAdmin = async (req, res) => {
 
         createAdminUser = req.body.isAdmin ; 
         
-        if (!req.user.isAdmin && createAdminUser) {
+        if (!req.user.isAdmin && createAdminUser) { 
             return res.status(400).send("Not allowed to create an admin user")
         }
 
@@ -163,12 +168,13 @@ export const createUserWithAdmin = async (req, res) => {
         
         if (!user){
 
+            const passwordHash = await argon2.hash(password, {secret: Buffer.from(process.env.PEPPER)});
+
             user = await userModel.createUser(pool, {username, email, streetNumber, street, photo:null, isAdmin:createAdminUser, addressID, password});
             
             const token = jwt.sign(
                 { 
                     id: user.id, 
-                    email: user.email,
                     isAdmin: user.is_admin,
                 },
                 process.env.JWT_SECRET,
@@ -180,6 +186,7 @@ export const createUserWithAdmin = async (req, res) => {
             res.status(409).send("User account already exists");
         }
     } catch (err) {
+        console.error("Internal server error", err);
         res.status(500).send(err.message);
     }
 }
@@ -219,13 +226,14 @@ export const updateUser = async (req, res) => {
             const pepper = process.env.PEPPER;
             
             if (!req.user.isAdmin) {
-                if (!updateData.oldPassword) {
+                if (!updateData.oldPassword) { 
                     return res.status(401).send("Old password required.");
                 }
 
                 const validOldPassword = await argon2.verify(
                     currentUser.password, 
-                    updateData.oldPassword + pepper
+                    updateData.oldPassword,
+                    { secret: Buffer.from(pepper) }
                 );
 
                 if (!validOldPassword) {
@@ -233,12 +241,14 @@ export const updateUser = async (req, res) => {
                 }
             }
 
-            const passwordWithPepper = updateData.password + pepper;
-            updateData.password = await argon2.hash(passwordWithPepper); 
+            const password = updateData.password;
+            updateData.password = await argon2.hash(password, { secret: Buffer.from(pepper) }); 
         }
+
         const updatedUser = await userModel.updateUser(pool, userId, updateData);
         res.status(200).json(updatedUser); 
     } catch (err) {
+        console.error("Internal server error", err); 
         res.status(500).send("Internal server error : " + err.message);
     }
 };
@@ -267,6 +277,7 @@ export const deleteUser = async (req, res) => {
     await userModel.deleteUser(pool, userId);
     res.status(200).send("User deleted successfully.");
     } catch (err) {
+        console.error("Internal server error", err); 
         res.status(500).send("Internal server error : " + err.message);
     }
 };
@@ -283,6 +294,7 @@ export const deleteUser = async (req, res) => {
  *             $ref: '#/components/schemas/Client'
  */
 
+/** 
 export const getOwnUser = async (req, res) => {
     try {
         const clientID = req.user.id; 
@@ -305,7 +317,27 @@ export const getOwnUser = async (req, res) => {
 
 
     } catch (err) {
+        console.error("Internal server error", err); 
         res.status(500).send("Internal server error " + err.message); 
+    }
+};*/
+
+export const getOwnUser = async (req, res) => {
+    try {
+        const clientID = req.user.id;
+        const user = await userModel.getProfileById(pool, clientID);
+
+        if (!user) {
+            return res.status(404).send("User not found.");
+        }
+
+        res.status(200).json({
+            user
+        });
+
+    } catch (err) {
+        console.error("Internal server error", err);
+        res.status(500).send("Internal server error " + err.message);
     }
 };
 
@@ -359,16 +391,36 @@ export const getUsers = async (req, res) => {
     if (role && role !== 'admin' && role !== 'user') {
       return res.status(400).send('role must be "admin" or "user"');
     }
+    
+    const limitResult = validatePagination(
+      limit,
+      PAGINATION.DEFAULT_LIMIT,
+      PAGINATION.MIN_LIMIT,
+      PAGINATION.MAX_LIMIT,
+      'limit'
+    );
+
+    const pageResult = validatePagination(
+      page,
+      PAGINATION.DEFAULT_PAGE,
+      PAGINATION.MIN_PAGE,
+      PAGINATION.MAX_PAGE,
+      'page'
+    );
 
     const users = await userModel.getUsers(pool, { 
       name,
       role,
-      page: parseInt(page) || 1,
-      limit: parseInt(limit) || 10
+      page:  pageResult.value,
+      limit: limitResult.value
     });
 
     res.status(200).json(users); 
   } catch (err) {
+    if (err.message.includes('must be a number between')) {
+      return res.status(400).json({ error: err.message });
+    }
+    console.error("Internal server error", err); 
     res.status(500).send('Erreur serveur'); 
   }
 };

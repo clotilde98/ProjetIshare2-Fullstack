@@ -28,12 +28,11 @@ export const createCategoryProductSchema = vine.object({
  *           type: string
  */
 
-export const updateCategoryProductSchema = vine.object({
+export const updateProductCategorySchema = vine.object({
     nameCategory: vine.string().trim(),
-    
 }); 
 
 
 export const
     createCategoryProductValidator = vine.compile(createCategoryProductSchema),
-    updateCategoryProductValidator = vine.compile(updateCategoryProductSchema);
+    updateProductCategoryValidator = vine.compile(updateProductCategorySchema);

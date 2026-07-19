@@ -9,9 +9,7 @@ export const createPostCategory = async (SQLClient, {IDCategory, IDPost}) => {
   return rows[0];
 };
 
-
-
-export const getPostCategories = async (SQLClient, { IDPost }) => {
+export const getPostCategories = async (SQLClient, IDPost) => {
     const { rows } = await SQLClient.query(
         `
         SELECT c.id_category, c.name_category
@@ -25,9 +23,6 @@ export const getPostCategories = async (SQLClient, { IDPost }) => {
 
     return rows;
 };
-
-
-
 
 
 export const deletePostCategoriesForPostID = async (SQLClient, postID) => {

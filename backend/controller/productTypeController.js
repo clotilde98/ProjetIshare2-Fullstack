@@ -1,6 +1,8 @@
 import {pool} from "../database/database.js";
 import * as typeProductModel from "../model/productType.js";
 import { readCategoryProductFromID } from "../model/productType.js";
+import { PAGINATION } from '../Config/pagination.js';
+import { validatePagination } from '../Utils/validationPagination.js'
 
 /**
  * @swagger
@@ -32,15 +34,35 @@ export const getCategories = async (req, res) => {
    
     const { nameCategory, page, limit } = req.query;
 
+    const limitResult = validatePagination(
+          limit,
+          PAGINATION.DEFAULT_LIMIT,
+          PAGINATION.MIN_LIMIT,
+          PAGINATION.MAX_LIMIT,
+          'limit'
+        );
+    
+
+    const pageResult = validatePagination(
+        page,
+        PAGINATION.DEFAULT_PAGE,
+        PAGINATION.MIN_PAGE,
+        PAGINATION.MAX_PAGE,
+        'page'
+        );
+
     const categories = await typeProductModel.getCategories(pool, {
       nameCategory, 
-      page: parseInt(page) || 1, 
-      limit: parseInt(limit) || 10 
+      page: pageResult, 
+      limit: limitResult
     });
 
     res.status(200).json(categories);
   } catch (err) {
-    
+    if (err.message.includes('must be a number between')) {
+      return res.status(400).json({ error: err.message });
+    }
+    console.error("Internal server error", err); 
     res.status(500).send(err.message); 
   }
 };
@@ -72,7 +94,7 @@ export const createTypeProduct = async (req, res) => {
             return res.status(409).send("Type already exists");
         }
 
-        const productCreated = await typeProductModel.createTypeProduct(pool, {nameCategory});
+        const productCreated = await typeProductModel.createTypeProduct(pool, nameCategory);
         
         if (productCreated) {
             return res.status(201).send({productCreated});
@@ -80,7 +102,7 @@ export const createTypeProduct = async (req, res) => {
         
 
     } catch(err) {
-        
+        console.error("Internal server error", err); 
         res.status(500).send("Internal server error " + err.message);
     }
 };
@@ -117,7 +139,7 @@ export const updateTypeProduct = async (req, res) => {
         
 
     } catch (err) {
-        
+        console.error("Internal server error", err); 
         return res.status(500).send(err.message); 
     }
 };
@@ -132,7 +154,7 @@ export const deleteTypeProduct = async (req, res) => {
             return res.status(400).send("Category ID is required");
         }
         
-        const deleted = await typeProductModel.deleteTypeProduct(pool, { idCategory });
+        const deleted = await typeProductModel.deleteTypeProduct(pool, idCategory );
         
         if (deleted) {
 		    res.status(200).send("Category is deleted");
@@ -141,8 +163,7 @@ export const deleteTypeProduct = async (req, res) => {
         }
 
     }catch(err){
-        
+        console.error("Internal server error", err); 
         res.status(500).send(err.message);
     }
 }
-

@@ -7,15 +7,14 @@ import {
   createUser,
   getUsers,
   getOwnUser,
-  createUserWithAdmin, 
-  getUserById
+  createUserWithAdmin
 } from "../controller/clientController.js";
 
 import {clientValidatorMiddleware} from '../middleware/validation.js';
 
 import {mustBeAdmin} from '../middleware/identification/mustBeAdmin.js'
 
-import {upload} from '../middleware/upload.js';
+import {upload} from '../middleware/photo/upload.js';
 
 
 const router = Router();
@@ -163,10 +162,6 @@ router.get("/", checkJWT, mustBeAdmin, getUsers);
  */
 
 
-
-router.get("/:id", checkJWT, getUserById);
-
-
 router.delete("/", checkJWT, deleteUser); 
 
 /**
@@ -296,8 +291,4 @@ router.patch("/", checkJWT, upload.single("photo"), clientValidatorMiddleware.up
 router.patch("/:id", checkJWT, upload.single("photo"), clientValidatorMiddleware.updateClientValidator , updateUser);  
 
 
-
-
 export default router;
-
-
