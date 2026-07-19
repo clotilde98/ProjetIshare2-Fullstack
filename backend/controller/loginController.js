@@ -62,7 +62,7 @@ export const loginWithGoogle = async (req, res) => {
         const userInfo = await validateGoogleToken(idToken);
 
   
-        //const photo = req.file ? `${req.protocol}://${req.get('host')}/images/${req.file.filename}`  : null; 
+        //const photo = req.file ? `${req.protocol}://${req.get('host')}/images/${req.file.filename}`  : null; //a enveler
         let user = await userModel.getUserByEmail(pool, email)
 
 

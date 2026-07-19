@@ -1,6 +1,9 @@
 import {pool} from "../database/database.js";
 import * as commentModel from "../model/comment.js";
+
 import * as postModel from "../model/postDB.js"
+import { PAGINATION } from '../Config/pagination.js';
+import { validatePagination } from '../Utils/validationPagination.js'
 
 
 /**
@@ -22,16 +25,6 @@ import * as postModel from "../model/postDB.js"
  *         id_costumer:
  *           type: integer
  */
-
-
-export const getCommentsByPostID = async (req, res) => {
-    try {
-        const rows = await commentModel.getCommentsByPostID(pool, {postID: req.params.id})
-        return res.status(200).send({rows});
-    } catch (e) {
-        res.status(500).send({message: "Internal server error : " + e.message});
-    }
-}
 
 /**
  * @swagger
@@ -58,10 +51,10 @@ export const createComment = async (req, res) => {
             }
         }
 
-        const post = await postModel.readPost(pool, {id:req.body.idPost});
+        const post = await postModel.readPost(pool, req.body.idPost);
 
         if (!post){
-            return res.status(400).send("Post doesn't exist.");
+            return res.status(404).send("Post doesn't exist.");
         }
 
 
@@ -73,6 +66,7 @@ export const createComment = async (req, res) => {
             res.status(400).send({ message: "Unable to create comment. Please check if the post ID is correct." }); 
         } 
     } catch (e) {
+        console.error("Internal server error", err); 
         res.status(500).send({message: "Internal server error : " + e.message});
         
     }
@@ -112,7 +106,8 @@ export const updateComment = async (req, res) => {
             return res.status(403).send("Admin privilege required.");
         }
 
-    } catch (err) {        
+    } catch (err) {    
+        console.error("Internal server error", err);  
         return res.status(500).send("Internal server error");
     }
 };
@@ -127,18 +122,19 @@ export const deleteComment = async(req, res) =>{
 
         const comment = await commentModel.getCommentById(pool, commentID);
 
-        if (!comment){
+        if (!comment){ 
             return res.status(404).send("Comment not found")
         }
 
         if (comment.id_customer === userID || req.user.isAdmin){
-            await commentModel.deleteComment(pool, {id:commentID});
+            await commentModel.deleteComment(pool, commentID);
             return res.status(200).send("Comment deleted");
         } else {
             return res.status(403).send("Admin privilege required.");
         }
 
     } catch (err) {
+        console.error("Internal server error", err); 
         return res.status(500).send("Internal server error");
     }
 }
@@ -169,15 +165,37 @@ export const getComments = async (req, res) => {
    
     const { commentDate, page, limit } = req.query;
 
+    const limitResult = validatePagination(
+          limit,
+          PAGINATION.DEFAULT_LIMIT,
+          PAGINATION.MIN_LIMIT,
+          PAGINATION.MAX_LIMIT,
+          'limit'
+        );
+    
+
+    const pageResult = validatePagination(
+      page,
+      PAGINATION.DEFAULT_PAGE,
+      PAGINATION.MIN_PAGE,
+      PAGINATION.MAX_PAGE,
+      'page'
+    );
+
+
     const comments = await commentModel.getComments(pool, {
       commentDate, 
-      page: parseInt(page) || 1, 
-      limit: parseInt(limit) || 10 
+      page: pageResult.value,
+      limit: limitResult.value
     });
 
     res.status(200).json(comments);
     
   } catch (err) {
+    if (err.message.includes('must be a number between')) {
+      return res.status(400).json({ error: err.message });
+    }
+    console.error("Internal server error", err); 
     res.status(500).send("Internal server error : " + err.message);
   }
 };
