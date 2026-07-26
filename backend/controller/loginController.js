@@ -26,6 +26,32 @@ import { validateGoogleToken } from '../middleware/identification/validateUserGo
  *                type: string
  */
 
+const createTokenPayload = (user) => ({
+    id: user.id,
+    isAdmin: user.isadmin,
+});
+
+const buildAuthResponse = (user) => {
+    const payload = createTokenPayload(user);
+    const accessToken = jwt.sign(
+        { ...payload, tokenType: 'access' },
+        process.env.JWT_SECRET,
+        { expiresIn: '24h' }
+    );
+    const refreshToken = jwt.sign(
+        { ...payload, tokenType: 'refresh' },
+        process.env.REFRESH_TOKEN_SECRET || process.env.JWT_SECRET,
+        { expiresIn: '7d' }
+    );
+
+    return {
+        user,
+        token: accessToken,
+        accessToken,
+        refreshToken,
+    };
+};
+
 export const login = async (req, res) => {
     try {
         
@@ -40,17 +66,7 @@ export const login = async (req, res) => {
             return res.status(401).send("User/Password incorrect");
         }
 
-    
-        const token = jwt.sign(
-            { 
-                id: user.id, 
-                email: user.email,
-                isAdmin: user.isadmin,
-            },
-            process.env.JWT_SECRET,
-            { expiresIn: "24h" }
-        );
-        res.status(200).send({ token });
+        res.status(200).send(buildAuthResponse(user));
     } catch (err){
         res.status(500).send(err.message);
     }
@@ -59,31 +75,53 @@ export const login = async (req, res) => {
 
 export const loginWithGoogle = async (req, res) => {
     try {
-        const { email, idToken, username, streetNumber, street, addressID} = req.body;
-        const userInfo = await validateGoogleToken(idToken);
-
-  
-        //const photo = req.file ? `${req.protocol}://${req.get('host')}/images/${req.file.filename}`  : null;   
-        let user = await userModel.getUserByEmail(pool, email)
-
-
-        if (!user){
-            user = await createUser(pool, {googleId: userInfo.id, username, email: userInfo.email, streetNumber, street, imageName:null, addressID})
+        const { idToken} = req.body;
+        if (!idToken) {
+            return res.status(400).json({ message: "idToken missing" });
         }
 
-        const token = jwt.sign(
-            { 
-                id: user.id, 
-                email: user.email,
-                isAdmin: user.isadmin,
-            },
-            process.env.JWT_SECRET,
-            { expiresIn: "24h" }
-        );
-        res.status(200).send({ token });
+        const googleUser = await validateGoogleToken(idToken);
+
+        const { id: googleId, email, name, photo } = googleUser;
+        let user = await getUserByEmail(pool, email);
+
+        
+        if (!user){
+            user = await createUser(pool, {googleId, username:name, email, password:null, streetNumber:null, street:null, photo, isAdmin:false, addressID:null})
+        }
+
+        res.status(200).send(buildAuthResponse(user));
     } catch (err){
         res.status(500).send(err.message);
     }
 }
+
+export const refreshToken = async (req, res) => {
+    try {
+        const { refreshToken: incomingRefreshToken } = req.body;
+
+        if (!incomingRefreshToken) {
+            return res.status(400).json({ message: "Refresh token missing" });
+        }
+
+        const decoded = jwt.verify(
+            incomingRefreshToken,
+            process.env.REFRESH_TOKEN_SECRET || process.env.JWT_SECRET
+        );
+
+        if (decoded.tokenType !== 'refresh') {
+            return res.status(401).json({ message: "Refresh token invalid" });
+        }
+
+        const user = await getUserByEmail(pool, decoded.email);
+        if (!user) {
+            return res.status(401).json({ message: "User not found" });
+        }
+
+        res.status(200).send(buildAuthResponse(user));
+    } catch (err) {
+        return res.status(403).json({ message: "Refresh token invalid" });
+    }
+};
 
 

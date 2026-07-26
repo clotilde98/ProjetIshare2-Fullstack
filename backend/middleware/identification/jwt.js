@@ -33,14 +33,18 @@ export const checkJWT = async (req, res, next) => {
 
         if (!authHeader || !authHeader.startsWith("Bearer ")) {
             req.user = null;
-        return res.status(401).json({ message: "Token missing or invalid" });
+            return res.status(401).json({ message: "Token missing or invalid" });
         }
 
         const token = authHeader.split(" ")[1];
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+        if (decoded.tokenType && decoded.tokenType !== 'access') {
+            return res.status(403).json({ message: "Token invalid" });
+        }
+
         req.user = {
             id: decoded.id,
-            email: decoded.email,
             isAdmin: decoded.isAdmin,
         };
         next();

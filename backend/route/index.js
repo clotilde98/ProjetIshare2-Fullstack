@@ -4,7 +4,7 @@ import postRouter from './postRoute.js';
 import reservationRouter from './reservationRoute.js';
 import commentRouter from './commentRoute.js';
 import {getAllCities} from '../controller/addressController.js';
-import {login, loginWithGoogle} from '../controller/loginController.js'
+import {login, loginWithGoogle, refreshToken} from '../controller/loginController.js'
 import {checkJWT} from '../middleware/identification/jwt.js'
 import { mustBeAdmin } from '../middleware/identification/mustBeAdmin.js';
 import {clientValidatorMiddleware} from '../middleware/validation.js';
@@ -46,6 +46,29 @@ router.use('/productType', productTypeRouter);
  */
 
 router.post('/login',clientValidatorMiddleware.loginValidator, login)
+/**
+ * @swagger
+ * /refresh-token:
+ *   post:
+ *     summary: Refreshes the access token using a refresh token
+ *     tags:
+ *       - Niveau principal
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               refreshToken:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: New tokens returned
+ *       401:
+ *         description: Refresh token invalid
+ */
+router.post('/refresh-token', refreshToken)
 /**
  * @swagger
  * /loginWithGoogle:
