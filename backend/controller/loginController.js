@@ -1,4 +1,4 @@
-import {getUserByEmail, createUser} from '../model/client.js';
+import {getUserByEmail, getUserById, createUser} from '../model/client.js';
 import { pool } from "../database/database.js";
 import argon2 from "argon2";
 import 'dotenv/config';
@@ -113,7 +113,7 @@ export const refreshToken = async (req, res) => {
             return res.status(401).json({ message: "Refresh token invalid" });
         }
 
-        const user = await getUserByEmail(pool, decoded.email);
+        const user = await getUserById(pool, decoded.id);
         if (!user) {
             return res.status(401).json({ message: "User not found" });
         }
