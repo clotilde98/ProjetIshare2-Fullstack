@@ -1,0 +1,6 @@
+# Archives
+backend.zip
+
+# Mobile local artifacts
+mobile/.idea/
+mobile/metro.config.js
