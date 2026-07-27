@@ -1,5 +1,5 @@
-import { pool } from '../database/database.js';
-import * as addressModel from '../model/addressDB.js';
+import { pool } from '../../database/database.js';
+import * as addressModel from '../../model/v1/addressDB.js';
 
 
 export const importPostalData = async (req, res) => {
@@ -16,8 +16,8 @@ export const importPostalData = async (req, res) => {
     res.status(200).send(message);
   } catch (err) {
     if (client) await client.query('ROLLBACK');
-    console.error("Internal server error", err);
-    res.status(500).send(err.message);
+      console.error("Internal server error", err); 
+      res.status(500).send("Internal server error"); 
   } finally {
     if (client) address.release();
   }
@@ -31,9 +31,8 @@ export const getAddressByID = async (req, res) => {
     const address = await addressModel.getAddressByID(pool, {id})
     return res.status(200).send({address});
   } catch (err) {
-      console.error("Internal server error", err);
-      res.status(500).send("Internal server error " + err.message); 
-      
+      console.error("Internal server error", err); 
+      res.status(500).send("Internal server error");   
   }};
 
 /**
@@ -65,7 +64,7 @@ export const getAllCities = async (req, res) => {
     const cities = await addressModel.getAllCities(pool);
     res.status(200).send(cities);
   } catch (err) {
-    console.error("Internal server error", err);
-    res.status(500).send(err.message);
+    console.error("Internal server error", err); 
+    res.status(500).send("Internal server error"); 
   }
 };

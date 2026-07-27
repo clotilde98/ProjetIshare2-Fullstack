@@ -1,7 +1,6 @@
-import {pool} from "../database/database.js";
-import * as dashboardModel from "../model/dashboardModel.js";
+import {pool} from "../../database/database.js";
+import * as dashboardModel from "../../model/v1/dashboardModel.js";
  
-
 /**
  * @swagger
  * components:
@@ -53,6 +52,6 @@ export const getAllStats = async (req, res) => {
         });
 
     } catch (err) {
-        res.status(500).json({ message: "Erreur serveur lors de l'agrégation des statistiques." });
+        res.status(500).json({ message: "Server error during statistics aggregation." });
     }
 };

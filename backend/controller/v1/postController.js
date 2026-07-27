@@ -1,18 +1,19 @@
-import { pool } from "../database/database.js";
-import {createPostCategory, deletePostCategoriesForPostID} from '../model/postCategory.js'
-import * as postModel from '../model/postDB.js';
+import { pool } from "../../database/database.js";
+import {createPostCategory, deletePostCategoriesForPostID, getPostswithAllCategories } from '../../model/v1/postCategory.js'
+import * as postModel from '../../model/v1/postDB.js';
 import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import {saveImage} from '../middleware/photo/saveImage.js';
+import {saveImage} from '../../middleware/saveImage.js';
 import * as uuid from 'uuid'
-import { PAGINATION } from '../Config/pagination.js';
-import { validatePagination } from '../Utils/validationPagination.js'
-import { readCategoryProductFromID } from "../model/productType.js";
+import { PAGINATION } from '../../Config/pagination.js';
+import { validatePagination } from '../../Utils/validationPagination.js'
+import { PaginationValidationError } from "../../errors/PaginationValidationError.js"; 
+import { readProductCategoryFromID } from "../../model/v2/productType.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename); // il y a vraiment besoin ? 
-const destFolderImages = path.join(__dirname, '../middleware/photo');
+const destFolderImages = path.join(__dirname, '../../middleware/photo');
 
 
 /**
@@ -90,10 +91,32 @@ export const getPost = async (req, res) => {
 
     } catch (err) {
         console.error("Internal server error", err); 
-        res.status(500).send("Internal server error : " + err.message);
+        return res.status(500).send("Internal server error");
     }
 };
 
+export const getMyPosts = async (req, res) => {
+    try {
+
+        const userID = req.user.id;
+        const posts = await postModel.readMyPosts(pool, userID);
+
+
+        if (posts.length > 0) {
+            for (const post of posts) {
+                post.photo = post.photo
+                ? `${req.protocol}://${req.get('host')}/images/${post.photo}.jpeg`
+                : null;
+            }
+            }
+
+        res.status(200).json(posts);
+
+    } catch (err) {
+       console.error("Internal server error", err);
+       return res.status(500).send("Internal server error");
+    }
+};
 
 /**
  * @swagger
@@ -155,11 +178,11 @@ export const getPosts = async (req, res) => {
         return res.status(200).json(posts);
 
     } catch (err) {
-        if (err.message.includes('must be a number between')) {
-      return res.status(400).json({ error: err.message });
+        if (err instanceof PaginationValidationError) {
+            return res.status(400).json({ error: err.message }); 
         }
-        console.error("Internal server error", err); 
-        res.status(500).send("Internal server error : " + err.message);
+       console.error("Internal server error", err);
+       return res.status(500).send("Internal server error");
     }
 }
 
@@ -193,7 +216,7 @@ export const createPost = async (req, res) => {
         }
 
         for (const categoryID of categoriesProduct) {
-            const category = await readCategoryProductFromID(pool, categoryID);
+            const category = await readProductCategoryFromID(pool, categoryID);
             if (!category) {
                 return res.status(404).send(`Category product with ID ${categoryID} not found`);
             }
@@ -224,8 +247,8 @@ export const createPost = async (req, res) => {
         if (client) {
             await client.query('ROLLBACK');
         }
-        console.error("Internal server error", err); 
-        res.status(500).send("Internal server error : " + err.message);
+        console.error("Internal server error", err);
+        return res.status(500).send("Internal server error");
 
     } finally {
         if (client) {
@@ -233,7 +256,6 @@ export const createPost = async (req, res) => {
         }
     }
 }
-
 
 export const updatePost = async (req, res) => {
     let client;
@@ -251,8 +273,6 @@ export const updatePost = async (req, res) => {
             return res.status(404).send("Post not found")
         }
 
-        
-        
         if (post.client_id === userID || req.user.isAdmin){
             let imageName = null;
             const photo = req.file;
@@ -290,8 +310,8 @@ export const updatePost = async (req, res) => {
                 await createPostCategory(client, { IDCategory: categoryID, IDPost: postID });
             }
 
-            
-            const updatedPost = await postModel.updatePost(client, postID, req.body)
+            console.log("post", req.body);
+            const updatedPost = await postModel.updatePost(client, postID, req.body); 
 
 
             await client.query('COMMIT');
@@ -303,8 +323,8 @@ export const updatePost = async (req, res) => {
 
     } catch (err){
         if (client) await client.query('ROLLBACK');
-        console.error("Internal server error", err); 
-        res.status(500).send("Internal server error : " + err.message);
+        console.error("Internal server error", err);
+        res.status(500).send("Internal server error");
     } finally {
         if (client) client.release();
     }
@@ -333,7 +353,7 @@ export const deletePost = async (req, res) => {
 
     } catch (err) {
         console.error("Internal server error", err); 
-        res.sendStatus(500).send(err.message);
+        res.status(500).send("Internal server error");
     }
 };
 
@@ -365,7 +385,7 @@ export const deleteImageFromPost  = async (req, res) => {
         } 
     }catch (err) {
         console.error("Internal server error", err); 
-        res.status(500).send(err.message);
+        res.status(500).send("Internal server error");
     }
 }
 
@@ -390,7 +410,7 @@ export const searchPostByCategory = async(req, res) => {
          res.status(200).send(posts);
     }catch(err){
         console.error("Internal server error", err); 
-        res.status(500).send(err.message);
+        res.status(500).send("Internal server error");
     }
 }
 
@@ -407,7 +427,8 @@ export const getPostsWithoutFilters= async(req, res) => {
         }
         res.status(200).send(posts);
     }catch(err){
-        res.status(500).send(err.message);
+        console.error("Internal server error", err); 
+        res.status(500).send("Internal server error");
     }
 
 }

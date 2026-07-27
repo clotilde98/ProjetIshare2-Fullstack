@@ -1,5 +1,3 @@
-import {createPostCategory} from './postCategory.js';
-
 export const createPost = async (SQLClient, clientID, {description, title, numberOfPlaces, photo, street, streetNumber, addressID}) => {
 
     try {
@@ -14,8 +12,6 @@ export const createPost = async (SQLClient, clientID, {description, title, numbe
         throw err;
     }
 };
-
-
 
 export const updatePost = async(SQLClient, id, {description, title, numberOfPlaces, postStatus, photo,street,streetNumber, addressID}) => {
     let query = "UPDATE post SET ";
@@ -83,9 +79,13 @@ export const readPost = async (SQLClient, id) => {
     return rows[0];
 };
 
+export const readMyPosts = async (SQLClient, clientID) => {
+    const {rows} = await SQLClient.query("SELECT * FROM Post WHERE client_id = $1", [clientID]);
+    return rows;
+}
 
 export const searchPostByCategory = async (SQLClient,  nameCategory) => {
-    const query = "SELECT * FROM Post p INNER JOIN Post_category pc ON p.id = pc.id_ad INNER JOIN Category_product cp ON cp.id_category = pc.id_category WHERE cp.name_category=$1";
+    const query = "SELECT * FROM Post p INNER JOIN Post_category pc ON p.id = pc.post_id INNER JOIN Category_product cp ON cp.category_id = pc.category_id WHERE cp.category_name=$1";
     const {rows} = await SQLClient.query(query, [nameCategory]);
     return rows;
 };
@@ -99,13 +99,13 @@ export const deleteImageFromPost = async (SQLClient, id) => {
 };
 
 export const getAllCategoriesFromPostID = async (SQLClient, id) => {
-    const query = "SELECT cp.id_category, cp.name_category FROM Category_product cp INNER JOIN Post_category pc ON cp.id_category = pc.id_category WHERE pc.id_ad=$1";
+    const query = "SELECT cp.category_id, cp.category_name FROM Category_product cp INNER JOIN Post_category pc ON cp.category_id = pc.category_id WHERE pc.post_id=$1";
     const {rows} = await SQLClient.query(query, [id]);
     return rows;
-}
+} // version 2 a faire verison 1 
 
 
-export const getPosts = async (SQLClient, { city, postStatus, page = 1, limit = 10 }) => {
+export const getPosts = async (SQLClient, {city, postStatus, page = 1, limit = 10 }) => {
     const pageNum = parseInt(page);
     const limitNum = parseInt(limit);
     
@@ -155,7 +155,7 @@ export const getPosts = async (SQLClient, { city, postStatus, page = 1, limit = 
                         AND reservation_status = 'confirmed'
                     )
                 ) AS number_of_places, 
-                string_agg(cp.name_category, ', ') AS categories, 
+                string_agg(cp.category_name, ', ') AS categories, 
                 a.city,
                 p.description,
                 c.username, 
@@ -166,8 +166,8 @@ export const getPosts = async (SQLClient, { city, postStatus, page = 1, limit = 
             FROM Post p
             JOIN Address a ON p.address_id = a.id
             JOIN Client c ON p.client_id = c.id 
-            INNER JOIN Post_category pc ON pc.id_ad = p.id
-            INNER JOIN Category_product cp ON cp.id_category = pc.id_category
+            INNER JOIN Post_category pc ON pc.post_id = p.id
+            INNER JOIN Category_product cp ON cp.category_id = pc.category_id
             ${whereClause}
             GROUP BY 
                 p.id, 

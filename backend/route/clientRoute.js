@@ -8,13 +8,13 @@ import {
   getUsers,
   getOwnUser,
   createUserWithAdmin
-} from "../controller/clientController.js";
+} from "../controller/v1/clientController.js";
 
 import {clientValidatorMiddleware} from '../middleware/validation.js';
 
 import {mustBeAdmin} from '../middleware/identification/mustBeAdmin.js'
 
-import {upload} from '../middleware/photo/upload.js';
+import {upload} from '../middleware/upload.js';
 
 
 const router = Router();

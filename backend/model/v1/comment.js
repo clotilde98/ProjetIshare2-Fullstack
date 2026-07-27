@@ -1,5 +1,5 @@
 export const getCommentById = async (SQLClient, id) => {
-    const query = "SELECT * FROM Comment WHERE id = $1";
+    const query = "SELECT id, content, date, post_id AS id_post, client_id AS id_customer FROM Comment WHERE id = $1";
     const { rows } = await SQLClient.query(query, [id]);
     return rows[0] || null;
 };
@@ -11,14 +11,19 @@ export const deleteComment = async (SQLClient, id) => {
 };
 
 
-export const createComment = async (SQLClient, { content, idPost, idCustomer }) => {
+export const createComment = async (SQLClient, { content, postID, clientID }) => {
     const { rows } = await SQLClient.query(
-        "INSERT INTO Comment(content, id_post, id_customer) VALUES ($1, $2, $3) RETURNING *",
-        [content, idPost, idCustomer]
+        "INSERT INTO Comment(content, post_id, client_id) VALUES ($1, $2, $3) RETURNING id, content, date, post_id AS id_post, client_id AS id_customer",
+        [content, postID, clientID]
     );
     
     return rows[0];
 };
+
+export const getCommentsByPostID = async (SQLClient, {postID}) => {
+    const {rows} = await SQLClient.query("SELECT id, content, post_id AS id_post, client_id AS id_customer FROM Comment WHERE post_id = $1", [postID])
+    return rows;
+}
 
 export const updateComment = async (SQLClient, { id, content }) => {
     let query = "UPDATE Comment SET ";
@@ -36,7 +41,7 @@ export const updateComment = async (SQLClient, { id, content }) => {
         }
         
         queryValues.push(id); 
-        query += `${querySet.join(", ")} WHERE id = $${queryValues.length} RETURNING *`;
+        query += `${querySet.join(", ")} WHERE id = $${queryValues.length} RETURNING id, content, date, post_id AS id_post, client_id AS id_customer`;
 
         const result = await SQLClient.query(query, queryValues);
         return result.rows[0]; 
@@ -64,8 +69,8 @@ export const getComments = async (SQLClient, { commentDate, page = 1, limit = 10
 
     const countQuery = `SELECT COUNT(c.id) AS total
     FROM Comment c
-    JOIN Post p ON c.id_post = p.id
-    JOIN Client cl ON c.id_customer = cl.id${whereClause}`; 
+    JOIN Post p ON c.post_id = p.id
+    JOIN Client cl ON c.client_id = cl.id${whereClause}`; 
 
     try {
         const countResult = await SQLClient.query(countQuery, values);
@@ -75,12 +80,12 @@ export const getComments = async (SQLClient, { commentDate, page = 1, limit = 10
         const offsetIndex = values.length + 2; 
 
         const dataQuery = `SELECT 
-            c.id, c.content, c.date, c.id_post, c.id_customer,
+            c.id, c.content, c.date, c.post_id AS id_post, c.client_id AS id_customer,
             p.title AS post_title,
             cl.username AS username
         FROM Comment c
-        JOIN Post p ON c.id_post = p.id
-        JOIN Client cl ON c.id_customer = cl.id${whereClause}
+        JOIN Post p ON c.post_id = p.id
+        JOIN Client cl ON c.client_id = cl.id${whereClause}
         ORDER BY c.date DESC, c.id DESC
         LIMIT $${limitIndex} OFFSET $${offsetIndex}`;
 

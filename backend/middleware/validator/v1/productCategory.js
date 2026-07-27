@@ -1,6 +1,5 @@
 import vine from '@vinejs/vine';
 
-
 /**
  * @swagger
  * components:
@@ -13,7 +12,7 @@ import vine from '@vinejs/vine';
  */
 
 
-export const createCategoryProductSchema = vine.object({
+export const createProductCategorySchema = vine.object({
     nameCategory: vine.string().trim(), 
 }); 
 
@@ -33,6 +32,7 @@ export const updateProductCategorySchema = vine.object({
 }); 
 
 
-export const
-    createCategoryProductValidator = vine.compile(createCategoryProductSchema),
-    updateProductCategoryValidator = vine.compile(updateProductCategorySchema);
+export const productCategoryValidatorV1 = {
+    createProductCategoryValidator : vine.compile(createProductCategorySchema),
+    updateProductCategoryValidator : vine.compile(updateProductCategorySchema)
+}

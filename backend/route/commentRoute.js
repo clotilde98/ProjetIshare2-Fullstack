@@ -1,8 +1,8 @@
 import { Router } from 'express';
 import {checkJWT} from '../middleware/identification/jwt.js'
-import {getComments, createComment, updateComment, deleteComment} from '../controller/commentController.js';
-import {commentValidatorMiddleware} from '../middleware/validation.js';
 
+
+export const commentRouter = (controller, validator) => {
 const router = Router();
 
 
@@ -47,7 +47,9 @@ const router = Router();
  */
 
 
-router.get('/', checkJWT, getComments);
+router.get('/', checkJWT, controller.getComments);
+
+router.get('/post/:id', checkJWT, controller.getCommentsByPostID);
 
 /**
  * @swagger
@@ -76,7 +78,7 @@ router.get('/', checkJWT, getComments);
  */
 
 
-router.post('/', checkJWT, commentValidatorMiddleware.addCommentValidator, createComment);
+router.post('/', checkJWT, validator.addCommentValidator, controller.createComment);
 
 /**
  * @swagger
@@ -115,7 +117,7 @@ router.post('/', checkJWT, commentValidatorMiddleware.addCommentValidator, creat
  */
 
 
-router.patch('/:id', checkJWT, commentValidatorMiddleware.updateCommentValidator, updateComment);
+router.patch('/:id', checkJWT, validator.updateCommentValidator, controller.updateComment);
 
 /**
  * @swagger
@@ -152,7 +154,9 @@ router.patch('/:id', checkJWT, commentValidatorMiddleware.updateCommentValidator
  *            description: Server error  
  */
 
-router.delete('/:id', checkJWT, deleteComment);
+router.delete('/:id', checkJWT, controller.deleteComment);
 
 
-export default router;
+return router;
+
+}

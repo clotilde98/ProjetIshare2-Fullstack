@@ -1,6 +1,6 @@
 export const createPostCategory = async (SQLClient, {IDCategory, IDPost}) => {
     const { rows } = await SQLClient.query(
-    `INSERT INTO Post_Category (id_category, id_ad)
+    `INSERT INTO Post_Category (category_id, post_id)
      VALUES ($1, $2)
      RETURNING * `,
     [IDCategory, IDPost]
@@ -12,22 +12,21 @@ export const createPostCategory = async (SQLClient, {IDCategory, IDPost}) => {
 export const getPostCategories = async (SQLClient, IDPost) => {
     const { rows } = await SQLClient.query(
         `
-        SELECT c.id_category, c.name_category
+        SELECT c.category_id AS id_category, c.category_name AS name_category
         FROM Post_category pc
         JOIN Category_product c
-        ON pc.id_category = c.id_category
-        WHERE pc.id_ad = $1
+        ON pc.category_id = c.category_id
+        WHERE pc.post_id = $1
         `,
         [IDPost]
     );
 
     return rows;
-};
-
+}; // pas utilisé !? 
 
 export const deletePostCategoriesForPostID = async (SQLClient, postID) => {
   const {rowCount} = await SQLClient.query(
-    `DELETE FROM Post_Category WHERE id_ad = $1`, [postID]
+    `DELETE FROM Post_Category WHERE post_id = $1`, [postID]
   );
   return rowCount > 0;
 
@@ -47,10 +46,10 @@ export const getPostswithAllCategories = async (SQLClient) => {
       p.street_number,
       p.address_id,
       p.client_id,
-      STRING_AGG(c.name_category, ', ') AS categories
+      STRING_AGG(c.category_name, ', ') AS categories
     FROM Post_Category pc
-    INNER JOIN Post p ON pc.id_ad = p.id
-    INNER JOIN Category_product c ON c.id_category = pc.id_category
+    INNER JOIN Post p ON pc.post_id = p.id
+    INNER JOIN Category_product c ON c.category_id = pc.category_id
     GROUP BY 
       p.id,
       p.post_date,

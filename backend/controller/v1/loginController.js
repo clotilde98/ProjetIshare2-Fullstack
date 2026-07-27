@@ -1,9 +1,9 @@
-import {getUserByEmail, createUser} from '../model/client.js';
-import { pool } from "../database/database.js";
+import {getUserByEmail, createUser} from '../../model/v1/client.js';
+import { pool } from "../../database/database.js";
 import argon2 from "argon2";
 import 'dotenv/config';
 import jwt from "jsonwebtoken";
-import { validateGoogleToken } from '../middleware/identification/validateUserGoogleToken.js';
+import { validateGoogleToken } from '../../middleware/identification/validateUserGoogleToken.js';
 
 /**
  * @swagger
@@ -50,8 +50,8 @@ export const login = async (req, res) => {
         );
         res.status(200).send({ token });
     } catch (err){
-        console.error("Internal server error", err); 
-        res.status(500).send(err.message);
+        console.error("Internal server error", err);  
+        return res.status(500).send("Internal server error");
     }
 }
 
@@ -82,6 +82,6 @@ export const loginWithGoogle = async (req, res) => {
         res.status(200).send({ token });
     } catch (err){
         console.error("Internal server error", err); 
-        res.status(500).send(err.message);
+        return res.status(500).send("Internal server error");
     }
 }

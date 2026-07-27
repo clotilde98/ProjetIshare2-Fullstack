@@ -3,6 +3,7 @@ DROP TABLE IF EXISTS Reservation CASCADE;
 DROP TABLE IF EXISTS Post CASCADE ;
 DROP TABLE IF EXISTS Address CASCADE ;
 DROP TABLE IF EXISTS Client CASCADE ;
+DROP TABLE IF EXISTS Product_category CASCADE; 
 DROP TABLE IF EXISTS Category_product CASCADE ;
 DROP TABLE IF EXISTS Post_category CASCADE ;
 
@@ -57,28 +58,28 @@ CREATE TABLE Reservation (
 
 
 
-CREATE TABLE Category_product
+CREATE TABLE Product_category
 (
-    id_category SERIAL PRIMARY KEY,
-    name_category VARCHAR(20) UNIQUE
+    category_id SERIAL PRIMARY KEY,
+    category_name VARCHAR(20) UNIQUE
 );
 
 CREATE TABLE Post_category (
     id SERIAL PRIMARY KEY,
-    id_category INT NOT NULL,
-    id_ad INT NOT NULL,
-    CONSTRAINT fk_category FOREIGN KEY (id_category) REFERENCES Category_product(id_category) ON DELETE CASCADE,
-    CONSTRAINT fk_ad FOREIGN KEY (id_ad) REFERENCES Post(id) ON DELETE CASCADE
+    category_id INT NOT NULL,
+    post_id INT NOT NULL,
+    CONSTRAINT fk_category FOREIGN KEY (category_id) REFERENCES Product_category(category_id) ON DELETE CASCADE,
+    CONSTRAINT fk_post FOREIGN KEY (post_id) REFERENCES Post(id) ON DELETE CASCADE
 );
 
 CREATE TABLE Comment (
     id SERIAL PRIMARY KEY,
     content VARCHAR(300),
     date DATE DEFAULT CURRENT_DATE,
-    id_post INT NOT NULL,
-    id_customer INT NOT NULL,
-    CONSTRAINT fk_post FOREIGN KEY (id_post) REFERENCES Post(id) ON DELETE CASCADE,
-    CONSTRAINT fk_customer FOREIGN KEY (id_customer) REFERENCES Client(id) ON DELETE CASCADE
+    post_id INT NOT NULL,
+    client_id INT NOT NULL,
+    CONSTRAINT fk_post FOREIGN KEY (post_id) REFERENCES Post(id) ON DELETE CASCADE,
+    CONSTRAINT fk_client FOREIGN KEY (client_id) REFERENCES Client(id) ON DELETE CASCADE
 );
 
 

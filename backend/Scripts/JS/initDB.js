@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import {readFileSync} from "node:fs";
 import {pool} from "../../database/database.js";
-import {importPostalData} from "../../model/addressDB.js"
+import {importPostalData} from "../../model/v1/addressDB.js"
 import argon2 from "argon2";
 
 
@@ -37,9 +37,6 @@ const requests = readFileSync(
 
 try {
 
-
-
-
     async function waitForDB() {
         let connected = false;
         while (!connected) {
@@ -60,8 +57,7 @@ try {
     await importPostalData(pool);
     let password = "test";
     const pepper = process.env.PEPPER;
-    const passwordWithPepper = password + pepper;
-    const hash = await argon2.hash(passwordWithPepper);
+    const hash = await argon2.hash(password, {secret: Buffer.from(process.env.PEPPER)});
     password = hash
 
 

@@ -7,12 +7,11 @@ import {
   deletePost,
   searchPostByCategory, 
   deleteImageFromPost
-} from '../controller/postController.js';
+} from '../controller/v1/postController.js';
 
 import {checkJWT} from '../middleware/identification/jwt.js'
 import {postValidatorMiddleware} from '../middleware/validation.js';
-import {upload} from '../middleware/photo/upload.js';
-
+import {upload} from '../middleware/upload.js';
 
 const router = Router();
 
@@ -262,3 +261,4 @@ router.delete("/:id", checkJWT, deletePost);
 router.delete("/:id/image", checkJWT, deleteImageFromPost); 
 
 export default router;
+

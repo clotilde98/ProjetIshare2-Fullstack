@@ -1,11 +1,10 @@
 import { Router } from 'express';
-import {getMyReservations, getReservation,createReservation, getReservationsByClientID, getReservationsByPostID, updateReservation, deleteReservation,getReservations} from '../controller/reservationController.js'
 import {reservationValidatorMiddleware} from '../middleware/validation.js';
 import {checkJWT} from '../middleware/identification/jwt.js'
 import { mustBeAdmin } from '../middleware/identification/mustBeAdmin.js';
 
 
-
+export const reservationRouter = (controller) => {
 const router = Router();
 
 /**
@@ -49,7 +48,7 @@ const router = Router();
  */
 
 
-router.post("/", checkJWT, reservationValidatorMiddleware.createReservationValidator, createReservation);   
+router.post("/", checkJWT, reservationValidatorMiddleware.createReservationValidator, controller.createReservation);   
 
 /**
  * @swagger
@@ -95,7 +94,7 @@ router.post("/", checkJWT, reservationValidatorMiddleware.createReservationValid
  *         description: Server error
  */
 
-router.get("/", checkJWT, mustBeAdmin, getReservations);
+router.get("/", checkJWT, mustBeAdmin, controller.getReservations);
 /**
  * @swagger
  * /reservations/me:
@@ -116,7 +115,7 @@ router.get("/", checkJWT, mustBeAdmin, getReservations);
  *         description: Server error
  */
 
-router.get("/me", checkJWT, getMyReservations);
+router.get("/me", checkJWT, controller.getMyReservations);
 
 /**
  * @swagger
@@ -153,7 +152,7 @@ router.get("/me", checkJWT, getMyReservations);
  */
 
 
-router.get("/client/:id", checkJWT, mustBeAdmin, getReservationsByClientID);
+router.get("/client/:id", checkJWT, mustBeAdmin, controller.getReservationsByClientID);
 
 /**
  * @swagger
@@ -190,7 +189,7 @@ router.get("/client/:id", checkJWT, mustBeAdmin, getReservationsByClientID);
  */
 
 
-router.get("/post/:id", checkJWT, getReservationsByPostID);
+router.get("/post/:id", checkJWT, controller.getReservationsByPostID);
 
 /**
  * @swagger
@@ -227,7 +226,7 @@ router.get("/post/:id", checkJWT, getReservationsByPostID);
  */
 
 
-router.get("/:id", checkJWT, mustBeAdmin, getReservation);
+router.get("/:id", checkJWT, mustBeAdmin, controller.getReservation);
 
 /**
  * @swagger
@@ -270,7 +269,7 @@ router.get("/:id", checkJWT, mustBeAdmin, getReservation);
  */
 
 
-router.patch("/:id", checkJWT, reservationValidatorMiddleware.updateReservationValidator, updateReservation);
+router.patch("/:id", checkJWT, reservationValidatorMiddleware.updateReservationValidator, controller.updateReservation);
 
 /**
  * @swagger
@@ -312,6 +311,8 @@ router.patch("/:id", checkJWT, reservationValidatorMiddleware.updateReservationV
  */
 
 
-router.delete("/:id", checkJWT, deleteReservation);
+router.delete("/:id", checkJWT, controller.deleteReservation);
 
-export default router;
+return router; 
+
+}

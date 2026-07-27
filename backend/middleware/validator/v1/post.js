@@ -71,17 +71,14 @@ export const createPostSchema = vine.object({
  */
 
 
-
-
 export const updatePostSchema = vine.object({
     title: vine.string().trim().optional(),
     description: vine.string().trim().optional(),
     street: vine.string().trim().optional(),
-    number_of_places: vine.number().positive().optional(),
-    number: vine.number().positive().optional(),
-    post_status: vine.enum(['available', 'unavailable']).optional(),     
-    address_id: vine.number().positive().optional(),
-    client_id: vine.number().positive().optional(),
+    numberOfPlaces: vine.number().positive().optional(),
+    streetNumber: vine.number().positive().optional(),
+    postStatus: vine.enum(['available', 'unavailable']).optional(),     
+    addressID: vine.number().positive().optional(),
     photo: vine.string().trim().optional(), 
     categoriesProduct: vine.string().trim().optional(), 
     

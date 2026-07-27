@@ -4,10 +4,13 @@ services:
     command: npm run start:docker
     ports:
       - "3002:3002"
+      - "443:443"
     depends_on:
       - db
     environment:
       - PORT=${PORT}
+      - HTTPS_PORT=${HTTPS_PORT}
+      - USE_HTTPS=${USE_HTTPS}
       - HOSTDB=db
       - USERDB=${USERDB}
       - PASSWORDDB=${PASSWORDDB}

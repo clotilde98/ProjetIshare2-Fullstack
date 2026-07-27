@@ -1,14 +1,16 @@
-import { pool } from "../database/database.js";
-import * as userModel from "../model/client.js";
+import { pool } from "../../database/database.js";
+import * as userModel from "../../model/v1/client.js";
 import argon2 from "argon2";
 import 'dotenv/config';
 import jwt from "jsonwebtoken";
 import path from 'path';
 import { fileURLToPath } from 'url';
-import {saveImage} from '../middleware/photo/saveImage.js';
+import {saveImage} from '../../middleware/saveImage.js';
 import * as uuid from 'uuid'
-import { PAGINATION } from '../Config/pagination.js';
-import { validatePagination } from '../Utils/validationPagination.js'
+import { PAGINATION } from '../../Config/pagination.js';
+import { validatePagination } from '../../Utils/validationPagination.js'
+import { PaginationValidationError } from "../../errors/PaginationValidationError.js"; 
+import { faker } from '@faker-js/faker';
 
 
 /**
@@ -66,13 +68,13 @@ export const createUser = async (req, res) => {
     let {username} = req.body;
     if (!username){
         username = faker.internet.username();
-    }
+    }   
 
     const photo = req.file;
     let user = await userModel.getUserByEmail(pool, email)
     const __filename = fileURLToPath(import.meta.url);
     const __dirname = path.dirname(__filename);
-    const destFolderImages = path.join(__dirname, '../middleware/photo/');
+    const destFolderImages = path.join(__dirname, '../../middleware/photo/');
     
     if (!user){
         let imageName = null;
@@ -98,16 +100,11 @@ export const createUser = async (req, res) => {
       res.status(409).send("User account already exists");
     }
   } catch (err) {
-    console.error("Internal server error", err);
-    res.status(500).send(err.message);
+        console.error("Internal server error", err); 
+        res.status(500).send("Internal server error"); 
   }
 }
-
-
-
-
-
-
+// en prod pas ouf le photoURL a cause du localhost renvoyé 
 export const getUserById = async (req, res) => {
     try {
 
@@ -137,16 +134,11 @@ export const getUserById = async (req, res) => {
             user
         });
 
-
-
-
     } catch (err) {
         console.error("Internal server error", err); 
-        res.status(500).send("Internal server error " + err.message); 
+        return res.status(500).send("Internal server error");
     }
 }
-
-
 
 export const createUserWithAdmin = async (req, res) => {
     try {
@@ -186,8 +178,8 @@ export const createUserWithAdmin = async (req, res) => {
             res.status(409).send("User account already exists");
         }
     } catch (err) {
-        console.error("Internal server error", err);
-        res.status(500).send(err.message);
+        console.error("Internal server error", err); 
+        return res.status(500).send("Internal server error");
     }
 }
 
@@ -249,7 +241,7 @@ export const updateUser = async (req, res) => {
         res.status(200).json(updatedUser); 
     } catch (err) {
         console.error("Internal server error", err); 
-        res.status(500).send("Internal server error : " + err.message);
+        return res.status(500).send("Internal server error");
     }
 };
 
@@ -278,7 +270,7 @@ export const deleteUser = async (req, res) => {
     res.status(200).send("User deleted successfully.");
     } catch (err) {
         console.error("Internal server error", err); 
-        res.status(500).send("Internal server error : " + err.message);
+        return res.status(500).send("Internal server error");
     }
 };
 
@@ -336,8 +328,8 @@ export const getOwnUser = async (req, res) => {
         });
 
     } catch (err) {
-        console.error("Internal server error", err);
-        res.status(500).send("Internal server error " + err.message);
+        console.error("Internal server error", err);  
+        return res.status(500).send("Internal server error");
     }
 };
 
@@ -382,8 +374,6 @@ export const getOwnUser = async (req, res) => {
  */
 
 
-
-
 export const getUsers = async (req, res) => {
   try {
     const { name, role, page, limit } = req.query;
@@ -417,10 +407,10 @@ export const getUsers = async (req, res) => {
 
     res.status(200).json(users); 
   } catch (err) {
-    if (err.message.includes('must be a number between')) {
-      return res.status(400).json({ error: err.message });
+    if (err instanceof PaginationValidationError) {
+         return res.status(400).json({ error: err.message }); 
     }
     console.error("Internal server error", err); 
-    res.status(500).send('Erreur serveur'); 
+    return res.status(500).send("Internal server error");
   }
 };

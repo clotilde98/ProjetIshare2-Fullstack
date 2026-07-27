@@ -1,11 +1,10 @@
-
-import { pool } from "../database/database.js";
-
-import {readPost} from '../model/postDB.js'
-
-import * as reservationModel from '../model/reservationDB.js';
-import { PAGINATION } from '../Config/pagination.js';
-import { validatePagination } from '../Utils/validationPagination.js'
+import { pool } from "../../database/database.js";
+import {readPost} from '../../model/v1/postDB.js'
+import * as reservationModel from '../../model/v1/reservationDB.js';
+import { PAGINATION } from '../../Config/pagination.js';
+import { validatePagination } from '../../Utils/validationPagination.js'; 
+import { PaginationValidationError } from "../../errors/PaginationValidationError.js"; 
+import {sendNotification} from '../../websocket.js'; 
 
 
 const VALID_STATUS = ['confirmed', 'cancelled', 'withdrawal']; 
@@ -83,11 +82,11 @@ export const getReservations = async (req, res) => {
         res.status(200).json(result); 
         
     } catch (err) {
-        if (err.message.includes('must be a number between')) {
-            return res.status(400).json({ error: err.message });
+        if (err instanceof PaginationValidationError) {
+         return res.status(400).json({ error: err.message }); 
         }
         console.error("Internal server error", err); 
-        res.status(500).send('Internal server error :', err.message);
+        res.status(500).send("Internal server error"); 
     }
 };
 
@@ -99,7 +98,7 @@ export const getReservation = async (req, res) => {
             return res.status(400).send("Invalid reservation ID");
         }
 
-        const reservation = await reservationModel.readReservation(pool, { id: reservationID });
+        const reservation = await reservationModel.readReservation(pool, reservationID);
 
         if (!reservation) {
             return res.status(404).send("Reservation not found");
@@ -109,28 +108,31 @@ export const getReservation = async (req, res) => {
 
     } catch (err) {
         console.error("Internal server error", err); 
-        res.status(500).send(`Internal server error: ${err.message}`);
+        res.status(500).send("Internal server error"); 
     }
 };
 
-
-
-
 export const getMyReservations = async (req, res) => {
     try {
-        let userID = req.user.id;
-        const reservations = await reservationModel.readReservationsByClientID(pool, userID);
-        if (reservations.length > 0){
-            res.status(200).send({reservations});
-        } else {
-            res.status(404).send("Client reservation not found");
-        }
+        const userID = req.user.id;
+        const rows = await reservationModel.readMyReservations(pool,  userID);
+        const reservations = rows.map(row => ({
+            id: row.reservation_id,
+            title: row.title,
+            address: `${row.street_number} ${row.street}`,
+            location: `${row.postal_code} ${row.city}`,
+            image: row.photo ? `${req.protocol}://${req.get('host')}/images/${row.photo}.jpeg` : null,
+            ownerName: row.owner_name,
+            ownerPhoto: row.owner_photo ? `${req.protocol}://${req.get('host')}/images/${row.owner_photo}.jpeg` : null,
+            postId: row.postid
+        }));
 
-    } catch (err){
+        res.status(200).json(reservations);
+    } catch (err) {
         console.error("Internal server error", err); 
-        res.status(500).send(err.message);
+        res.status(500).send("Erreur : " + err.message);
     }
-}
+};
 
 export const getReservationsByClientID = async (req, res) => {
     try {
@@ -150,6 +152,7 @@ export const getReservationsByClientID = async (req, res) => {
     }
 }
 
+
 export const getReservationsByPostID = async (req, res) => {
     try {
         const postID = parseInt(req.params.id);
@@ -167,7 +170,7 @@ export const getReservationsByPostID = async (req, res) => {
         
     } catch (err) {
         console.error("Internal server error", err); 
-        res.status(500).send("Internal server error : " + err.message);
+        res.status(500).send("Internal server error"); 
     }
 }
 
@@ -221,11 +224,13 @@ export const createReservation = async (req, res) => {
             return res.status(409).send("Reservation already exists");
         }
 
-                const informationPostReservation = await reservationModel.getReservationWithPostTitle(pool, {clientID: userID , postID}); 
+        const newReservation = await reservationModel.createReservation(pool, userID, postID); 
+
+        const informationPostReservation = await reservationModel.getReservationWithPostTitle(pool, {clientID: userID , postID}); 
 
         const notification = {
             type: 'reservation', 
-            message:  `${informationPostReservation.username} a réservé ton post "${post.title}"`,
+            message:  `${informationPostReservation.username} has reserved your post "${post.title}"`,
             postId: postID, 
             reserverId: userID
 
@@ -233,12 +238,11 @@ export const createReservation = async (req, res) => {
 
         sendNotification(informationPostReservation.owner_id, notification);
 
-        const newReservation = await reservationModel.createReservation(pool, userID, postID); 
         res.status(201).json({ reservation: newReservation });
 
     } catch (err) {
         console.error("Internal server error", err); 
-        res.status(500).send(err.message);
+        res.status(500).send("Internal server error"); 
     }
 }
 
@@ -291,7 +295,7 @@ export const updateReservation = async (req, res) => {
         
     } catch (err){
         console.error("Internal server error", err); 
-        res.status(500).send(err.message);
+        res.status(500).send("Internal server error"); 
     }
 }
 
@@ -317,6 +321,6 @@ export const deleteReservation = async (req, res) => {
         
     } catch (err) {
         console.error("Internal server error", err); 
-        res.status(500).send("Internal server error : " + err.message);
+        res.status(500).send("Internal server error"); 
     }
 };

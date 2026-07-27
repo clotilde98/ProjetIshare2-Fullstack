@@ -23,6 +23,7 @@ import vine from '@vinejs/vine';
 export const createCommentSchema = vine.object({
     content: vine.string().trim(), 
     idPost: vine.number().positive(),
+    idCustomer: vine.number().positive().optional()
 }); 
 
 /**
@@ -44,6 +45,7 @@ export const updateCommentSchema = vine.object({
 }); 
 
 
-export const
-    addCommentValidator = vine.compile(createCommentSchema),
-    updateCommentValidator = vine.compile(updateCommentSchema);
+export const commentValidatorV1 = {
+    addCommentValidator : vine.compile(createCommentSchema),
+    updateCommentValidator : vine.compile(updateCommentSchema)
+}

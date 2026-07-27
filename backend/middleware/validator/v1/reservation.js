@@ -16,6 +16,7 @@ import vine from '@vinejs/vine';
 
 export const createReservationSchema = vine.object({
     postID: vine.number().positive(),
+    providedClientID: vine.number().positive().optional()
 }); 
 
 /**
@@ -32,7 +33,6 @@ export const createReservationSchema = vine.object({
  *             - cancelled
  *             - withdrawal
  */
-
 
 
 export const updateReservationSchema = vine.object({

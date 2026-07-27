@@ -1,10 +1,8 @@
 import Router from 'express';
-import {getCategories, createTypeProduct, updateTypeProduct, deleteTypeProduct} from '../controller/productTypeController.js';
 import {checkJWT} from '../middleware/identification/jwt.js'
 import {mustBeAdmin} from '../middleware/identification/mustBeAdmin.js'
-import {categoryProductValidatorMiddleware} from '../middleware/validation.js';
 
-
+export const productTypeRouter = (controller, validator) => {
 const router = Router();
 
 /**
@@ -42,7 +40,7 @@ const router = Router();
  */
 
 
-router.post('/', checkJWT,mustBeAdmin,categoryProductValidatorMiddleware.createCategoryProductValidator,createTypeProduct);
+router.post('/', checkJWT, mustBeAdmin, validator.createProductCategoryValidator, controller.createProductType);
 
 /**
  * @swagger
@@ -81,7 +79,7 @@ router.post('/', checkJWT,mustBeAdmin,categoryProductValidatorMiddleware.createC
  */
 
 
-router.get('/',checkJWT, getCategories);
+router.get('/',checkJWT, controller.getCategories);
 
 /**
  * @swagger
@@ -124,7 +122,7 @@ router.get('/',checkJWT, getCategories);
  */
 
 
-router.patch('/:id',checkJWT,mustBeAdmin,categoryProductValidatorMiddleware.updateCategoryProductValidator, updateTypeProduct);
+router.patch('/:id',checkJWT, mustBeAdmin, validator.updateProductCategoryValidator, controller.updateProductType);
 
 /**
  * @swagger
@@ -164,7 +162,9 @@ router.patch('/:id',checkJWT,mustBeAdmin,categoryProductValidatorMiddleware.upda
  *         description: Server error
  */
 
-router.delete('/:id',checkJWT,mustBeAdmin, deleteTypeProduct);
+router.delete('/:id',checkJWT,mustBeAdmin, controller.deleteProductType);
 
 
-export default router;
+return router;
+
+}

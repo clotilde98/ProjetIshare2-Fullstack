@@ -1,9 +1,10 @@
-import { addClientValidator, loginValidator, updateClientValidator } from "./validator/client.js"; 
-import { addCommentValidator, updateCommentValidator } from "./validator/comment.js";
-import { createPostValidator, updatePostValidator } from "./validator/post.js";
-import { createReservationValidator, updateReservationValidator } from "./validator/reservation.js";
-import { createCategoryProductValidator, updateCategoryProductValidator } from "./validator/categoryProduct.js";
-
+import { addClientValidator, loginValidator, updateClientValidator } from "./validator/v1/client.js"; 
+import {commentValidatorV1 } from "./validator/v1/comment.js";
+import { addCommentValidatorV2 } from "./validator/v2/comment.js";
+import { createPostValidator, updatePostValidator } from "./validator/v1/post.js";
+import { createReservationValidator, updateReservationValidator } from "./validator/v1/reservation.js";
+import { productCategoryValidatorV1 } from "./validator/v1/productCategory.js";
+import { productCategoryValidatorV2 } from "./validator/v2/productCategory.js";
 /**
  * @swagger
  * components:
@@ -50,10 +51,10 @@ export const clientValidatorMiddleware = {
 
 
 
-export const commentValidatorMiddleware = {
+export const commentValidatorMiddleware1 = {
     addCommentValidator: async (req, res, next) => {
         try {
-            req.body = await addCommentValidator.validate(req.body);
+            req.body = await commentValidatorV1.addCommentValidator.validate(req.body);
             next();
         } catch (e) {
             res.status(400).send(e.messages);
@@ -61,7 +62,26 @@ export const commentValidatorMiddleware = {
     },
     updateCommentValidator: async (req, res, next) => {
         try {
-            req.body = await updateCommentValidator.validate(req.body);
+            req.body = await commentValidatorV1.updateCommentValidator.validate(req.body);
+            next();
+        } catch (e) {
+            res.status(400).send(e.messages);
+        }
+    }
+};
+
+export const commentValidatorMiddleware2 = {
+    addCommentValidator: async (req, res, next) => {
+        try {
+            req.body = await addCommentValidatorV2.validate(req.body);
+            next();
+        } catch (e) {
+            res.status(400).send(e.messages);
+        }
+    },
+    updateCommentValidator: async (req, res, next) => {
+        try {
+            req.body = await commentValidatorV1.updateCommentValidator.validate(req.body);
             next();
         } catch (e) {
             res.status(400).send(e.messages);
@@ -112,18 +132,37 @@ export const reservationValidatorMiddleware = {
 
 
 
-export const categoryProductValidatorMiddleware = {
-    createCategoryProductValidator: async (req, res, next) => {
+export const productCategoryValidatorMiddleware1 = {
+    createProductCategoryValidator: async (req, res, next) => {
         try {
-            req.body = await createCategoryProductValidator.validate(req.body);
+            req.body = await productCategoryValidatorV1.createProductCategoryValidator.validate(req.body);
             next();
         } catch (e) {
             res.status(400).send(e.messages);
         }
     },
-    updateCategoryProductValidator: async (req, res, next) => {
+    updateProductCategoryValidator: async (req, res, next) => {
         try {
-            req.body = await updateCategoryProductValidator.validate(req.body);
+            req.body = await productCategoryValidatorV1.updateProductCategoryValidator.validate(req.body);
+            next();
+        } catch (e) {
+            res.status(400).send(e.messages);
+        }
+    }
+};
+
+export const productCategoryValidatorMiddleware2 = {
+    createProductCategoryValidator: async (req, res, next) => {
+        try {
+            req.body = await productCategoryValidatorV2.createProductCategoryValidator.validate(req.body);
+            next();
+        } catch (e) {
+            res.status(400).send(e.messages);
+        }
+    },
+    updateProductCategoryValidator: async (req, res, next) => {
+        try {
+            req.body = await productCategoryValidatorV2.updateProductCategoryValidator.validate(req.body);
             next();
         } catch (e) {
             res.status(400).send(e.messages);

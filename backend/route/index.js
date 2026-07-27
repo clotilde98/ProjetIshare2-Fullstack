@@ -1,24 +1,24 @@
 import Router  from 'express';
 import userRouter from './clientRoute.js';
 import postRouter from './postRoute.js';
-import reservationRouter from './reservationRoute.js';
-import commentRouter from './commentRoute.js';
-import {getAllCities} from '../controller/addressController.js';
-import {login, loginWithGoogle} from '../controller/loginController.js'
+import {commentRouter} from './commentRoute.js';
+import {productTypeRouter} from './productTypeRoute.js'; 
+import {reservationRouter } from './reservationRoute.js';
+import {getAllCities} from '../controller/v1/addressController.js';
+import {login, loginWithGoogle} from '../controller/v1/loginController.js'
 import {checkJWT} from '../middleware/identification/jwt.js'
 import { mustBeAdmin } from '../middleware/identification/mustBeAdmin.js';
 import {clientValidatorMiddleware} from '../middleware/validation.js';
-import { getAllStats } from '../controller/dashboardController.js';
+import { getAllStats } from '../controller/v1/dashboardController.js';
 
-import productTypeRouter from './productTypeRoute.js'
-
+export const createApiRouter = (productTypeController, commentController, reservationController, commentValidator, productCategoryValidator) => {
 const router = Router();
 
 router.use('/users',userRouter);
 router.use('/posts', postRouter);
-router.use('/reservations', reservationRouter);
-router.use('/comments', commentRouter);
-router.use('/productType', productTypeRouter);
+router.use('/reservations', reservationRouter(reservationController));
+router.use('/comments', commentRouter(commentController, commentValidator));
+router.use("/productType", productTypeRouter(productTypeController, productCategoryValidator)); 
 
 /**
  * @swagger
@@ -108,5 +108,5 @@ router.get('/stats', checkJWT, mustBeAdmin , getAllStats)
 
 router.get('/getAllCities',checkJWT, getAllCities);
 
-
-export default router;
+return router; 
+}

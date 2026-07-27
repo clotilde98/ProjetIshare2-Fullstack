@@ -1,9 +1,9 @@
-import {pool} from "../database/database.js";
-import * as commentModel from "../model/comment.js";
-
-import * as postModel from "../model/postDB.js"
-import { PAGINATION } from '../Config/pagination.js';
-import { validatePagination } from '../Utils/validationPagination.js'
+import {pool} from "../../database/database.js";
+import * as commentModel from "../../model/v1/comment.js";
+import * as postModel from '../../model/v1/postDB.js'; 
+import { PAGINATION } from '../../Config/pagination.js';
+import {validatePagination} from '../../Utils/validationPagination.js'; 
+import {PaginationValidationError} from "../../errors/PaginationValidationError.js"; 
 
 
 /**
@@ -25,6 +25,17 @@ import { validatePagination } from '../Utils/validationPagination.js'
  *         id_costumer:
  *           type: integer
  */
+
+
+export const getCommentsByPostID = async (req, res) => {
+    try {
+        const rows = await commentModel.getCommentsByPostID(pool, {postID: req.params.id})
+        return res.status(200).send({rows});
+    } catch (err) {
+        console.error("Internal server error", err);  
+        return res.status(500).send("Internal server error");
+    }
+}
 
 /**
  * @swagger
@@ -54,20 +65,20 @@ export const createComment = async (req, res) => {
         const post = await postModel.readPost(pool, req.body.idPost);
 
         if (!post){
-            return res.status(404).send("Post doesn't exist.");
+            return res.status(400).send("Post doesn't exist.");
         }
 
 
-        const commentCreated = await commentModel.createComment(pool,  { content: req.body.content, idPost: req.body.idPost, idCustomer: userID });
+        const commentCreated = await commentModel.createComment(pool,  { content: req.body.content, postID: req.body.idPost, clientID: userID });
         
         if (commentCreated) {
             res.status(201).send({commentCreated});
         } else {
             res.status(400).send({ message: "Unable to create comment. Please check if the post ID is correct." }); 
         } 
-    } catch (e) {
-        console.error("Internal server error", err); 
-        res.status(500).send({message: "Internal server error : " + e.message});
+    } catch (err) {
+        console.error("Internal server error", err);  
+        return res.status(500).send("Internal server error");
         
     }
 };
@@ -106,13 +117,11 @@ export const updateComment = async (req, res) => {
             return res.status(403).send("Admin privilege required.");
         }
 
-    } catch (err) {    
-        console.error("Internal server error", err);  
+    } catch (err) { 
+        console.error("Internal server error", err);         
         return res.status(500).send("Internal server error");
     }
 };
-
-
 
 export const deleteComment = async(req, res) =>{
     try {
@@ -122,7 +131,7 @@ export const deleteComment = async(req, res) =>{
 
         const comment = await commentModel.getCommentById(pool, commentID);
 
-        if (!comment){ 
+        if (!comment){
             return res.status(404).send("Comment not found")
         }
 
@@ -192,10 +201,10 @@ export const getComments = async (req, res) => {
     res.status(200).json(comments);
     
   } catch (err) {
-    if (err.message.includes('must be a number between')) {
-      return res.status(400).json({ error: err.message });
+    if (err instanceof PaginationValidationError) {
+         return res.status(400).json({ error: err.message }); 
     }
     console.error("Internal server error", err); 
-    res.status(500).send("Internal server error : " + err.message);
+    return res.status(500).send("Internal server error");
   }
 };

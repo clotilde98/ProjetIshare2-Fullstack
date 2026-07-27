@@ -17,6 +17,8 @@ import vine from '@vinejs/vine';
  *                      type: string
  *                  password: 
  *                      type: string
+ *                  addressID:
+ *                      type: integer
  *              required: 
  *                  - username
  *                  - street
@@ -29,9 +31,12 @@ import vine from '@vinejs/vine';
 
 const addClientSchema = vine.object({
     email: vine.string().email().trim(),
-    password: vine.string()
+    password: vine.string(), 
+    username: vine.string().trim().optional(), 
+    street: vine.string().trim(),
+    streetNumber: vine.number(),
+    addressID: vine.number().optional()
 });
-
 
 /**
  * @swagger
