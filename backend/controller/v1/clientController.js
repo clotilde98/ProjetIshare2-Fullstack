@@ -62,6 +62,9 @@ import { faker } from '@faker-js/faker';
  *                         type: string
  */
 
+
+
+
 export const createUser = async (req, res) => {
   try {
     const {email, password, streetNumber, street, addressID} = req.body;
@@ -72,9 +75,8 @@ export const createUser = async (req, res) => {
 
     const photo = req.file;
     let user = await userModel.getUserByEmail(pool, email)
-    const __filename = fileURLToPath(import.meta.url);
-    const __dirname = path.dirname(__filename);
-    const destFolderImages = path.join(__dirname, '../../middleware/photo/');
+
+    const destFolderImages = './middleware/photo';
     
     if (!user){
         let imageName = null;
@@ -117,8 +119,8 @@ export const getUserById = async (req, res) => {
         }
 
         const photoUrl = user.photo
-        ? `${req.protocol}://${req.get('host')}/images/${user.photo}.jpeg` 
-        : `${req.protocol}://${req.get('host')}/images/unknown_person.jpeg`;
+            ? `/images/${user.photo}.jpeg`
+            : `/images/unknown_person.jpeg`;
 
         user.photo = photoUrl;
 
@@ -207,7 +209,7 @@ export const updateUser = async (req, res) => {
             const __filename = fileURLToPath(import.meta.url);
             const __dirname = path.dirname(__filename);
 
-            const destFolderImages = path.join(__dirname, '../middleware/photo/');
+            const destFolderImages = path.join(__dirname, '../../middleware/photo');
             const imageName = uuid.v4();
 
             await saveImage(photo.buffer, imageName, destFolderImages);
