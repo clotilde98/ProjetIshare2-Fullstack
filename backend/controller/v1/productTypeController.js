@@ -15,19 +15,23 @@ import { PaginationValidationError } from "../../errors/PaginationValidationErro
  *           type: integer
  *         nameCategory:
  *           type: string
- * 
+ *
  *   responses:
  *     CategoriesRead:
- *       description: Category successfully retrieved
+ *       description: Categories successfully retrieved
  *       content:
  *         application/json:
- *            schema:
- *              type: array
- *              items: 
- *                 $ref: '#/components/schemas/Category'
+ *           schema:
+ *             type: object
+ *             properties:
+ *               rows:
+ *                 type: array
+ *                 items:
+ *                   $ref: '#/components/schemas/Category'
+ *               total:
+ *                 type: integer
+ *                 description: Total number of posts matching the search criteria
  */
-
-
 
 export const getCategories = async (req, res) => {
   try {
@@ -72,12 +76,15 @@ export const getCategories = async (req, res) => {
  * @swagger
  * components:
  *   responses:
- *     CategoryProductCreated:
+ *     ProductTypeCreated:
  *       description: The requested category of product has been created successfully.
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/Category'   
+ *             type: object 
+ *             properties: 
+ *               productCreated:
+ *                  $ref: '#/components/schemas/Category'   
  */
 
 export const createProductType = async (req, res) => {
@@ -88,7 +95,7 @@ export const createProductType = async (req, res) => {
              return res.status(400).send("Category name required.");
         }
 
-        const existingType = await typeProductModel.getCategories(pool, {nameCategory});
+        const existingType = await typeProductModel.getCategories(pool, {categoryName : nameCategory});
         
         if (existingType.rows.length > 0) {
             return res.status(409).send("Type already exists");
@@ -111,12 +118,15 @@ export const createProductType = async (req, res) => {
  * @swagger
  * components:
  *   responses:
- *     TypeProductUpdated:
+ *     ProductTypeUpdated:
  *       description: The requested type of product is successfully updated
  *       content:
  *         application/json: 
- *              schema: 
- *                $ref: '#/components/schemas/Category'
+ *            schema:
+ *              type: object 
+ *              properties: 
+ *                 productUpdated:
+ *                   $ref: '#/components/schemas/Category' 
  *             
  */
 
@@ -130,7 +140,7 @@ export const updateProductType = async (req, res) => {
         
         const nameCategory = req.body.nameCategory;
         
-        const updatedCategory = await typeProductModel.updateTypeProduct(pool, { 
+        const updatedCategory = await typeProductModel.updateProductType(pool, { 
             idCategory: idCategory, 
             nameCategory: nameCategory 
         });

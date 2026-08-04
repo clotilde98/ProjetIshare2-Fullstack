@@ -9,7 +9,7 @@ import {PaginationValidationError} from "../../errors/PaginationValidationError.
  * @swagger
  * components:
  *   schemas:
- *     Comment:
+ *     CommentV2:
  *       type: object
  *       properties:
  *         id:
@@ -19,9 +19,9 @@ import {PaginationValidationError} from "../../errors/PaginationValidationError.
  *         date:
  *           type: string 
  *           format: date
- *         id_post:
+ *         post_id:
  *           type: integer
- *         id_costumer:
+ *         client_id:
  *           type: integer
  */
 
@@ -39,12 +39,12 @@ export const getCommentsByPostID = async (req, res) => {
  * @swagger
  * components:
  *   responses:
- *     CommentAdded:
+ *     CommentAddedV2:
  *       description: The Comment added at the database
  *       content:
  *         application/json:
  *           schema:
- *              $ref: '#/components/schemas/Comment'
+ *              $ref: '#/components/schemas/CommentV2'
  *             
  */
 
@@ -84,12 +84,12 @@ export const createComment = async (req, res) => {
  * @swagger
  * components:
  *   responses:
- *     CommentUpdated:
+ *     CommentUpdatedV2:
  *       description: The Comment updated in the database
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/Comment' 
+ *             $ref: '#/components/schemas/CommentV2' 
  * 
  */
 
@@ -143,27 +143,33 @@ export const deleteComment = async(req, res) =>{
         return res.status(500).send("Internal server error");
     }
 }
+
 /**
  * @swagger
  * components:
  *   responses:
- *     CommentsRead:
- *       description: All the comments that correspond to the given date
+ *     CommentsReadV2:
+ *       description: Comments matching the specified filters successfully retrieved
  *       content:
  *         application/json:
  *           schema:
- *             type: array
- *             items:
- *               allOf: 
- *               - $ref: '#/components/schemas/Comment'
- *               - type: object 
- *                 properties: 
- *                      post_title: 
- *                          type: string 
- *                      username: 
- *                          type: string
+ *             type: object
+ *             properties:
+ *               rows:
+ *                 type: array
+ *                 items:
+ *                   allOf:
+ *                     - $ref: '#/components/schemas/CommentV2'
+ *                     - type: object
+ *                       properties:
+ *                         post_title:
+ *                           type: string
+ *                         username:
+ *                           type: string
+ *               total:
+ *                 type: integer
+ *                 description: Total number of comments matching the search criteria
  */
-
 
 export const getComments = async (req, res) => {
   try {

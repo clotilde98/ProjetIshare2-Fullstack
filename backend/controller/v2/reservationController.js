@@ -7,6 +7,48 @@ import { PAGINATION } from '../../Config/pagination.js';
 import {validatePagination} from '../../Utils/validationPagination.js'; 
 import { PaginationValidationError } from "../../errors/PaginationValidationError.js"; 
 
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     ReservationV2:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *         reservation_date:
+ *           type: string
+ *           format: date
+ *         reservation_status:
+ *           type: string
+ *         post_id:
+ *           type: integer
+ *         client_id:
+ *           type: integer
+ *
+ *     ReservationsListV2:
+ *       type: object
+ *       properties:
+ *         rows:
+ *           type: array
+ *           items:
+ *             $ref: '#/components/schemas/ReservationV2'
+ *         total:
+ *           type: integer
+ *           description: Total number of reservations matching the search criteria
+ */
+
+/**
+ * @swagger
+ * components:
+ *   responses:
+ *     MyReservationsResponseV2:
+ *       description: Reservations matching the specified user ID.
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/ReservationsListV2'
+ */
 
 export const getMyReservations = async (req, res) => {
     try {
@@ -35,6 +77,17 @@ export const getMyReservations = async (req, res) => {
     }
 }
 
+/**
+ * @swagger
+ * components:
+ *   responses:
+ *     ReservationsResponseV2:
+ *       description: All reservations matching the specified ID parameters.
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/ReservationsListV2'
+ */
 
 export const getReservationsByClientID = async (req, res) => {
     try {
@@ -59,6 +112,7 @@ export const getReservationsByClientID = async (req, res) => {
         res.status(500).send("Internal server error"); 
     }
 }
+
 
 export const getReservationsByPostID = async (req, res) => {
     try {

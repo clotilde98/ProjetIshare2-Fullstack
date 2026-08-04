@@ -45,7 +45,7 @@ export const getUserByEmail = async (SQLClient, email) => {
 
 export const getUserByUsernameOrEmail = async (SQLClient, username, email) => {
     const { rows } = await SQLClient.query(
-        `SELECT googleId, id, username, email, street, street_number, registration_date, photo, is_admin AS isAdmin, address_id
+        `SELECT googleId, id, username, email, street, street_number, registration_date, photo, is_admin, address_id
          FROM Client
          WHERE username = $1 OR email = $2`,
         [username, email] 
@@ -56,7 +56,7 @@ export const getUserByUsernameOrEmail = async (SQLClient, username, email) => {
 
 export const getProfileById = async (SQLClient, id) => {
     const { rows } = await SQLClient.query(
-        `SELECT googleId, id, username, email, street, street_number, registration_date, photo, is_admin AS isAdmin, address_id
+        `SELECT googleId, id, username, email, street, street_number, registration_date, photo, is_admin, address_id
         FROM  Client
         WHERE id = $1`,
         [id]

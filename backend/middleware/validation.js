@@ -17,16 +17,12 @@ import { productCategoryValidatorV2 } from "./validator/v2/productCategory.js";
  *                      type: string
  */
 
-
 export const clientValidatorMiddleware = {
     addClientValidator: async (req, res, next) => {
         try {
             req.body = await addClientValidator.validate(req.body);
             next();
         } catch (e) {
-            if (e.messages) {
-                return res.status(400).json(e.messages);
-            }
             res.status(400).send(e.message);
         }
     },

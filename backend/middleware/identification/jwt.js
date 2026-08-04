@@ -44,7 +44,7 @@ export const checkJWT = async (req, res, next) => {
         };
         next();
     } catch (err){
+        console.error("Internal server error", err);
         return res.status(403).send("Token invalid");
-    }
-    
+    }  
 };

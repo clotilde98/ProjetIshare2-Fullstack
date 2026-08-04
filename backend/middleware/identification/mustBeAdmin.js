@@ -8,6 +8,7 @@ export const mustBeAdmin = (req, res, next) => {
             return res.status(403).send("Admin privilege required");
         }
     } catch (err) {
+        console.error("Internal server error", err);
         return res.status(500).send("Internal server error : " + err.message);
     }
 };

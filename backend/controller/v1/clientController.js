@@ -17,7 +17,7 @@ import { faker } from '@faker-js/faker';
  * @swagger
  * components:
  *   schemas:
- *     Client:
+ *     User:
  *       type: object
  *       properties:
  *         id:
@@ -39,7 +39,7 @@ import { faker } from '@faker-js/faker';
  *         registration_date: 
  *           type: string
  *           format: date 
- *         isadmin: 
+ *         is_admin: 
  *           type: boolean
  *         address_id: 
  *           type: integer
@@ -54,12 +54,12 @@ import { faker } from '@faker-js/faker';
  *       content:
  *         application/json:
  *           schema:
- *             allOf: 
- *               - $ref: '#/components/schemas/Client'
- *               - type: object
- *                 properties:
- *                      token:
- *                         type: string
+ *             type: object
+ *             properties: 
+ *                 token: 
+ *                   type: string
+ *                 user: 
+ *                   $ref: '#/components/schemas/User'
  */
 
 export const createUser = async (req, res) => {
@@ -72,9 +72,7 @@ export const createUser = async (req, res) => {
 
     const photo = req.file;
     let user = await userModel.getUserByEmail(pool, email)
-    const __filename = fileURLToPath(import.meta.url);
-    const __dirname = path.dirname(__filename);
-    const destFolderImages = path.join(__dirname, '../../middleware/photo/');
+    const destFolderImages = './middleware/photo';
     
     if (!user){
         let imageName = null;
@@ -104,7 +102,29 @@ export const createUser = async (req, res) => {
         res.status(500).send("Internal server error"); 
   }
 }
-// en prod pas ouf le photoURL a cause du localhost renvoyé 
+
+/**
+ * @swagger
+ * components:
+ *   responses:
+ *     UserProfileWithoutSensitiveData:
+ *       description: User profile successfully retrieved
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               user:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: integer
+ *                   username:
+ *                     type: string
+ *                   photo:
+ *                     type: string
+ */
+
 export const getUserById = async (req, res) => {
     try {
 
@@ -117,8 +137,8 @@ export const getUserById = async (req, res) => {
         }
 
         const photoUrl = user.photo
-        ? `${req.protocol}://${req.get('host')}/images/${user.photo}.jpeg` 
-        : `${req.protocol}://${req.get('host')}/images/unknown_person.jpeg`;
+        ? `/images/${user.photo}.jpeg`
+        : `/images/unknown_person.jpeg`;
 
         user.photo = photoUrl;
 
@@ -183,6 +203,18 @@ export const createUserWithAdmin = async (req, res) => {
     }
 }
 
+/**
+ * @swagger
+ * components: 
+ *     responses: 
+ *         UserUpdated: 
+ *            description: The user has been successfully updated   
+ *            content: 
+ *              application/json: 
+ *                  schema: 
+ *                     $ref: '#/components/schemas/User'
+ */
+
 export const updateUser = async (req, res) => {
     try {
         
@@ -204,10 +236,8 @@ export const updateUser = async (req, res) => {
 
         const photo = req.file;
         if (photo) {
-            const __filename = fileURLToPath(import.meta.url);
-            const __dirname = path.dirname(__filename);
 
-            const destFolderImages = path.join(__dirname, '../middleware/photo/');
+            const destFolderImages = './middleware/photo';
             const imageName = uuid.v4();
 
             await saveImage(photo.buffer, imageName, destFolderImages);
@@ -283,36 +313,11 @@ export const deleteUser = async (req, res) => {
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/Client'
+ *             type: object 
+ *             properties: 
+ *               user: 
+ *                 $ref: '#/components/schemas/User' 
  */
-
-/** 
-export const getOwnUser = async (req, res) => {
-    try {
-        const clientID = req.user.id; 
-       const user = await userModel.getProfileById(pool, clientID); 
-
-        if (!user) {
-            return res.status(404).send("User not found.");
-        }
-
-        const photoUrl = user.photo
-        ? `${req.protocol}://${req.get('host')}/images/${user.photo}.jpeg` 
-        : null;
-
-        user.photo = photoUrl;
-
-
-        res.status(200).json({
-            user
-        });
-
-
-    } catch (err) {
-        console.error("Internal server error", err); 
-        res.status(500).send("Internal server error " + err.message); 
-    }
-};*/
 
 export const getOwnUser = async (req, res) => {
     try {
@@ -322,6 +327,10 @@ export const getOwnUser = async (req, res) => {
         if (!user) {
             return res.status(404).send("User not found.");
         }
+
+        const photoUrl = user.photo
+        ? `/images/${user.photo}.jpeg` 
+        : null;
 
         res.status(200).json({
             user
@@ -333,46 +342,54 @@ export const getOwnUser = async (req, res) => {
     }
 };
 
-
-
 /**
  * @swagger
  * components:
  *   responses:
- *     ReadAllUsers: 
- *          description: The admin read all users
- *          content: 
- *             application/json: 
- *                  schema: 
- *                     type: object 
- *                     properties: 
- *                         username: 
- *                          type: string 
- *                         email: 
- *                          type: string 
- *                         registration_date:   
- *                          type: string 
- *                          format: date 
- *                         address_id: 
- *                          type: integer 
- *                         is_admin: 
- *                          type: boolean 
- *                         city: 
- *                          type: string 
- *                         postal_code: 
- *                          type: string    
- *                         street: 
- *                          type: string 
- *                         street_number: 
- *                          type: integer
+ *     ReadAllUsers:
+ *       description: The admin read all users
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               rows:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: integer
+ *                     username:
+ *                       type: string
+ *                     email:
+ *                       type: string
+ *                     registration_date:
+ *                       type: string
+ *                       format: date
+ *                     address_id:
+ *                       type: integer
+ *                     is_admin:
+ *                       type: boolean
+ *                     city:
+ *                       type: string
+ *                     postal_code:
+ *                       type: string
+ *                     street:
+ *                       type: string
+ *                     street_number:
+ *                       type: integer
+ *               total:
+ *                 type: integer
+ *                 description: Total number of users matching the search criteria
+ *
  *     InvalidRole:
- *       description: role must be 'admin' or 'user'
+ *       description: Role must be 'admin' or 'user'
  *       content:
  *         text/plain:
  *           schema:
  *             type: string
  */
-
 
 export const getUsers = async (req, res) => {
   try {

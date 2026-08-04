@@ -46,7 +46,10 @@ export const getCommentsByPostID = async (req, res) => {
  *       content:
  *         application/json:
  *           schema:
- *              $ref: '#/components/schemas/Comment'
+ *              type: object
+ *              properties: 
+ *                  commentCreated: 
+ *                             $ref: '#/components/schemas/Comment'
  *             
  */
 
@@ -92,7 +95,10 @@ export const createComment = async (req, res) => {
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/Comment' 
+ *              type: object
+ *              properties:
+ *                  updated:
+ *                      $ref: '#/components/schemas/Comment' 
  * 
  */
 
@@ -147,25 +153,32 @@ export const deleteComment = async(req, res) =>{
         return res.status(500).send("Internal server error");
     }
 }
+
 /**
  * @swagger
  * components:
  *   responses:
  *     CommentsRead:
- *       description: All the comments that correspond to the given date
+ *       description: Comments matching the specified filters successfully retrieved
  *       content:
  *         application/json:
  *           schema:
- *             type: array
- *             items:
- *               allOf: 
- *               - $ref: '#/components/schemas/Comment'
- *               - type: object 
- *                 properties: 
- *                      post_title: 
- *                          type: string 
- *                      username: 
- *                          type: string
+ *             type: object
+ *             properties:
+ *               rows:
+ *                 type: array
+ *                 items:
+ *                   allOf:
+ *                     - $ref: '#/components/schemas/Comment'
+ *                     - type: object
+ *                       properties:
+ *                         post_title:
+ *                           type: string
+ *                         username:
+ *                           type: string
+ *               total:
+ *                 type: integer
+ *                 description: Total number of comments matching the search criteria
  */
 
 

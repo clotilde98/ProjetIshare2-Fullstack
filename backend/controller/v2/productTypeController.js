@@ -8,26 +8,30 @@ import {PaginationValidationError} from "../../errors/PaginationValidationError.
  * @swagger
  * components:
  *   schemas:
- *     Category:
+ *     CategoryV2:
  *       type: object
  *       properties:
- *         idCategory:
+ *         categoryId:
  *           type: integer
- *         nameCategory:
+ *         categoryName:
  *           type: string
- * 
+ *
  *   responses:
- *     CategoriesRead:
+ *     CategoriesReadV2:
  *       description: Category successfully retrieved
  *       content:
  *         application/json:
- *            schema:
- *              type: array
- *              items: 
- *                 $ref: '#/components/schemas/Category'
+ *           schema:
+ *             type: object
+ *             properties:
+ *               rows:
+ *                 type: array
+ *                 items:
+ *                   $ref: '#/components/schemas/CategoryV2'
+ *               total:
+ *                 type: integer
+ *                 description: Total number of categories matching the search category name
  */
-
-
 
 export const getCategories = async (req, res) => {
   try {
@@ -72,12 +76,12 @@ export const getCategories = async (req, res) => {
  * @swagger
  * components:
  *   responses:
- *     CategoryProductCreated:
+ *     ProductTypeCreatedV2:
  *       description: The requested category of product has been created successfully.
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/Category'   
+ *             $ref: '#/components/schemas/CategoryV2'   
  */
 
 export const createProductType = async (req, res) => {
@@ -110,12 +114,12 @@ export const createProductType = async (req, res) => {
  * @swagger
  * components:
  *   responses:
- *     TypeProductUpdated:
+ *     ProductTypeUpdatedV2:
  *       description: The requested type of product is successfully updated
  *       content:
  *         application/json: 
  *              schema: 
- *                $ref: '#/components/schemas/Category'
+ *                $ref: '#/components/schemas/CategoryV2'
  *             
  */
 
@@ -153,7 +157,7 @@ export const deleteProductType = async (req, res) => {
             return res.status(400).send("Category ID is required");
         }
         
-        const deleted = await productTypeModel.deleteTypeProduct(pool, categoryID );
+        const deleted = await productTypeModel.deleteTypeProduct(pool, categoryID);
         
         if (deleted) {
 		    res.status(200).send("Category is deleted");

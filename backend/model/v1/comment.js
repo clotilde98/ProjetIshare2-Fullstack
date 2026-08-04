@@ -98,6 +98,6 @@ export const getComments = async (SQLClient, { commentDate, page = 1, limit = 10
         return { rows, total };
 
     } catch (err) {
-        throw new Error(`Erreur SQL dans getComments : ${err.message}`); 
+        throw new Error(`SQL error in getComments: ${err.message}`); 
     }
 };

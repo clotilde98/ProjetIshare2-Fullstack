@@ -9,12 +9,7 @@ import * as uuid from 'uuid'
 import { PAGINATION } from '../../Config/pagination.js';
 import { validatePagination } from '../../Utils/validationPagination.js'
 import { PaginationValidationError } from "../../errors/PaginationValidationError.js"; 
-import { readProductCategoryFromID } from "../../model/v2/productType.js";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename); // il y a vraiment besoin ? 
-const destFolderImages = path.join(__dirname, '../../middleware/photo');
-
+import { readProductCategoryFromID } from "../../model/v1/productType.js";
 
 /**
  * @swagger
@@ -60,13 +55,13 @@ const destFolderImages = path.join(__dirname, '../../middleware/photo');
  * 
  *   responses:
  *     PostResponse:
- *       description: The searched post has been found and read
+ *       description: Post successfully returned
  *       content:
  *         application/json:
  *           schema:
  *             $ref: '#/components/schemas/Post'
  */
-// en prod pas ouf le photoURL a cause du localhost renvoyé 
+
 export const getPost = async (req, res) => {
     try {
         const id = Number(req.params.id);
@@ -82,7 +77,7 @@ export const getPost = async (req, res) => {
         }
 
         const photoUrl = post.photo
-        ? `${req.protocol}://${req.get('host')}/images/${post.photo}.jpeg` 
+        ? `/images/${post.photo}.jpeg` 
         : null;
 
         post.photo = photoUrl;
@@ -105,7 +100,7 @@ export const getMyPosts = async (req, res) => {
         if (posts.length > 0) {
             for (const post of posts) {
                 post.photo = post.photo
-                ? `${req.protocol}://${req.get('host')}/images/${post.photo}.jpeg`
+                ? `/images/${post.photo}.jpeg`
                 : null;
             }
             }
@@ -127,24 +122,30 @@ export const getMyPosts = async (req, res) => {
  *       content:
  *         application/json:
  *           schema:
- *             type: array
- *             items:
- *              allOf: 
- *               - $ref: '#/components/schemas/Post'
- *               - type: object     
- *                 properties: 
- *                      places_restantes: 
- *                             type: integer
- *                      username: 
- *                             type: integer
- *                      categories: 
- *                             type: string
- *                      postal_code:        
- *                             type: string  
- *                      city: 
- *                             type: string                
+ *             type: object
+ *             properties:
+ *               rows:
+ *                 type: array
+ *                 items:
+ *                   allOf:
+ *                     - $ref: '#/components/schemas/Post'
+ *                     - type: object
+ *                       properties:
+ *                         number_of_places:
+ *                           type: integer
+ *                           description: Number of available places remaining
+ *                         username:
+ *                           type: string
+ *                         categories:
+ *                           type: string
+ *                         postal_code:
+ *                           type: string
+ *                         city:
+ *                           type: string
+ *               total:
+ *                 type: integer
+ *                 description: Total number of posts matching the search criteria
  */
-
 
 export const getPosts = async (req, res) => {
     try {
@@ -175,6 +176,14 @@ export const getPosts = async (req, res) => {
             limit: limitResult.value   
         });
 
+         if (posts.rows.length > 0) {
+            for (const post of posts.rows) {
+                post.photo = post.photo
+                ? `/images/${post.photo}.jpeg`
+                : null;
+            }
+        }
+
         return res.status(200).json(posts);
 
     } catch (err) {
@@ -186,6 +195,20 @@ export const getPosts = async (req, res) => {
     }
 }
 
+/**
+ * @swagger
+ * components: 
+ *   responses: 
+ *     PostCreated:
+ *       description: The post has been successfully created
+ *       content: 
+ *         application/json: 
+ *           schema: 
+ *             type: object
+ *             properties: 
+ *               post: 
+ *                  $ref: '#/components/schemas/Post'
+ */
 
 export const createPost = async (req, res) => {
     let client;
@@ -227,6 +250,7 @@ export const createPost = async (req, res) => {
         await client.query('BEGIN');
 
         if (photo){
+            const destFolderImages = './middleware/photo';
             imageName = uuid.v4();
             req.body.photo = imageName;
             await saveImage(photo.buffer, imageName, destFolderImages); 
@@ -257,6 +281,21 @@ export const createPost = async (req, res) => {
     }
 }
 
+/**
+ * @swagger
+ * components: 
+ *   responses: 
+ *     PostUptated:
+ *       description: The post has been successfully updated 
+ *       content: 
+ *         application/json: 
+ *           schema: 
+ *             type: object
+ *             properties: 
+ *               updatedPost: 
+ *                  $ref: '#/components/schemas/Post'
+ */
+
 export const updatePost = async (req, res) => {
     let client;
     try {
@@ -277,6 +316,7 @@ export const updatePost = async (req, res) => {
             let imageName = null;
             const photo = req.file;
             if (photo) {
+                const destFolderImages = './middleware/photo';
                 imageName = uuid.v4();
                 req.body.photo = imageName;
                 await saveImage(photo.buffer, imageName, destFolderImages);
@@ -294,7 +334,7 @@ export const updatePost = async (req, res) => {
             }
 
             for (const categoryID of categoriesProduct) {
-                const category = await readCategoryProductFromID(pool, categoryID);
+                const category = await readProductCategoryFromID(pool, categoryID);
                 if (!category) {
                     return res.status(400).send(`Category product with ID ${categoryID} doesn't exist`);
                 }
@@ -310,7 +350,6 @@ export const updatePost = async (req, res) => {
                 await createPostCategory(client, { IDCategory: categoryID, IDPost: postID });
             }
 
-            console.log("post", req.body);
             const updatedPost = await postModel.updatePost(client, postID, req.body); 
 
 
@@ -372,6 +411,7 @@ export const deleteImageFromPost  = async (req, res) => {
 
         if (post.client_id === userID || req.user.isAdmin){
             
+            const destFolderImages = './middleware/photo';
             const imagePath = path.join(destFolderImages, `${post.photo}.jpeg`); 
 
             await fs.unlink(imagePath); 
@@ -400,11 +440,20 @@ export const deleteImageFromPost  = async (req, res) => {
  *           schema:
  *             type: array
  *             items:
- *               $ref: '#/components/schemas/Post'
+ *               allOf:
+ *                 - $ref: '#/components/schemas/Post'
+ *                 - type: object
+ *                   properties:
+ *                     post_id:
+ *                       type: integer
+ *                     category_id:
+ *                       type: integer
+ *                     category_name:
+ *                       type: string
  */
 
 
-export const searchPostByCategory = async(req, res) => {
+export const searchPostsByCategory = async(req, res) => {
     try {
          const posts = await postModel.searchPostByCategory(pool, req.query.nameCategory);
          res.status(200).send(posts);
@@ -414,6 +463,26 @@ export const searchPostByCategory = async(req, res) => {
     }
 }
 
+/**
+ * @swagger
+ * components:
+ *   responses:
+ *     AllPostsWithCategoriesRead:
+ *       description: All posts with their associated categories have been successfully retrieved.
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: array
+ *             items:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/Post'
+ *                 - type: object
+ *                   properties:
+ *                     categories:
+ *                       type: string
+ *                       description: List of categories associated with the post
+ */
+
 export const getPostsWithoutFilters= async(req, res) => {
     try {
         const posts = await getPostswithAllCategories(pool); 
@@ -421,7 +490,7 @@ export const getPostsWithoutFilters= async(req, res) => {
         if (posts.length > 0) {
             for (const post of posts) {
                 post.photo = post.photo
-                ? `post.photo}`
+                ? `/images/${post.photo}.jpeg`
                 : null;
             }
         }

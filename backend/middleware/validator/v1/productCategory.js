@@ -4,7 +4,7 @@ import vine from '@vinejs/vine';
  * @swagger
  * components:
  *   schemas:
- *     CreateCategoryProductSchema:
+ *     CreateProductTypeSchema:
  *       type: object
  *       properties:
  *         nameCategory:
@@ -20,7 +20,7 @@ export const createProductCategorySchema = vine.object({
  * @swagger
  * components:
  *   schemas:
- *     UpdateCategoryProductSchema:
+ *     UpdateProductTypeSchema:
  *       type: object
  *       properties:
  *         nameCategory:

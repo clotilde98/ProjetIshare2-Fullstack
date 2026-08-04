@@ -23,26 +23,38 @@ const VALID_STATUS = ['confirmed', 'cancelled', 'withdrawal'];
  *           format: date
  *         reservation_status:
  *           type: string
- *         post_id:
- *           type: integer
  *         client_id:
  *           type: integer
- *         title: 
- *           type: string
- *         username: 
- *           type: string
- *
+ */
+
+/**
+ * @swagger
+ * components:
  *   responses:
- *     ReservationsList:
- *       description: List of reservations depending on the function used
+ *     AllReservations:
+ *       description: All reservations in the database with the total
  *       content:
  *         application/json:
  *           schema:
- *             type: array
- *             items:
- *               $ref: '#/components/schemas/Reservation'
+ *             type: object
+ *             properties:
+ *               rows:
+ *                 type: array
+ *                 items:
+ *                   allOf:
+ *                     - $ref: '#/components/schemas/Reservation'
+ *                     - type: object
+ *                       properties:
+ *                         post_id:
+ *                           type: integer
+ *                         username:
+ *                           type: string
+ *                         title:
+ *                           type: string
+ *               total:
+ *                 type: integer
+ *                 description: Total number of reservations matching the search criteria
  */
-
 
 export const getReservations = async (req, res) => { 
     try {
@@ -76,7 +88,6 @@ export const getReservations = async (req, res) => {
             limit: limitResult 
         };
 
-       
         const result = await reservationModel.getReservations(pool, args);
 
         res.status(200).json(result); 
@@ -89,6 +100,21 @@ export const getReservations = async (req, res) => {
         res.status(500).send("Internal server error"); 
     }
 };
+
+/**
+ * @swagger
+ * components:
+ *   responses:
+ *     ReservationResponse:
+ *       description: The reservation is successfully returned in the reservation object
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               reservation:
+ *                 $ref: '#/components/schemas/Reservation'
+ */
 
 
 export const getReservation = async (req, res) => {
@@ -112,6 +138,41 @@ export const getReservation = async (req, res) => {
     }
 };
 
+/**
+ * @swagger
+ * components:
+ *   responses:
+ *     MyReservationsResponse:
+ *       description: Reservations matching the specified user ID.
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: array
+ *             items:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: integer
+ *                 title:
+ *                   type: string
+ *                 address:
+ *                   type: string
+ *                 location:
+ *                   type: string
+ *                 image:
+ *                   type: string
+ *                   format: uri
+ *                   nullable: true
+ *                 ownerName:
+ *                   type: string
+ *                 ownerPhoto:
+ *                   type: string
+ *                   format: uri
+ *                   nullable: true
+ *                 postId:
+ *                   type: integer
+ */
+
 export const getMyReservations = async (req, res) => {
     try {
         const userID = req.user.id;
@@ -133,6 +194,23 @@ export const getMyReservations = async (req, res) => {
         res.status(500).send("Erreur : " + err.message);
     }
 };
+
+/**
+ * @swagger
+ * components:
+ *   responses:
+ *     ReservationsResponse:
+ *       description: All reservations matching the specified ID parameters.
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               reservations:
+ *                 type: array
+ *                 items:
+ *                   $ref: '#/components/schemas/Reservation'
+ */
 
 export const getReservationsByClientID = async (req, res) => {
     try {
@@ -173,21 +251,6 @@ export const getReservationsByPostID = async (req, res) => {
         res.status(500).send("Internal server error"); 
     }
 }
-
-
-/**
- * @swagger
- * components:
- *   responses:
- *       ReservationResponse: 
- *            description:  The reservation object is returned   
- *            content: 
- *              application/json: 
- *                     schema: 
- *                       $ref: '#/components/schemas/Reservation'  
- */
-
-
 
 export const createReservation = async (req, res) => {
     try {
@@ -246,6 +309,17 @@ export const createReservation = async (req, res) => {
     }
 }
 
+/**
+ * @swagger 
+ * components: 
+ *   responses: 
+ *      ReservationUpdatedResponse: 
+ *          description: Reservation object updated is returned 
+ *          content: 
+ *            application/json: 
+ *              schema:
+ *               $ref: '#/components/schemas/Reservation'      
+ */
 
 export const updateReservation = async (req, res) => {
     try {

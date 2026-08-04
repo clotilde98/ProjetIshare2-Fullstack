@@ -26,7 +26,7 @@ router.use("/productType", productTypeRouter(productTypeController, productCateg
  *   post:
  *     summary: Authenticates a customer
  *     tags: 
- *       - Niveau principal
+ *       - Main level
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -52,7 +52,7 @@ router.post('/login',clientValidatorMiddleware.loginValidator, login)
  *   post:
  *     summary: Authenticates a customer with Google
  *     tags:
- *       - Niveau principal
+ *       - Main level
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -76,7 +76,7 @@ router.post('/loginWithGoogle', clientValidatorMiddleware.loginValidator, loginW
  *   post:
  *     summary: Get all application statistics
  *     tags: 
- *      - Niveau principal
+ *      - Main level
  *     responses: 
  *       200:
  *          $ref: '#/components/responses/AllStatReaded' 
@@ -95,7 +95,7 @@ router.get('/stats', checkJWT, mustBeAdmin , getAllStats)
  *    get: 
  *      summary: Get the complete list of cities
  *      tags:
- *        - Niveau principal
+ *        - Main level
  *      responses:
  *        200: 
  *          $ref: '#/components/responses/ReadAllCities'

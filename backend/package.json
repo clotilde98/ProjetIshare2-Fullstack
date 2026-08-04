@@ -8,6 +8,9 @@
     "dev": "npm run initDB && nodemon server.js",
     "start": "nodemon server.js",
     "initDB": "node Scripts/JS/initDB.js",
+    "swagger:v1": "node ./swagger/swagger_jsdocV1.js",
+    "swagger:v2": "node ./swagger/swagger_jsdocV2.js",
+    "swagger": "npm run swagger:v1 && npm run swagger:v2", 
     "genDoc": "node ./swagger/swagger_jsdoc.js",
     "start:docker": "npm run initDB && npm run dev"
   },
@@ -36,6 +39,6 @@
   },
   "devDependencies": {
     "nodemon": "^3.1.10",
-    "swagger-jsdoc": "^6.2.8"
+    "swagger-jsdoc": "^6.3.0"
   }
 }

@@ -23,6 +23,7 @@ export const validateGoogleToken = async (idToken) => {
             picture: payload.picture,
         };
     } catch (err) {
+        console.error("Internal server error", err);
         throw new Error("Invalid Google token");
     }
 };

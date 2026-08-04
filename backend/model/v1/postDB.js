@@ -84,9 +84,9 @@ export const readMyPosts = async (SQLClient, clientID) => {
     return rows;
 }
 
-export const searchPostByCategory = async (SQLClient,  nameCategory) => {
-    const query = "SELECT * FROM Post p INNER JOIN Post_category pc ON p.id = pc.post_id INNER JOIN Category_product cp ON cp.category_id = pc.category_id WHERE cp.category_name=$1";
-    const {rows} = await SQLClient.query(query, [nameCategory]);
+export const searchPostByCategory = async (SQLClient,  categoryName) => {
+    const query = "SELECT * FROM Post p INNER JOIN Post_category pc ON p.id = pc.post_id INNER JOIN Product_category cp ON cp.category_id = pc.category_id WHERE cp.category_name=$1";
+    const {rows} = await SQLClient.query(query, [categoryName]);
     return rows;
 };
 
@@ -167,7 +167,7 @@ export const getPosts = async (SQLClient, {city, postStatus, page = 1, limit = 1
             JOIN Address a ON p.address_id = a.id
             JOIN Client c ON p.client_id = c.id 
             INNER JOIN Post_category pc ON pc.post_id = p.id
-            INNER JOIN Category_product cp ON cp.category_id = pc.category_id
+            INNER JOIN Product_category cp ON cp.category_id = pc.category_id
             ${whereClause}
             GROUP BY 
                 p.id, 
@@ -193,6 +193,6 @@ export const getPosts = async (SQLClient, {city, postStatus, page = 1, limit = 1
         };
 
     } catch (err) {
-        throw new Error(`Erreur SQL dans getPosts : ${err.message}`);
+        throw new Error(`SQL error in getPosts: : ${err.message}`);
     }
 };

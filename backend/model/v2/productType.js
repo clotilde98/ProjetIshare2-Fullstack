@@ -1,5 +1,5 @@
 export const readProductCategoryFromID = async (SQLClient, categoryID) => {
-    const query = "SELECT category_id, name_category FROM Product_category WHERE category_id = $1";
+    const query = "SELECT category_id, category_name FROM Product_category WHERE category_id = $1";
     const { rows } = await SQLClient.query(query, [categoryID]);
     
     if (rows.length === 0) return null;
