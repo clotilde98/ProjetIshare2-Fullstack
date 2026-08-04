@@ -418,8 +418,8 @@ export const getUsers = async (req, res) => {
     const users = await userModel.getUsers(pool, { 
       name,
       role,
-      page:  pageResult.value,
-      limit: limitResult.value
+      page:  pageResult,
+      limit: limitResult
     });
 
     res.status(200).json(users); 

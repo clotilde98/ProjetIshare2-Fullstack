@@ -53,8 +53,10 @@ import { PaginationValidationError } from "../../errors/PaginationValidationErro
 export const getMyReservations = async (req, res) => {
     try {
         let userID = req.user.id;
+
         const {page, limit} = req.query; 
-        const limitResult = validatePagination(undefined, PAGINATION.DEFAULT_LIMIT, PAGINATION.MIN_LIMIT, PAGINATION.MAX_LIMIT, 'limit');
+
+        const limitResult = validatePagination(limit, PAGINATION.DEFAULT_LIMIT, PAGINATION.MIN_LIMIT, PAGINATION.MAX_LIMIT, 'limit');
         const pageResult  = validatePagination(undefined, PAGINATION.DEFAULT_PAGE, PAGINATION.MIN_LIMIT, PAGINATION.MAX_LIMIT, 'page');  
 
         const reservations = await reservationModel.readReservationsByClientID(pool, {
@@ -94,16 +96,15 @@ export const getReservationsByClientID = async (req, res) => {
         const clientID = parseInt(req.params.id);
         if (Number.isNaN(clientID)) return res.status(400).send("Invalid client ID");
 
-        const {page, limit} = req.query; 
-        const limitResult = validatePagination(undefined, PAGINATION.DEFAULT_LIMIT, PAGINATION.MIN_LIMIT, PAGINATION.MAX_LIMIT, 'limit');
-        const pageResult  = validatePagination(undefined, PAGINATION.DEFAULT_PAGE, PAGINATION.MIN_LIMIT, PAGINATION.MAX_LIMIT, 'page');  
+        const { page, limit} = req.query; 
+
+        const limitResult = validatePagination(limit, PAGINATION.DEFAULT_LIMIT, PAGINATION.MIN_LIMIT, PAGINATION.MAX_LIMIT, 'limit');
+        const pageResult  = validatePagination(page, PAGINATION.DEFAULT_PAGE, PAGINATION.MIN_LIMIT, PAGINATION.MAX_LIMIT, 'page');  
 
         const reservations = await reservationModel.readReservationsByClientID(pool, {id : clientID, page : pageResult, limit : limitResult});
-        if (reservations.total > 0){
-            res.status(200).send({reservations});
-        } else {
-            res.status(404).send("Client reservation not found");
-        }
+    
+        res.status(200).send({reservations});
+
     } catch (err) {
         if(err instanceof PaginationValidationError){
             return res.status(400).json({error : err.message}); 
@@ -119,9 +120,10 @@ export const getReservationsByPostID = async (req, res) => {
         const postID = parseInt(req.params.id);
         if (Number.isNaN(postID)) return res.status(400).send("Invalid post ID");
 
-        const {page, limit} = req.query; 
-        const limitResult = validatePagination(undefined, PAGINATION.DEFAULT_LIMIT, PAGINATION.MIN_LIMIT, PAGINATION.MAX_LIMIT, 'limit');
-        const pageResult  = validatePagination(undefined, PAGINATION.DEFAULT_PAGE, PAGINATION.MIN_LIMIT, PAGINATION.MAX_LIMIT, 'page'); 
+        const { page, limit} = req.query; 
+
+        const limitResult = validatePagination(limit, PAGINATION.DEFAULT_LIMIT, PAGINATION.MIN_LIMIT, PAGINATION.MAX_LIMIT, 'limit');
+        const pageResult  = validatePagination(page, PAGINATION.DEFAULT_PAGE, PAGINATION.MIN_LIMIT, PAGINATION.MAX_LIMIT, 'page'); 
 
         const post = await readPost(pool, postID);
         if (!post) return res.status(404).send("Post doesn't exist");
@@ -129,13 +131,10 @@ export const getReservationsByPostID = async (req, res) => {
         if (post.client_id !== req.user.id && !req.user.isAdmin) return res.status(403).send("Admin privilege required");
 
 
-        const reservations = await reservationModel.readReservationsByPostID(pool, {postID, page, limit});
+        const reservations = await reservationModel.readReservationsByPostID(pool, {id : clientID, page : pageResult, limit : limitResult})
 
-        if (reservations.total > 0){
-            res.status(200).send({reservations});
-        } else {
-            res.status(404).send("Reservation for the post not found");
-        }
+        res.status(200).send({reservations});
+        
         
     } catch (err) {
         if(err instanceof PaginationValidationError){

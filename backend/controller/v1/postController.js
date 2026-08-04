@@ -1,6 +1,7 @@
 import { pool } from "../../database/database.js";
 import {createPostCategory, deletePostCategoriesForPostID, getPostswithAllCategories } from '../../model/v1/postCategory.js'
 import * as postModel from '../../model/v1/postDB.js';
+import { getUserById } from "../../model/v1/client.js";
 import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -151,6 +152,10 @@ export const getPosts = async (req, res) => {
     try {
         const { city, postStatus, limit, page} = req.query;
 
+        
+
+
+
         const limitResult = validatePagination(
           limit,
           PAGINATION.DEFAULT_LIMIT,
@@ -172,8 +177,8 @@ export const getPosts = async (req, res) => {
         const posts = await postModel.getPosts(pool, {
             city,
             postStatus,
-            page: pageResult.value, 
-            limit: limitResult.value   
+            page: pageResult, 
+            limit: limitResult  
         });
 
          if (posts.rows.length > 0) {
@@ -215,6 +220,12 @@ export const createPost = async (req, res) => {
     try {
 
         let userID = req.user.id;
+
+        const user = await getUserById(pool, userID);
+
+        if (!user) {
+            return res.status(401).send("User doesn't exist.");
+        }
 
         const photo = req.file;
 

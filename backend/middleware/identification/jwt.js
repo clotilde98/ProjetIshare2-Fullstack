@@ -27,24 +27,32 @@ dotenv.config();
  *                 type: string
  *                 example: "JWT is missing or is invalid"
  */
-export const checkJWT = async (req, res, next) => {
-    try {
-        const authHeader = req.headers.authorization;
+export const checkJWT = (req, res, next) => {
+    const authHeader = req.headers.authorization;
 
-        if (!authHeader || !authHeader.startsWith("Bearer ")) {
-            req.user = null;
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
         return res.status(401).json({ message: "Token missing or invalid" });
-        }
+    }
 
-        const token = authHeader.split(" ")[1];
+    const token = authHeader.split(" ")[1];
+    if (!token) {
+        return res.status(401).json({ message: "Token missing or invalid" });
+    }
+
+    try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         req.user = {
             id: decoded.id,
             isAdmin: decoded.isAdmin,
         };
-        next();
-    } catch (err){
-        console.error("Internal server error", err);
-        return res.status(403).send("Token invalid");
-    }  
+        return next();
+    } catch (err) {
+       
+        if (err instanceof jwt.JsonWebTokenError || err instanceof jwt.TokenExpiredError) {
+            return res.status(401).json({ message: "Token missing or invalid" });
+        }
+
+        console.error("JWT verification failed", err);
+        return res.status(500).json({ message: "Authentication service unavailable" });
+    }
 };

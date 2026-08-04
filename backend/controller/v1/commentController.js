@@ -207,8 +207,8 @@ export const getComments = async (req, res) => {
 
     const comments = await commentModel.getComments(pool, {
       commentDate, 
-      page: pageResult.value,
-      limit: limitResult.value
+      page: pageResult,
+      limit: limitResult
     });
 
     res.status(200).json(comments);

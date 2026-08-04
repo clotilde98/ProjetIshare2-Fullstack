@@ -25,10 +25,26 @@ import {PaginationValidationError} from "../../errors/PaginationValidationError.
  *           type: integer
  */
 
+/**
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ */
+
 export const getCommentsByPostID = async (req, res) => {
     try {
-        const rows = await commentModel.getCommentsByPostID(pool, {postID: req.params.id})
-        return res.status(200).send({rows});
+        const {limit, page} = req.query; 
+
+        const limitResult = validatePagination(limit, PAGINATION.DEFAULT_LIMIT, PAGINATION.MIN_LIMIT, PAGINATION.MAX_LIMIT, 'limit');
+        const pageResult  = validatePagination(page, PAGINATION.DEFAULT_PAGE, PAGINATION.MIN_LIMIT, PAGINATION.MAX_LIMIT, 'page'); 
+
+        const comments = await commentModel.getCommentsByPostID(pool, {postID: req.params.id, limit: limitResult, page:pageResult})
+        
+        return res.status(200).send({comments});
     } catch (err) {
         console.error(`Internal server error " ${err}`); 
         return res.status(500).send("Internal server error");
@@ -196,8 +212,8 @@ export const getComments = async (req, res) => {
 
     const comments = await commentModel.getComments(pool, {
       commentDate, 
-      page: pageResult.value,
-      limit: limitResult.value
+      page: pageResult,
+      limit: limitResult
     });
 
     res.status(200).json(comments);

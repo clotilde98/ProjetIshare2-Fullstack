@@ -102,10 +102,10 @@ export const getAllCategoriesFromPostID = async (SQLClient, id) => {
     const query = "SELECT cp.category_id, cp.category_name FROM Category_product cp INNER JOIN Post_category pc ON cp.category_id = pc.category_id WHERE pc.post_id=$1";
     const {rows} = await SQLClient.query(query, [id]);
     return rows;
-} // version 2 a faire verison 1 
+}
 
 
-export const getPosts = async (SQLClient, {city, postStatus, page = 1, limit = 10 }) => {
+export const getPosts = async (SQLClient, {city, postStatus, page, limit}) => {
     const pageNum = parseInt(page);
     const limitNum = parseInt(limit);
     
@@ -148,7 +148,6 @@ export const getPosts = async (SQLClient, {city, postStatus, page = 1, limit = 1
                 p.post_date,
                 (
                     p.number_of_places - (
-                        -- Calcul des réservations confirmées pour ce post
                         SELECT COUNT(id) 
                         FROM Reservation 
                         WHERE post_id = p.id 

@@ -176,21 +176,11 @@ export const getReservation = async (req, res) => {
 export const getMyReservations = async (req, res) => {
     try {
         const userID = req.user.id;
-        const rows = await reservationModel.readMyReservations(pool,  userID);
-        const reservations = rows.map(row => ({
-            id: row.reservation_id,
-            title: row.title,
-            address: `${row.street_number} ${row.street}`,
-            location: `${row.postal_code} ${row.city}`,
-            image: row.photo ? `${req.protocol}://${req.get('host')}/images/${row.photo}.jpeg` : null,
-            ownerName: row.owner_name,
-            ownerPhoto: row.owner_photo ? `${req.protocol}://${req.get('host')}/images/${row.owner_photo}.jpeg` : null,
-            postId: row.postid
-        }));
+        const reservations = await reservationModel.readMyReservations(pool, userID);
 
-        res.status(200).json(reservations);
+        res.status(200).json({ reservations });
     } catch (err) {
-        console.error("Internal server error", err); 
+        console.error("Internal server error", err);
         res.status(500).send("Erreur : " + err.message);
     }
 };
@@ -217,13 +207,9 @@ export const getReservationsByClientID = async (req, res) => {
         const clientID = parseInt(req.params.id);
         if (Number.isNaN(clientID)) return res.status(400).send("Invalid client ID");
 
-        
         const reservations = await reservationModel.readReservationsByClientID(pool, clientID);
-        if (reservations.length > 0){
-            res.status(200).send({reservations});
-        } else {
-            res.status(404).send("Client reservation not found");
-        }
+        
+        res.status(200).send({reservations});
     } catch (err) {
         console.error("Internal server error", err); 
         res.status(500).send(err.message);
