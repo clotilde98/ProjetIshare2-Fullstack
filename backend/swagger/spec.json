@@ -36,28 +36,8 @@
           }
         }
       },
-      "MyReservationsResponseV2": {
-        "description": "Reservations matching the specified user ID.",
-        "content": {
-          "application/json": {
-            "schema": {
-              "$ref": "#/components/schemas/ReservationsListV2"
-            }
-          }
-        }
-      },
-      "ReservationsResponseV2": {
-        "description": "All reservations matching the specified ID parameters.",
-        "content": {
-          "application/json": {
-            "schema": {
-              "$ref": "#/components/schemas/ReservationsListV2"
-            }
-          }
-        }
-      },
-      "CategoriesReadV2": {
-        "description": "Category successfully retrieved",
+      "AllReservations": {
+        "description": "All reservations in the database with the total",
         "content": {
           "application/json": {
             "schema": {
@@ -66,7 +46,87 @@
                 "rows": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/ProductCategoryV2"
+                    "allOf": [
+                      {
+                        "$ref": "#/components/schemas/Reservation"
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "username": {
+                            "type": "string"
+                          },
+                          "title": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    ]
+                  }
+                },
+                "total": {
+                  "type": "integer",
+                  "description": "Total number of reservations matching the search criteria (username, status)"
+                }
+              }
+            }
+          }
+        }
+      },
+      "ReservationResponse": {
+        "description": "The reservation is successfully returned in the reservation object",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "reservation": {
+                  "$ref": "#/components/schemas/Reservation"
+                }
+              }
+            }
+          }
+        }
+      },
+      "ReservationsResponse": {
+        "description": "All reservations matching the specified ID parameters.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "reservations": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Reservation"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "ReservationUpdatedResponse": {
+        "description": "Reservation object updated is returned",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Reservation"
+            }
+          }
+        }
+      },
+      "CategoriesRead": {
+        "description": "Categories successfully retrieved",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "rows": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ProductCategory"
                   }
                 },
                 "total": {
@@ -78,28 +138,48 @@
           }
         }
       },
-      "ProductCategoryCreatedV2": {
+      "ProductCategoryCreated": {
         "description": "The requested category of product has been created successfully.",
         "content": {
           "application/json": {
             "schema": {
-              "$ref": "#/components/schemas/ProductCategoryV2"
+              "type": "object",
+              "properties": {
+                "productCreated": {
+                  "$ref": "#/components/schemas/ProductCategory"
+                }
+              }
             }
           }
         }
       },
-      "ProductCategoryUpdatedV2": {
+      "ProductCategoryUpdated": {
         "description": "The requested type of product is successfully updated",
         "content": {
           "application/json": {
             "schema": {
-              "$ref": "#/components/schemas/ProductCategoryV2"
+              "type": "object",
+              "properties": {
+                "productUpdated": {
+                  "$ref": "#/components/schemas/ProductCategory"
+                }
+              }
             }
           }
         }
       },
-      "AllPostByCategoryV2": {
-        "description": "Requested posts from a certain category are returned.",
+      "PostResponse": {
+        "description": "Post successfully returned",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Post"
+            }
+          }
+        }
+      },
+      "AllPostsRead": {
+        "description": "All posts have been successfully retrieved.",
         "content": {
           "application/json": {
             "schema": {
@@ -110,18 +190,25 @@
                   "items": {
                     "allOf": [
                       {
-                        "$ref": "#/components/schemas/PostV2"
+                        "$ref": "#/components/schemas/Post"
                       },
                       {
                         "type": "object",
                         "properties": {
-                          "postId": {
-                            "type": "integer"
+                          "number_of_places": {
+                            "type": "integer",
+                            "description": "Number of available places remaining"
                           },
-                          "categoryId": {
-                            "type": "integer"
+                          "username": {
+                            "type": "string"
                           },
-                          "categoryName": {
+                          "categories": {
+                            "type": "string"
+                          },
+                          "postal_code": {
+                            "type": "string"
+                          },
+                          "city": {
                             "type": "string"
                           }
                         }
@@ -138,17 +225,75 @@
           }
         }
       },
-      "ConnectionSuccessV2": {
-        "description": "tokens is returned",
+      "PostCreated": {
+        "description": "The post has been successfully created",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "post": {
+                  "$ref": "#/components/schemas/Post"
+                }
+              }
+            }
+          }
+        }
+      },
+      "PostUptated": {
+        "description": "The post has been successfully updated",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "updatedPost": {
+                  "$ref": "#/components/schemas/Post"
+                }
+              }
+            }
+          }
+        }
+      },
+      "AllPostByCategory": {
+        "description": "Requested posts from a certain category are returned.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "array",
+              "items": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/Post"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "post_id": {
+                        "type": "integer"
+                      },
+                      "category_id": {
+                        "type": "integer"
+                      },
+                      "category_name": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "ConnectionSuccess": {
+        "description": "the token is returned",
         "content": {
           "application/json": {
             "schema": {
               "type": "object",
               "properties": {
                 "token": {
-                  "type": "string"
-                },
-                "refreshToken": {
                   "type": "string"
                 }
               }
@@ -166,38 +311,48 @@
           }
         }
       },
-      "AllStatReadedV2": {
+      "AllStatReaded": {
         "description": "All stats are obtained",
         "content": {
           "application/json": {
             "schema": {
-              "$ref": "#/components/schemas/DashboardStatsV2"
+              "$ref": "#/components/schemas/DashboardStats"
             }
           }
         }
       },
-      "CommentAddedV2": {
+      "CommentAdded": {
         "description": "The Comment added at the database",
         "content": {
           "application/json": {
             "schema": {
-              "$ref": "#/components/schemas/CommentV2"
+              "type": "object",
+              "properties": {
+                "commentCreated": {
+                  "$ref": "#/components/schemas/Comment"
+                }
+              }
             }
           }
         }
       },
-      "CommentUpdatedV2": {
+      "CommentUpdated": {
         "description": "The Comment updated in the database",
         "content": {
           "application/json": {
             "schema": {
-              "$ref": "#/components/schemas/CommentV2"
+              "type": "object",
+              "properties": {
+                "updated": {
+                  "$ref": "#/components/schemas/Comment"
+                }
+              }
             }
           }
         }
       },
-      "CommentsReadV2": {
-        "description": "Comments matching the specified filters successfully retrieved",
+      "CommentsRead": {
+        "description": "All the comments that correspond to the given date (optional)",
         "content": {
           "application/json": {
             "schema": {
@@ -208,7 +363,7 @@
                   "items": {
                     "allOf": [
                       {
-                        "$ref": "#/components/schemas/CommentV2"
+                        "$ref": "#/components/schemas/Comment"
                       },
                       {
                         "type": "object",
@@ -226,8 +381,129 @@
                 },
                 "total": {
                   "type": "integer",
-                  "description": "Total number of comments matching with the comment date"
+                  "description": "Total number of comments matching the search criteria"
                 }
+              }
+            }
+          }
+        }
+      },
+      "UserAdded": {
+        "description": "The user has been added to the database",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "token": {
+                  "type": "string"
+                },
+                "user": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          }
+        }
+      },
+      "UserUpdated": {
+        "description": "The user has been successfully updated",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/User"
+            }
+          }
+        }
+      },
+      "UserAccount": {
+        "description": "The user want see his account",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "user": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          }
+        }
+      },
+      "ReadAllUsers": {
+        "description": "The admin read all users",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "rows": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "integer"
+                      },
+                      "username": {
+                        "type": "string"
+                      },
+                      "email": {
+                        "type": "string"
+                      },
+                      "registration_date": {
+                        "type": "string",
+                        "format": "date"
+                      },
+                      "address_id": {
+                        "type": "integer"
+                      },
+                      "is_admin": {
+                        "type": "boolean"
+                      },
+                      "city": {
+                        "type": "string"
+                      },
+                      "postal_code": {
+                        "type": "string"
+                      },
+                      "street": {
+                        "type": "string"
+                      },
+                      "street_number": {
+                        "type": "integer"
+                      }
+                    }
+                  }
+                },
+                "total": {
+                  "type": "integer",
+                  "description": "Total number of users matching the search criteria  (name, role)"
+                }
+              }
+            }
+          }
+        }
+      },
+      "InvalidRole": {
+        "description": "Role must be 'admin' or 'user'",
+        "content": {
+          "text/plain": {
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "ReadAllCities": {
+        "description": "All cities read from the external API",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/Address"
               }
             }
           }
@@ -240,10 +516,6 @@
             "schema": {
               "type": "object",
               "properties": {
-                "error": {
-                  "type": "string",
-                  "example": "Unauthorized"
-                },
                 "message": {
                   "type": "string",
                   "example": "JWT is missing or is invalid"
@@ -280,21 +552,7 @@
       }
     },
     "schemas": {
-      "loginSchema": {
-        "type": "object",
-        "properties": {
-          "email": {
-            "type": "string"
-          },
-          "password": {
-            "type": "string"
-          },
-          "idToken": {
-            "type": "string"
-          }
-        }
-      },
-      "ReservationV2": {
+      "Reservation": {
         "type": "object",
         "properties": {
           "id": {
@@ -302,46 +560,36 @@
           },
           "reservation_date": {
             "type": "string",
-            "format": "date"
+            "format": "date-time"
           },
           "reservation_status": {
-            "type": "string"
-          },
-          "post_id": {
-            "type": "integer"
+            "type": "string",
+            "enum": [
+              "confirmed",
+              "cancelled",
+              "withdrawal"
+            ]
           },
           "client_id": {
             "type": "integer"
-          }
-        }
-      },
-      "ReservationsListV2": {
-        "type": "object",
-        "properties": {
-          "rows": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ReservationV2"
-            }
           },
-          "total": {
-            "type": "integer",
-            "description": "Total number of reservations matching the search criteria"
+          "post_id": {
+            "type": "integer"
           }
         }
       },
-      "ProductCategoryV2": {
+      "ProductCategory": {
         "type": "object",
         "properties": {
-          "categoryId": {
+          "idCategory": {
             "type": "integer"
           },
-          "categoryName": {
+          "nameCategory": {
             "type": "string"
           }
         }
       },
-      "PostV2": {
+      "Post": {
         "type": "object",
         "description": "Represents a blog post",
         "properties": {
@@ -394,10 +642,10 @@
           }
         }
       },
-      "DashboardStatsV2": {
+      "DashboardStats": {
         "type": "object",
         "properties": {
-          "totalPosts": {
+          "totalAnnonces": {
             "type": "integer",
             "description": "Total number of posts"
           },
@@ -405,17 +653,17 @@
             "type": "integer",
             "description": "Total number of reservations"
           },
-          "totalWithdrawals": {
+          "totalRetraits": {
             "type": "integer",
             "description": "Total number of withdrawals"
           },
-          "activeUsers": {
+          "utilisateursActifs": {
             "type": "integer",
             "description": "Total number of active users"
           }
         }
       },
-      "CommentV2": {
+      "Comment": {
         "type": "object",
         "properties": {
           "id": {
@@ -428,50 +676,199 @@
             "type": "string",
             "format": "date"
           },
-          "post_id": {
+          "id_post": {
             "type": "integer"
           },
-          "client_id": {
+          "id_customer": {
             "type": "integer"
           }
         }
       },
-      "CreateProductCategorySchemaV2": {
+      "User": {
         "type": "object",
         "properties": {
-          "categoryName": {
+          "id": {
+            "type": "integer"
+          },
+          "username": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "photo": {
+            "type": "string",
+            "nullable": true
+          },
+          "googleid": {
+            "type": "string",
+            "nullable": true
+          },
+          "street": {
+            "type": "string"
+          },
+          "street_number": {
+            "type": "integer"
+          },
+          "registration_date": {
+            "type": "string",
+            "format": "date"
+          },
+          "isadmin": {
+            "type": "boolean"
+          },
+          "address_id": {
+            "type": "integer"
+          }
+        }
+      },
+      "Address": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "city": {
+            "type": "string"
+          },
+          "postal_code": {
             "type": "string"
           }
         }
       },
-      "UpdateProductCategorySchemaV2": {
+      "CreateReservationSchema": {
         "type": "object",
         "properties": {
-          "categoryName": {
+          "postID": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "postID"
+        ]
+      },
+      "UpdateReservationSchema": {
+        "type": "object",
+        "properties": {
+          "postID": {
+            "type": "integer"
+          },
+          "providedClientID": {
+            "type": "integer"
+          },
+          "reservationStatus": {
+            "type": "string",
+            "enum": [
+              "confirmed",
+              "cancelled",
+              "withdrawal"
+            ]
+          }
+        }
+      },
+      "CreateProductCategorySchema": {
+        "type": "object",
+        "properties": {
+          "nameCategory": {
             "type": "string"
           }
         }
       },
-      "CreateCommentSchemaV2": {
+      "UpdateProductCategorySchema": {
+        "type": "object",
+        "properties": {
+          "nameCategory": {
+            "type": "string"
+          }
+        }
+      },
+      "CreatePostSchema": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "street": {
+            "type": "string"
+          },
+          "streetNumber": {
+            "type": "integer"
+          },
+          "numberOfPlaces": {
+            "type": "integer"
+          },
+          "addressID": {
+            "type": "integer"
+          },
+          "categoriesProduct": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "description",
+          "street",
+          "streetNumber",
+          "numberOfPlaces",
+          "addressID",
+          "categoriesProduct"
+        ]
+      },
+      "UpdatePostSchema": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "street": {
+            "type": "string"
+          },
+          "streetNumber": {
+            "type": "integer"
+          },
+          "numberOfPlaces": {
+            "type": "integer"
+          },
+          "postStatus": {
+            "type": "string",
+            "enum": [
+              "available",
+              "unavailable"
+            ]
+          },
+          "categoriesProduct": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "categoriesProduct"
+        ]
+      },
+      "CreateCommentSchema": {
         "type": "object",
         "properties": {
           "content": {
             "type": "string"
           },
-          "postID": {
+          "idPost": {
             "type": "integer"
           },
-          "clientID": {
+          "idCustomer": {
             "type": "integer"
           }
         },
         "required": [
           "content",
-          "postID",
-          "clientID"
+          "idPost"
         ]
       },
-      "UpdateCommentSchemaV2": {
+      "UpdateCommentSchema": {
         "type": "object",
         "properties": {
           "content": {
@@ -479,13 +876,78 @@
           }
         }
       },
-      "refreshTokenSchemaV2": {
+      "AddClientSchema": {
         "type": "object",
         "properties": {
-          "refreshToken": {
+          "username": {
             "type": "string"
+          },
+          "street": {
+            "type": "string"
+          },
+          "streetNumber": {
+            "type": "integer"
+          },
+          "email": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          },
+          "addressID": {
+            "type": "integer"
+          },
+          "isAdmin": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "username",
+          "street",
+          "streetNumber",
+          "email",
+          "password"
+        ]
+      },
+      "UpdateSchema": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string"
+          },
+          "street": {
+            "type": "string"
+          },
+          "streetNumber": {
+            "type": "integer"
+          },
+          "oldPassword": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          },
+          "isAdmin": {
+            "type": "boolean"
           }
         }
+      },
+      "loginSchema": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          },
+          "idToken": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "email"
+        ]
       }
     },
     "securitySchemes": {
@@ -516,6 +978,138 @@
         }
       }
     },
+    "/reservations": {
+      "post": {
+        "summary": "Create a reservation for a specific post for a user or create it yourself",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "tags": [
+          "Reservation"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateReservationSchema"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "$ref": "#/components/responses/ReservationResponse"
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "description": "Must be admin or reservation owner or must not be post owner",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/ObjectNotFound"
+          },
+          "409": {
+            "description": "Impossible to create a reservation for a post with a status unavailable or capacity reached or reservation already exists",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      },
+      "get": {
+        "summary": "The administrator wants to see the reservations made in the database.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "tags": [
+          "Reservation"
+        ],
+        "parameters": [
+          {
+            "name": "username",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": 1
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/AllReservations"
+          },
+          "400": {
+            "description": "Bad status, non-existent status in the choices, invalid username or invalid pagination",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessDeniedError"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
     "/reservations/me": {
       "get": {
         "summary": "The user wants to see their reservations",
@@ -525,20 +1119,14 @@
           }
         ],
         "tags": [
-          "ReservationV2"
+          "Reservation"
         ],
         "responses": {
           "200": {
-            "$ref": "#/components/responses/ReservationsResponseV2"
-          },
-          "400": {
-            "$ref": "#/components/responses/PaginationValidationError"
+            "$ref": "#/components/responses/ReservationsResponse"
           },
           "401": {
             "$ref": "#/components/responses/UnauthorizedError"
-          },
-          "404": {
-            "$ref": "#/components/responses/ObjectNotFound"
           },
           "500": {
             "description": "Server error"
@@ -555,7 +1143,7 @@
           }
         ],
         "tags": [
-          "ReservationV2"
+          "Reservation"
         ],
         "parameters": [
           {
@@ -569,10 +1157,104 @@
         ],
         "responses": {
           "200": {
-            "$ref": "#/components/responses/ReservationsResponseV2"
+            "$ref": "#/components/responses/ReservationsResponse"
           },
           "400": {
-            "description": "Invalid client ID or invalid pagination parameters.",
+            "description": "Invalid client ID",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessDeniedError"
+          },
+          "500": {
+            "description": "Server Error"
+          }
+        }
+      }
+    },
+    "/reservations/post/{id}": {
+      "get": {
+        "summary": "As an administrator, you can see the reservations for a specific post",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "tags": [
+          "Reservation"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/ReservationsResponse"
+          },
+          "400": {
+            "description": "Invalid post ID",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessDeniedError"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/reservations/{id}": {
+      "get": {
+        "summary": "The administrator can view a reservation",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "tags": [
+          "Reservation"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/ReservationResponse"
+          },
+          "400": {
+            "description": "Invalid reservation ID",
             "content": {
               "text/plain": {
                 "schema": {
@@ -594,18 +1276,16 @@
             "description": "Server Error"
           }
         }
-      }
-    },
-    "/reservations/post/{id}": {
-      "get": {
-        "summary": "As an administrator, you can see the reservations for a specific post",
+      },
+      "patch": {
+        "summary": "Update a reservation",
         "security": [
           {
             "bearerAuth": []
           }
         ],
         "tags": [
-          "ReservationV2"
+          "Reservation"
         ],
         "parameters": [
           {
@@ -617,12 +1297,85 @@
             }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateReservationSchema"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
-            "$ref": "#/components/responses/ReservationsResponseV2"
+            "$ref": "#/components/responses/ReservationUpdatedResponse"
           },
           "400": {
-            "description": "Invalid post ID or invalid pagination parameters.",
+            "description": "Validation error or reservation status can only be confirmed, cancelled or withdrawal",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "description": "Must be admin or reservation owner or must not be post owner",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/ObjectNotFound"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a reservation by ID",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "tags": [
+          "Reservation"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Reservation ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Reservation deleted successfully",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid reservation ID",
             "content": {
               "text/plain": {
                 "schema": {
@@ -655,31 +1408,24 @@
           }
         ],
         "tags": [
-          "ProductCategoryV2"
+          "ProductCategory"
         ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateProductCategorySchemaV2"
+                "$ref": "#/components/schemas/CreateProductCategorySchema"
               }
             }
           }
         },
         "responses": {
           "201": {
-            "$ref": "#/components/responses/ProductCategoryCreatedV2"
+            "$ref": "#/components/responses/ProductCategoryCreated"
           },
           "400": {
-            "description": "ValidationError or Category name required",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
+            "$ref": "#/components/responses/ValidationError"
           },
           "401": {
             "$ref": "#/components/responses/UnauthorizedError"
@@ -705,16 +1451,16 @@
           }
         ],
         "tags": [
-          "ProductCategoryV2"
+          "ProductCategory"
         ],
         "parameters": [
           {
-            "name": "categoryName",
+            "name": "nameCategory",
             "in": "query",
             "schema": {
               "type": "string"
             },
-            "required": true
+            "required": false
           },
           {
             "name": "page",
@@ -737,7 +1483,7 @@
         ],
         "responses": {
           "200": {
-            "$ref": "#/components/responses/CategoriesReadV2"
+            "$ref": "#/components/responses/CategoriesRead"
           },
           "400": {
             "description": "Invalid category name or pagination error",
@@ -758,7 +1504,7 @@
         }
       }
     },
-    "/productCategory/{id}": {
+    "/productType/{id}": {
       "patch": {
         "summary": "Only an administrator can modify a product category",
         "security": [
@@ -767,7 +1513,7 @@
           }
         ],
         "tags": [
-          "ProductCategoryV2"
+          "ProductCategory"
         ],
         "parameters": [
           {
@@ -784,14 +1530,14 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateProductCategorySchemaV2"
+                "$ref": "#/components/schemas/UpdateProductCategorySchema"
               }
             }
           }
         },
         "responses": {
           "200": {
-            "$ref": "#/components/responses/ProductCategoryUpdatedV2"
+            "$ref": "#/components/responses/ProductCategoryUpdated"
           },
           "400": {
             "description": "Validation error or category id invalid",
@@ -816,9 +1562,186 @@
             "description": "Server error"
           }
         }
+      },
+      "delete": {
+        "summary": "Delete a category product by ID",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "tags": [
+          "ProductCategory"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The requested type of product was deleted.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing or invalid product category ID",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessDeniedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ObjectNotFound"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
       }
     },
-    "/byCategory": {
+    "/posts/": {
+      "post": {
+        "summary": "Whether they are an administrator or a user, they can create a post and send confirmation of its creation.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "tags": [
+          "Post"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/CreatePostSchema"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "photo": {
+                        "type": "string",
+                        "format": "binary"
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "$ref": "#/components/responses/PostCreated"
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessDeniedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ObjectNotFound"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      },
+      "get": {
+        "summary": "Get posts with filters",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "tags": [
+          "Post"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "city",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "postStatus",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/AllPostsRead"
+          },
+          "400": {
+            "description": "Invalid city name/post status or invalid pagination",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "500": {
+            "description": "Server Error"
+          }
+        }
+      }
+    },
+    "/posts/byCategory": {
       "get": {
         "summary": "Retrieve posts by category",
         "security": [
@@ -827,7 +1750,7 @@
           }
         ],
         "tags": [
-          "PostV2"
+          "Post"
         ],
         "parameters": [
           {
@@ -841,7 +1764,7 @@
         ],
         "responses": {
           "200": {
-            "$ref": "#/components/responses/AllPostByCategoryV2"
+            "$ref": "#/components/responses/AllPostByCategory"
           },
           "400": {
             "description": "missing category name",
@@ -862,16 +1785,241 @@
         }
       }
     },
+    "/posts/{id}": {
+      "get": {
+        "summary": "Return an existing post using the received ID",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "tags": [
+          "Post"
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/PostResponse"
+          },
+          "400": {
+            "description": "Invalid post ID",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ObjectNotFound"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      },
+      "patch": {
+        "summary": "Updates an existing post with the option to upload a file.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/UpdatePostSchema"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "photo": {
+                        "type": "string",
+                        "format": "binary"
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "tags": [
+          "Post"
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/PostUptated"
+          },
+          "400": {
+            "description": "Invalid post ID, error with product categories, or validation error",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessDeniedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ObjectNotFound"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a post using the ID",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "tags": [
+          "Post"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The requested post has been deleted.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid post ID",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessDeniedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ObjectNotFound"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/posts/{id}/image": {
+      "delete": {
+        "summary": "Delete an image from a post ID",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "tags": [
+          "Post"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The image from the requested post has been deleted.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid post ID",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessDeniedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ObjectNotFound"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
     "/login": {
       "post": {
         "summary": "Authenticates a user",
         "tags": [
           "Main level"
-        ],
-        "security": [
-          {
-            "bearerAuth": []
-          }
         ],
         "requestBody": {
           "content": {
@@ -884,7 +2032,7 @@
         },
         "responses": {
           "200": {
-            "$ref": "#/components/responses/ConnectionSuccessV2"
+            "$ref": "#/components/responses/ConnectionSuccess"
           },
           "400": {
             "$ref": "#/components/responses/ValidationError"
@@ -904,11 +2052,6 @@
         "tags": [
           "Main level"
         ],
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -921,7 +2064,7 @@
         },
         "responses": {
           "200": {
-            "$ref": "#/components/responses/ConnectionSuccessV2"
+            "$ref": "#/components/responses/ConnectionSuccess"
           },
           "400": {
             "$ref": "#/components/responses/ValidationError"
@@ -935,47 +2078,20 @@
         }
       }
     },
-    "/refresh-token": {
-      "post": {
-        "summary": "Refreshes the access token using a refresh token",
-        "tags": [
-          "Main level"
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/refreshTokenSchemaV2"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "$ref": "#/components/responses/ConnectionSuccessV2"
-          },
-          "400": {
-            "$ref": "#/components/responses/ValidationError"
-          },
-          "401": {
-            "description": "Refresh token invalid"
-          },
-          "500": {
-            "description": "Error server"
-          }
-        }
-      }
-    },
     "/stats": {
-      "post": {
+      "get": {
         "summary": "Get all application statistics",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "tags": [
           "Main level"
         ],
         "responses": {
           "200": {
-            "$ref": "#/components/responses/AllStatReadedV2"
+            "$ref": "#/components/responses/AllStatReaded"
           },
           "401": {
             "$ref": "#/components/responses/UnauthorizedError"
@@ -1030,11 +2146,11 @@
           }
         ],
         "tags": [
-          "CommentV2"
+          "Comment"
         ],
         "responses": {
           "200": {
-            "$ref": "#/components/responses/CommentsReadV2"
+            "$ref": "#/components/responses/CommentsRead"
           },
           "400": {
             "$ref": "#/components/responses/PaginationValidationError"
@@ -1057,21 +2173,21 @@
           }
         ],
         "tags": [
-          "CommentV2"
+          "Comment"
         ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateCommentSchemaV2"
+                "$ref": "#/components/schemas/CreateCommentSchema"
               }
             }
           }
         },
         "responses": {
           "201": {
-            "$ref": "#/components/responses/CommentAddedV2"
+            "$ref": "#/components/responses/CommentAdded"
           },
           "400": {
             "$ref": "#/components/responses/ValidationError"
@@ -1100,7 +2216,7 @@
           }
         ],
         "tags": [
-          "CommentV2"
+          "Comment"
         ],
         "parameters": [
           {
@@ -1117,14 +2233,14 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateCommentSchemaV2"
+                "$ref": "#/components/schemas/UpdateCommentSchema"
               }
             }
           }
         },
         "responses": {
           "200": {
-            "$ref": "#/components/responses/CommentUpdatedV2"
+            "$ref": "#/components/responses/CommentUpdated"
           },
           "400": {
             "description": "Invalid user ID or validation error (body)",
@@ -1144,6 +2260,607 @@
           },
           "404": {
             "$ref": "#/components/responses/ObjectNotFound"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      },
+      "delete": {
+        "summary": "An administrator deletes a comment or a user deletes his comment",
+        "description": "Delete a specific comment",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "tags": [
+          "Comment"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "ID of the comment to delete",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The comment has been deleted from the database",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid comment ID",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessDeniedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ObjectNotFound"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/users/": {
+      "post": {
+        "summary": "Add a user",
+        "tags": [
+          "User"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/AddClientSchema"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "photo": {
+                        "type": "string",
+                        "format": "binary"
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/UserAdded"
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ObjectCompetingEdition"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      },
+      "get": {
+        "summary": "An administrator want see the users.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "tags": [
+          "User"
+        ],
+        "parameters": [
+          {
+            "name": "name",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "required": false
+          },
+          {
+            "name": "role",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "admin",
+                "user"
+              ]
+            },
+            "required": false
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            },
+            "required": false
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            },
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/ReadAllUsers"
+          },
+          "400": {
+            "description": "Invalid role filter or invalid pagination",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessDeniedError"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      },
+      "patch": {
+        "summary": "A user or an administrator wants to update his account",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "tags": [
+          "User"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/UpdateSchema"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "photo": {
+                        "type": "string",
+                        "format": "binary"
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/UserAccount"
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "401": {
+            "description": "Invalid or expired JWT OR old password is missing/incorrect",
+            "content": {
+              "text/Plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessDeniedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ObjectNotFound"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/users/admin": {
+      "post": {
+        "summary": "Add a new user (admin only)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "tags": [
+          "User"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/AddClientSchema"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/UserAdded"
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessDeniedError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ObjectCompetingEdition"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/users/me": {
+      "get": {
+        "summary": "The users want see this own account.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "tags": [
+          "User"
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/UserAccount"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ObjectNotFound"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/users": {
+      "delete": {
+        "summary": "User deletes their own account",
+        "tags": [
+          "User"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The user is deleted from the database",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid user ID",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ObjectNotFound"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/users/{id}": {
+      "delete": {
+        "summary": "only an administrator can delete an account with user id",
+        "tags": [
+          "User"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The user is deleted from the database",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid user ID",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessDeniedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ObjectNotFound"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      },
+      "patch": {
+        "summary": "A user or an administrator wants to update his account",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "tags": [
+          "User"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/UpdateSchema"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "photo": {
+                        "type": "string",
+                        "format": "binary"
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/UserAccount"
+          },
+          "400": {
+            "description": "Invalid user ID or validation error (body)",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or expired JWT OR old password is missing/incorrect",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessDeniedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/ObjectNotFound"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/users/image": {
+      "delete": {
+        "summary": "Delete the authenticated user's profile image",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "tags": [
+          "User"
+        ],
+        "responses": {
+          "200": {
+            "description": "The user image has been removed.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessDeniedError"
+          },
+          "404": {
+            "description": "User or image not found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/users/{id}/image": {
+      "delete": {
+        "summary": "Delete a user's profile image (admin only)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "tags": [
+          "User"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "description": "ID of the user whose image must be deleted"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The user image has been removed.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid user ID",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessDeniedError"
+          },
+          "404": {
+            "description": "User or image not found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           },
           "500": {
             "description": "Server error"

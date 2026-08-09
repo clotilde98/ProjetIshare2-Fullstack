@@ -39,7 +39,20 @@ const options = {
               }
             }
           }
-        }
+        },
+        ReadAllCities: {
+          description: "All cities read from the external API",
+          content: {
+            "application/json": {
+              schema: {
+                type: "array",
+                items: {
+                  "$ref": "#/components/schemas/Address",
+                },
+              },
+            },
+          },
+        },
       },
       schemas: {
         loginSchema: {
@@ -52,6 +65,20 @@ const options = {
               type: "string",
             },
             idToken: {
+              type: "string",
+            },
+          },
+        },
+        Address: {
+          type: "object",
+          properties: {
+            id: {
+              type: "integer",
+            },
+            city: {
+              type: "string",
+            },
+            postal_code: {
               type: "string",
             },
           },
