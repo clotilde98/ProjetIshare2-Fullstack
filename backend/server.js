@@ -66,11 +66,18 @@ app.use('/api/1.0', RouterV1);
 app.use('/api/2.0', RouterV2);
 
 if(useHttps){
-    https.createServer({ key: fs.readFileSync('key.pem'), cert: fs.readFileSync('cert.pem') }, app).listen(port, () => console.log(`Example app listening at https://localhost:${port}`));
+    https.createServer(
+    {
+        key: fs.readFileSync('key.pem'),
+        cert: fs.readFileSync('cert.pem'),
+        passphrase: process.env.SSL_PASSPHRASE
+    },
+    app
+    ).listen(port, () => console.log(`Example app listening at https://localhost:${port}`));
 }else{
-    http.createServer(app).listen(port, () => {
-    console.log(`Example app listening at http://localhost:${port}`);
-});
+        http.createServer(app).listen(port, () => {
+        console.log(`Example app listening at http://localhost:${port}`);
+    });
 }
 
 
