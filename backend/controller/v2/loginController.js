@@ -125,6 +125,6 @@ export const refreshToken = async (req, res) => {
         res.status(200).send(buildAuthResponse(user));
     } catch (err) {
         console.error("Internal server error", err);
-        return res.status(403).json({ message: "Refresh token invalid" });
+        return res.status(401).json({ message: "Refresh token invalid" });
     }
 };

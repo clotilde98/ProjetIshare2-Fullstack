@@ -5,8 +5,6 @@
  *     summary: Authenticates a user
  *     tags: 
  *       - Main level
- *     security:
- *       - bearerAuth: []
  *     requestBody:
  *       content:
  *         application/json:
@@ -30,8 +28,6 @@
  *     summary: Authenticates a user with Google
  *     tags:
  *       - Main level
- *     security:
- *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:

@@ -11,7 +11,7 @@ import * as dashboardModel from "../../model/v1/dashboardModel.js";
  *         totalAnnonces:
  *           type: integer
  *           description: Total number of posts
- *         totalReservation:
+ *         totalReservations:
  *           type: integer
  *           description: Total number of reservations
  *         totalRetraits:

@@ -8,7 +8,7 @@
  *     tags:
  *       - PostV2
  *     parameters:
- *       - name: nameCategory
+ *       - name: categoryName
  *         in: query
  *         required: true
  *         schema:

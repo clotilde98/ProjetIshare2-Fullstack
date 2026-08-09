@@ -17,11 +17,7 @@
  *       201:
  *         $ref: '#/components/responses/ProductCategoryCreated'
  *       400:
- *         description: ValidationError or Category name required
- *         content: 
- *           text/plain: 
- *              schema: 
- *                  type: string
+ *         $ref: '#/components/responses/ValidationError'
  *       401:
  *         $ref: '#/components/responses/UnauthorizedError'
  *       403:
@@ -46,7 +42,7 @@
  *         in: query
  *         schema:
  *           type: string
- *         required: true
+ *         required: false
  *       - name: page
  *         in: query
  *         schema:

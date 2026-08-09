@@ -46,7 +46,7 @@
  *         in: query
  *         schema:
  *           type: string
- *         required: true
+ *         required: false
  *       - name: page
  *         in: query
  *         schema:

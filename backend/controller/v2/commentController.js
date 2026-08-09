@@ -90,7 +90,7 @@ export const updateComment = async (req, res) => {
 
     try {
         let userID = req.user.id;
-        const commentID = req.params.id;
+        const commentID = Number(req.params.id);
 
         if (!Number.isInteger(commentID) || commentID <= 0){
             return res.status(400).send("Invalid comment ID");
@@ -160,8 +160,8 @@ export const getComments = async (req, res) => {
     const pageResult = validatePagination(
       page,
       PAGINATION.DEFAULT_PAGE,
-      PAGINATION.MIN_PAGE,
-      PAGINATION.MAX_PAGE,
+      PAGINATION.MIN_LIMIT,
+      PAGINATION.MAX_LIMIT,
       'page'
     );
 

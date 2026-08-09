@@ -42,32 +42,6 @@
 
 /**
  * @swagger
- * /comments/{id}:
- *   get:
- *     summary: Retrieve a list the comment by post ID 
- *     parameters:
- *       - name: id
- *         in: path
- *         required: true
- *         schema:
- *           type: integer
- *         description: Post ID of the comments
- *     security:
- *       - bearerAuth: []
- *     tags:
- *       - Comment
- *     responses:
- *       200:
- *         $ref: '#/components/responses/CommentsByPostID'
- *       401:
- *         $ref: '#/components/responses/UnauthorizedError'
- *       500:
- *         description: Server error
- * 
- */
-
-/**
- * @swagger
  * /comments:
  *   post:
  *     summary: Add a comment

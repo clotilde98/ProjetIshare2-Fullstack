@@ -3,8 +3,6 @@
  * /users/:
  *   post:
  *     summary: Add a user
- *     security:
- *       - bearerAuth: []
  *     tags:
  *       - User
  *     requestBody:
@@ -46,11 +44,6 @@
  *           schema:
  *             allOf:
  *               - $ref: '#/components/schemas/AddClientSchema'
- *               - type: object
- *                 properties:
- *                   photo:
- *                     type: string
- *                     format: binary
  *     responses:
  *       200:
  *         $ref: '#/components/responses/UserAdded'
@@ -80,6 +73,8 @@
  *         $ref: '#/components/responses/UserAccount' 
  *        401:
  *         $ref: '#/components/responses/UnauthorizedError'
+ *        404: 
+ *         $ref: '#/components/responses/ObjectNotFound'
  *        500:
  *         description: Server error
  */
@@ -93,6 +88,32 @@
  *       - bearerAuth: []
  *     tags:
  *       - User
+ *     parameters: 
+ *       - name: name
+ *         in: query
+ *         schema: 
+ *           type: string
+ *         required: false
+ *       - name: role
+ *         in: query
+ *         schema: 
+ *           type: string
+ *           enum: 
+ *             - admin
+ *             - user
+ *         required: false
+ *       - name: page
+ *         in: query
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         required: false       
+ *       - name: limit
+ *         in: query
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         required: false
  *     responses:
  *       200:
  *         $ref: '#/components/responses/ReadAllUsers'

@@ -20,9 +20,6 @@ dotenv.config();
  *           schema:
  *             type: object
  *             properties:
- *               error:
- *                 type: string
- *                 example: "Unauthorized"
  *               message:
  *                 type: string
  *                 example: "JWT is missing or is invalid"

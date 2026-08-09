@@ -48,7 +48,7 @@ const options = {
     "./middleware/identification/**/*.js",
     "./middleware/validation.js",
     "./middleware/validator/v1/**/*.js",
-    "./route/v1/**/*.js",
+    "./route/**/*.js",
     "./swagger/v1/**/*.js", 
     "./errors/**/*.js"
   ],

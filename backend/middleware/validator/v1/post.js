@@ -67,6 +67,8 @@ export const createPostSchema = vine.object({
  *             - unavailable
  *         categoriesProduct:
  *           type: string
+ *       required: 
+ *           - categoriesProduct        
  */
 
 
@@ -78,7 +80,7 @@ export const updatePostSchema = vine.object({
     streetNumber: vine.number().positive().optional(),
     postStatus: vine.enum(['available', 'unavailable']).optional(),     
     addressID: vine.number().positive().withoutDecimals().optional(),
-    categoriesProduct: vine.string().trim().optional(), 
+    categoriesProduct: vine.string().trim(), 
     
 }); 
 

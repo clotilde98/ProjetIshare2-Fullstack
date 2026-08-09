@@ -99,7 +99,6 @@ export const getAllCategoriesFromPostID = async (SQLClient, id) => {
     return rows;
 }
 
-
 export const getPosts = async (SQLClient, {city, postStatus, page, limit}) => {
     
     const offset = (page - 1) * limit;
@@ -140,15 +139,12 @@ export const getPosts = async (SQLClient, {city, postStatus, page, limit}) => {
                 p.client_id, 
                 p.photo,
                 p.post_date,
-                (
-                    p.number_of_places - (
-                        SELECT COUNT(id) 
-                        FROM Reservation 
-                        WHERE post_id = p.id 
-                        AND reservation_status = 'confirmed'
-                    )
+                (p.number_of_places - (
+                    SELECT COUNT(id) 
+                    FROM Reservation 
+                    WHERE post_id = p.id AND reservation_status = 'confirmed')
                 ) AS number_of_places, 
-                string_agg(cp.category_name, ', ') AS categories, 
+                string_agg(prc.category_name, ', ') AS categories, 
                 a.city,
                 p.description,
                 c.username, 
@@ -186,6 +182,6 @@ export const getPosts = async (SQLClient, {city, postStatus, page, limit}) => {
         };
 
     } catch (err) {
-        throw new Error(`SQL error in getPosts: : ${err.message}`);
+        throw new Error(`SQL error in getPosts: ${err.message}`);
     }
 };

@@ -11,9 +11,9 @@ import {PaginationValidationError} from "../../errors/PaginationValidationError.
  *     ProductCategoryV2:
  *       type: object
  *       properties:
- *         categoryId:
+ *         category_id:
  *           type: integer
- *         categoryName:
+ *         category_name:
  *           type: string
  *
  *   responses:
@@ -56,8 +56,8 @@ export const getCategories = async (req, res) => {
     const pageResult = validatePagination(
         page,
         PAGINATION.DEFAULT_PAGE,
-        PAGINATION.MIN_PAGE,
-        PAGINATION.MAX_PAGE,
+        PAGINATION.MIN_LIMIT,
+        PAGINATION.MAX_LIMIT,
         'page'
         );
 
@@ -133,9 +133,9 @@ export const updateProductCategory = async (req, res) => {
             return res.status(400).send("Invalid category ID");
         }
         
-        const nameCategory = req.body.nameCategory;
+        const categoryName = req.body.nameCategory;
         
-        const category = await productCategoryModel.getCategories(pool, {categoryName : nameCategory});
+        const category = await productCategoryModel.getCategories(pool, {categoryName : categoryName});
                                                 
         if (category.rows.length > 0){
             return res.status(404).send("Product category not found.");

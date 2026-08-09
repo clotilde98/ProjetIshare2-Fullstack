@@ -56,7 +56,7 @@ export const getMyReservations = async (req, res) => {
         const {page, limit} = req.query; 
 
         const limitResult = validatePagination(limit, PAGINATION.DEFAULT_LIMIT, PAGINATION.MIN_LIMIT, PAGINATION.MAX_LIMIT, 'limit');
-        const pageResult  = validatePagination(undefined, PAGINATION.DEFAULT_PAGE, PAGINATION.MIN_LIMIT, PAGINATION.MAX_LIMIT, 'page');  
+        const pageResult  = validatePagination(page, PAGINATION.DEFAULT_PAGE, PAGINATION.MIN_LIMIT, PAGINATION.MAX_LIMIT, 'page');  
 
         const reservations = await reservationModel.readReservationsByClientID(pool, {
             id : userID, 

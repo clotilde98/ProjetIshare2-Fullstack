@@ -271,6 +271,12 @@ export const getOwnUser = async (req, res) => {
     try {
         const clientID = req.user.id;
 
+        const user = await userModel.getProfileById(pool, clientID); 
+
+        if (!user) {
+            return res.status(404).send("User not found.");
+        }
+
         const photoUrl = user.photo
         ? `/images/${user.photo}.jpeg` 
         : null;
@@ -353,8 +359,8 @@ export const getUsers = async (req, res) => {
     const pageResult = validatePagination(
       page,
       PAGINATION.DEFAULT_PAGE,
-      PAGINATION.MIN_PAGE,
-      PAGINATION.MAX_PAGE,
+      PAGINATION.MIN_LIMIT,
+      PAGINATION.MAX_LIMIT,
       'page'
     );
 

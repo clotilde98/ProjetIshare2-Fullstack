@@ -61,7 +61,7 @@ export const loginWithGoogle = async (req, res) => {
         const {idToken}= req.body;
         const userInfo = await validateGoogleToken(idToken);
 
-        let user = await userModel.getUserByEmail(pool, userInfo.email)
+        let user = await getUserByEmail(pool, userInfo.email)
 
 
         if (!user){

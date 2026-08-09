@@ -1,8 +1,10 @@
 /**
  * @swagger 
  * /stats: 
- *   post:
+ *   get:
  *     summary: Get all application statistics
+ *     security:
+ *       - bearerAuth: []
  *     tags: 
  *      - Main level
  *     responses: 

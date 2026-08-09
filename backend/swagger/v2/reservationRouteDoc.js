@@ -9,7 +9,7 @@
  *       - ReservationV2
  *     responses:
  *       200:
- *         $ref: '#/components/responses/MyReservationsResponseV2'
+ *         $ref: '#/components/responses/ReservationsResponseV2'
  *       400:
  *         $ref: '#/components/responses/PaginationValidationError'
  *       401:

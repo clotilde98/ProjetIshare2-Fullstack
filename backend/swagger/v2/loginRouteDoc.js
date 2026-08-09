@@ -54,6 +54,8 @@
  * /refresh-token:
  *   post:
  *     summary: Refreshes the access token using a refresh token
+ *     security:
+ *       - bearerAuth: []
  *     tags:
  *       - Main level
  *     requestBody:

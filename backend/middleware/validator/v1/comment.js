@@ -16,7 +16,6 @@ import vine from '@vinejs/vine';
  *       required:
  *         - content
  *         - idPost
- *         - idCustomer
  */
 
 

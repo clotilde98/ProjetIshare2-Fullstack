@@ -57,8 +57,8 @@ export const getCategories = async (req, res) => {
     const pageResult = validatePagination(
         page,
         PAGINATION.DEFAULT_PAGE,
-        PAGINATION.MIN_PAGE,
-        PAGINATION.MAX_PAGE,
+        PAGINATION.MIN_LIMIT,
+        PAGINATION.MAX_LIMIT,
         'page'
         );
 

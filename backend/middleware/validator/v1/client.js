@@ -19,6 +19,8 @@ import vine from '@vinejs/vine';
  *                      type: string
  *                  addressID:
  *                      type: integer
+ *                  isAdmin: 
+ *                      type: boolean
  *              required: 
  *                  - username
  *                  - street
@@ -35,7 +37,9 @@ const addClientSchema = vine.object({
     username: vine.string().trim().maxLength(50).optional(), 
     street: vine.string().trim(),
     streetNumber: vine.number(),
-    addressID: vine.number().optional()
+    addressID: vine.number().optional(), 
+    isAdmin: vine.boolean().optional()
+    
 });
 
 /**
@@ -51,7 +55,7 @@ const addClientSchema = vine.object({
  *                  type: string
  *              streetNumber: 
  *                  type: integer
- *              oldPpassword: 
+ *              oldPassword: 
  *                  type: string 
  *              password: 
  *                  type: string
@@ -67,6 +71,7 @@ const updateClientSchema =  vine.object({
     addressID: vine.number().optional(),
     password: vine.string().maxLength(255).optional(), 
     oldPassword: vine.string().maxLength(255).optional(),
+    isAdmin: vine.boolean().optional()
 }); 
 
 /**
@@ -92,6 +97,7 @@ const loginSchema = vine.object({
     password: vine.string().optional(),
     idToken: vine.string().trim().optional(),
 });
+
 
 export const
     addClientValidator = vine.compile(addClientSchema),

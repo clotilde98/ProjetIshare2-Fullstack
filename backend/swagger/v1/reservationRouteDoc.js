@@ -50,14 +50,14 @@
  *     parameters:
  *       - name: username
  *         in: query
- *         required: true
+ *         required: false
  *         schema:
  *           type: string
  *       - name: status
  *         in: query
  *         required: false
  *         schema:
- *           type: integer
+ *           type: string
  *           default: 1
  *       - name: limit
  *         in: query
@@ -65,11 +65,17 @@
  *         schema:
  *           type: integer
  *           default: 10
+ *       - name: page
+ *         in: query
+ *         required: false
+ *         schema: 
+ *           type: integer
+ *           default: 1
  *     responses:
  *       200:
  *         $ref: '#/components/responses/AllReservations'
  *       400:
- *         description: Bad status, non-existent status in the choices, invalid username pr invalid pagination
+ *         description: Bad status, non-existent status in the choices, invalid username or invalid pagination
  *         content: 
  *            text/plain: 
  *                 schema:
@@ -93,7 +99,7 @@
  *       - Reservation
  *     responses:
  *       200:
- *         $ref: '#/components/responses/MyReservationsResponse'
+ *         $ref: '#/components/responses/ReservationsResponse'
  *       401:
  *         $ref: '#/components/responses/UnauthorizedError'
  *       500:
@@ -128,8 +134,6 @@
  *         $ref: '#/components/responses/UnauthorizedError'
  *       403:
  *         $ref: '#/components/responses/AccessDeniedError'
- *       404:
- *         $ref: '#/components/responses/ObjectNotFound'
  *       500:
  *         description: Server Error
  */
@@ -162,8 +166,6 @@
  *         $ref: '#/components/responses/UnauthorizedError'
  *       403:
  *         $ref: '#/components/responses/AccessDeniedError'
- *       404:
- *         $ref: '#/components/responses/ObjectNotFound'
  *       500:
  *         description: Server error
  */
@@ -172,7 +174,7 @@
  * @swagger
  * /reservations/{id}:
  *   get:
- *     summary: The administrator can view a reservation, the user only their own reservation
+ *     summary: The administrator can view a reservation
  *     security:
  *       - bearerAuth: []
  *     tags:

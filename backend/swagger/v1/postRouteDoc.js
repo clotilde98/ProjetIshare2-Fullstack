@@ -118,6 +118,8 @@
  * /posts/{id}:
  *   get:
  *     summary: Return an existing post using the received ID
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - name: id
  *         in: path

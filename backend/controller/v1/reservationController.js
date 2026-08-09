@@ -20,10 +20,13 @@ const VALID_STATUS = ['confirmed', 'cancelled', 'withdrawal'];
  *           type: integer
  *         reservation_date:
  *           type: string
- *           format: date
+ *           format: date-time
  *         reservation_status:
  *           type: string
+ *           enum: [confirmed, cancelled, withdrawal]
  *         client_id:
+ *           type: integer
+ *         post_id:
  *           type: integer
  */
 
@@ -45,8 +48,6 @@ const VALID_STATUS = ['confirmed', 'cancelled', 'withdrawal'];
  *                     - $ref: '#/components/schemas/Reservation'
  *                     - type: object
  *                       properties:
- *                         post_id:
- *                           type: integer
  *                         username:
  *                           type: string
  *                         title:
@@ -83,8 +84,8 @@ export const getReservations = async (req, res) => {
         const pageResult = validatePagination(
             page,
             PAGINATION.DEFAULT_PAGE,
-            PAGINATION.MIN_PAGE,
-            PAGINATION.MAX_PAGE,
+            PAGINATION.MIN_LIMIT,
+            PAGINATION.MAX_LIMIT,
             'page');
 
         const args = {
@@ -143,41 +144,6 @@ export const getReservation = async (req, res) => {
         res.status(500).send("Internal server error"); 
     }
 };
-
-/**
- * @swagger
- * components:
- *   responses:
- *     MyReservationsResponse:
- *       description: Reservations matching the specified user ID.
- *       content:
- *         application/json:
- *           schema:
- *             type: array
- *             items:
- *               type: object
- *               properties:
- *                 id:
- *                   type: integer
- *                 title:
- *                   type: string
- *                 address:
- *                   type: string
- *                 location:
- *                   type: string
- *                 image:
- *                   type: string
- *                   format: uri
- *                   nullable: true
- *                 ownerName:
- *                   type: string
- *                 ownerPhoto:
- *                   type: string
- *                   format: uri
- *                   nullable: true
- *                 postId:
- *                   type: integer
- */
 
 export const getMyReservations = async (req, res) => {
     try {
@@ -311,7 +277,7 @@ export const updateReservation = async (req, res) => {
     try {
         const reservationID = Number(req.params.id);
 
-        const { reservationStatus, postID, providedClientID} = req.body
+        const { reservationStatus, postID, providedClientID } = req.body
 
         let userID = req.user.id; 
 
