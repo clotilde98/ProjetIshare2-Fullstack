@@ -36,7 +36,7 @@
 
 /**
  * @swagger
- * /byCategory:
+ * /posts/byCategory:
  *   get:
  *     summary: Retrieve posts by category
  *     security:

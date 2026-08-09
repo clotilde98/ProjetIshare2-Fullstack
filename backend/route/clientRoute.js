@@ -7,7 +7,8 @@ import {
   createUser,
   getUsers,
   getOwnUser,
-  createUserWithAdmin
+  createUserWithAdmin,
+  deleteImageFromUser
 } from "../controller/v1/clientController.js";
 
 import {clientValidatorMiddleware1} from '../middleware/validation.js';
@@ -30,11 +31,16 @@ router.get("/", checkJWT, mustBeAdmin, getUsers);
 
 router.delete("/", checkJWT, deleteUser); 
 
+router.delete("/image", checkJWT, deleteImageFromUser);
+
+router.delete("/:id/image", checkJWT, deleteImageFromUser);
+
 router.delete("/:id", checkJWT, deleteUser);       
 
 router.patch("/", checkJWT, upload.single("photo"), clientValidatorMiddleware1.updateClientValidator , updateUser);  
 
-router.patch("/:id", checkJWT, upload.single("photo"), clientValidatorMiddleware1.updateClientValidator , updateUser);  
+router.patch("/:id", checkJWT, upload.single("photo"), clientValidatorMiddleware1.updateClientValidator , updateUser);
 
+router.delete("/:id/image", checkJWT, deleteImageFromUser);
 
 export default router;

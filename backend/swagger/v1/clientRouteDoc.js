@@ -288,3 +288,77 @@
  *       500:
  *         description: Server error
  */
+
+/**
+ * @swagger
+ * /users/image:
+ *   delete:
+ *     summary: Delete the authenticated user's profile image
+ *     security:
+ *       - bearerAuth: []
+ *     tags:
+ *       - User
+ *     responses:
+ *       200:
+ *         description: The user image has been removed.
+ *         content:
+ *           text/plain:
+ *             schema:
+ *               type: string
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       403:
+ *         $ref: '#/components/responses/AccessDeniedError'
+ *       404:
+ *         description: User or image not found
+ *         content:
+ *           text/plain:
+ *             schema:
+ *               type: string
+ *       500:
+ *         description: Server error
+ */
+
+/**
+ * @swagger
+ * /users/{id}/image:
+ *   delete:
+ *     summary: Delete a user's profile image (admin only)
+ *     security:
+ *       - bearerAuth: []
+ *     tags:
+ *       - User
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *         description: ID of the user whose image must be deleted
+ *     responses:
+ *       200:
+ *         description: The user image has been removed.
+ *         content:
+ *           text/plain:
+ *             schema:
+ *               type: string
+ *       400:
+ *         description: Invalid user ID
+ *         content:
+ *           text/plain:
+ *             schema:
+ *               type: string
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       403:
+ *         $ref: '#/components/responses/AccessDeniedError'
+ *       404:
+ *         description: User or image not found
+ *         content:
+ *           text/plain:
+ *             schema:
+ *               type: string
+ *       500:
+ *         description: Server error
+ */

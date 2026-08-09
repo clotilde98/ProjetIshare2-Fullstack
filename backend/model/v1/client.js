@@ -123,8 +123,17 @@ export const updateUser = async (SQLClient, id, { username, email, password, pho
     }
 };
 
+export const deleteImageFromUser = async (pool, userId) => {
+    const query =` 
+        UPDATE client
+        SET photo = NULL
+        WHERE id = $1
+        RETURNING *`;
+    ;
 
-
+    const result = await pool.query(query, [userId]);
+    return result.rows[0];
+};
 
 export const getUsers = async (SQLClient, {name, role, page, limit}) => {
     

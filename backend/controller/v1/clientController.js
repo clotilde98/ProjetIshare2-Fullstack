@@ -11,6 +11,7 @@ import { PAGINATION } from '../../Config/pagination.js';
 import { validatePagination } from '../../Utils/validationPagination.js'
 import { PaginationValidationError } from "../../errors/PaginationValidationError.js"; 
 import { faker } from '@faker-js/faker';
+import fs from "fs/promises";
 
 
 /**
@@ -220,8 +221,55 @@ export const updateUser = async (req, res) => {
         return res.status(500).send("Internal server error");
     }
 };
+export const deleteImageFromUser = async (req, res) => {
+    try {
+        let userId = req.user.id;
 
+        if (req.params.id) {
+            const paramId = Number(req.params.id);
 
+            if (!Number.isInteger(paramId) || paramId <= 0) {
+                return res.status(400).send("Invalid user ID");
+            }
+
+            if (paramId !== req.user.id && !req.user.isAdmin) {
+                return res.status(403).send("You can only delete your own image.");
+            }
+
+            userId = paramId;
+        }
+
+        const user = await userModel.getUserById(pool, userId);
+
+        if (!user) {
+            return res.status(404).send("User not found");
+        }
+
+        if (!user.photo) {
+            return res.status(404).send("This user has no image");
+        }
+
+        const destFolderImages = "./middleware/photo";
+        const imagePath = path.join(destFolderImages, `${user.photo}.jpeg`);
+
+        try {
+            await fs.unlink(imagePath);
+        } catch (err) {
+            if (err.code === "ENOENT") {
+                return res.status(404).send("Image not found");
+            }
+
+            throw err;
+        }
+
+        await userModel.deleteImageFromUser(pool, userId);
+
+        return res.status(200).send("The user image has been removed.");
+    } catch (err) {
+        console.error("Internal server error", err);
+        return res.status(500).send("Internal server error");
+    }
+};
 
 export const deleteUser = async (req, res) => {
   try {

@@ -395,11 +395,12 @@ export const deletePost = async (req, res) => {
 export const deleteImageFromPost  = async (req, res) => {
     try {
         const userID = req.user.id; 
-        const postID = Number(req.params.id); 
+        const postID = Number(req.params.id);
         
         if (!Number.isInteger(postID) || postID <= 0) {
             return res.status(400).send("Invalid post ID");
         }
+        
         const post = await postModel.readPost(pool, postID); 
         
         if(!post){
