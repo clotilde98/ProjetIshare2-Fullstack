@@ -21,9 +21,9 @@ import vine from '@vinejs/vine';
 
 
 export const createCommentSchema = vine.object({
-    content: vine.string().trim(), 
-    idPost: vine.number().positive(),
-    idCustomer: vine.number().positive().optional()
+    content: vine.string().trim().maxLength(300), 
+    idPost: vine.number().positive().withoutDecimals(),
+    idCustomer: vine.number().positive().withoutDecimals().optional()
 }); 
 
 /**
@@ -40,7 +40,7 @@ export const createCommentSchema = vine.object({
 
 
 export const updateCommentSchema = vine.object({
-    content: vine.string().trim().optional(),
+    content: vine.string().trim().maxLength(300).optional(),
     
 }); 
 

@@ -45,7 +45,7 @@ const options = {
   },
   apis: [
     "./controller/v1/**/*.js",
-    "./middleware/identification/v1/**/*.js",
+    "./middleware/identification/**/*.js",
     "./middleware/validation.js",
     "./middleware/validator/v1/**/*.js",
     "./route/v1/**/*.js",

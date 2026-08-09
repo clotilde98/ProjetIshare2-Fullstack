@@ -58,7 +58,7 @@
  *       - Comment
  *     responses:
  *       200:
- *         $ref: '#/components/responses/CommentsRead'
+ *         $ref: '#/components/responses/CommentsByPostID'
  *       401:
  *         $ref: '#/components/responses/UnauthorizedError'
  *       500:
@@ -88,6 +88,10 @@
  *         $ref: "#/components/responses/ValidationError"
  *       401:
  *         $ref: "#/components/responses/UnauthorizedError"
+ *       403: 
+ *         $ref: "#/components/responses/AccessDeniedError"
+ *       404: 
+ *         $ref: "#/components/responses/ObjectNotFound"         
  *       500:
  *         description: Server error
  */
@@ -96,7 +100,7 @@
  * @swagger
  * /comments/{id}:
  *   patch:
- *     summary: An administrator updates a comment
+ *     summary: An user updates his comment or an administrator updates a comment
  *     security:
  *       - bearerAuth: []
  *     tags:
@@ -116,13 +120,17 @@
  *     responses:
  *       200:
  *         $ref: '#/components/responses/CommentUpdated'
- *       400:
- *         $ref: '#/components/responses/ValidationError'
+ *       400: 
+ *         description: Invalid user ID or validation error (body)
+ *         content: 
+ *           text/plain: 
+ *               schema:
+ *                  type: string
  *       401:
  *         $ref: '#/components/responses/UnauthorizedError'
  *       403:
  *         $ref: '#/components/responses/AccessDeniedError'
- *       404:
+ *       404: 
  *         $ref: '#/components/responses/ObjectNotFound'
  *       500:
  *         description: Server error
@@ -132,7 +140,7 @@
  * @swagger
  * /comments/{id}:
  *  delete:
- *      summary: An administrator deletes a comment
+ *      summary: An administrator deletes a comment or a user deletes his comment
  *      description: Delete a specific comment 
  *      security:
  *          - bearerAuth: []
@@ -153,6 +161,12 @@
  *              text/plain: 
  *                 schema:
  *                    type: string 
+ *          400: 
+ *            description: Invalid comment ID
+ *            content: 
+ *              text/plain: 
+ *                 schema:
+ *                  type: string
  *          401:
  *            $ref: '#/components/responses/UnauthorizedError'
  *          403: 

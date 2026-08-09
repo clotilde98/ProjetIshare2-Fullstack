@@ -2,20 +2,20 @@
  * @swagger
  * /productType:
  *   post:
- *     summary: An administrator can create a category type
+ *     summary: An administrator can create a category product
  *     security:
  *       - bearerAuth: []
  *     tags:
- *       - ProductTypeV2
+ *       - ProductCategoryV2
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/CreateProductTypeSchemaV2'
+ *             $ref: '#/components/schemas/CreateProductCategorySchemaV2'
  *     responses:
  *       201:
- *         $ref: '#/components/responses/ProductTypeCreatedV2'
+ *         $ref: '#/components/responses/ProductCategoryCreatedV2'
  *       400:
  *         description: ValidationError or Category name required
  *         content: 
@@ -40,7 +40,7 @@
  *     security:
  *       - bearerAuth: []
  *     tags: 
- *       - ProductTypeV2
+ *       - ProductCategoryV2
  *     parameters:
  *       - name: categoryName
  *         in: query
@@ -63,7 +63,11 @@
  *       200:
  *         $ref: '#/components/responses/CategoriesReadV2'
  *       400: 
- *         $ref: '#/components/responses/PaginationValidationError'
+ *         description: Invalid category name or pagination error
+ *         content: 
+ *           text/plain: 
+ *              schema: 
+ *                  type: string
  *       401:
  *         $ref: '#/components/responses/UnauthorizedError'
  *       500:
@@ -73,13 +77,13 @@
 
 /**
  * @swagger
- * /productType/{id}:
+ * /productCategory/{id}:
  *   patch:
  *     summary: Only an administrator can modify a product category
  *     security:
  *       - bearerAuth: []
  *     tags:
- *       - ProductTypeV2
+ *       - ProductCategoryV2
  *     parameters:
  *       - name: id
  *         in: path
@@ -91,10 +95,10 @@
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/UpdateProductTypeSchemaV2'
+ *             $ref: '#/components/schemas/UpdateProductCategorySchemaV2'
  *     responses:
  *       200:
- *         $ref: '#/components/responses/ProductTypeUpdatedV2'
+ *         $ref: '#/components/responses/ProductCategoryUpdatedV2'
  *       400:
  *         description: Validation error or category id invalid  
  *         content: 

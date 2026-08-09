@@ -1,11 +1,10 @@
 import { pool } from "../../database/database.js";
-
 import {readPost} from '../../model/v1/postDB.js'
-
 import * as reservationModel from '../../model/v2/reservationDB.js';
 import { PAGINATION } from '../../Config/pagination.js';
 import {validatePagination} from '../../Utils/validationPagination.js'; 
 import { PaginationValidationError } from "../../errors/PaginationValidationError.js"; 
+import { getUserById } from "../../model/v1/client.js";  
 
 /**
  * @swagger
@@ -93,8 +92,8 @@ export const getMyReservations = async (req, res) => {
 
 export const getReservationsByClientID = async (req, res) => {
     try {
-        const clientID = parseInt(req.params.id);
-        if (Number.isNaN(clientID)) return res.status(400).send("Invalid client ID");
+        const clientID = Number(req.params.id);
+        if(!Number.isInteger(clientID) || clientID <= 0) return res.status(400).send("Invalid client ID");
 
         const { page, limit} = req.query; 
 
@@ -117,10 +116,10 @@ export const getReservationsByClientID = async (req, res) => {
 
 export const getReservationsByPostID = async (req, res) => {
     try {
-        const postID = parseInt(req.params.id);
-        if (Number.isNaN(postID)) return res.status(400).send("Invalid post ID");
+        const postID = Number(req.params.id);
+        if(!Number.isInteger(postID) || postID <= 0) return res.status(400).send("Invalid post ID");
 
-        const { page, limit} = req.query; 
+        const {page, limit} = req.query; 
 
         const limitResult = validatePagination(limit, PAGINATION.DEFAULT_LIMIT, PAGINATION.MIN_LIMIT, PAGINATION.MAX_LIMIT, 'limit');
         const pageResult  = validatePagination(page, PAGINATION.DEFAULT_PAGE, PAGINATION.MIN_LIMIT, PAGINATION.MAX_LIMIT, 'page'); 
@@ -131,7 +130,7 @@ export const getReservationsByPostID = async (req, res) => {
         if (post.client_id !== req.user.id && !req.user.isAdmin) return res.status(403).send("Admin privilege required");
 
 
-        const reservations = await reservationModel.readReservationsByPostID(pool, {id : clientID, page : pageResult, limit : limitResult})
+        const reservations = await reservationModel.readReservationsByPostID(pool, {id : postID, page : pageResult, limit : limitResult})
 
         res.status(200).send({reservations});
         

@@ -30,9 +30,9 @@ import vine from '@vinejs/vine';
 
 
 const addClientSchema = vine.object({
-    email: vine.string().email().trim(),
+    email: vine.string().email().maxLength(100).trim(),
     password: vine.string(), 
-    username: vine.string().trim().optional(), 
+    username: vine.string().trim().maxLength(50).optional(), 
     street: vine.string().trim(),
     streetNumber: vine.number(),
     addressID: vine.number().optional()
@@ -61,12 +61,12 @@ const addClientSchema = vine.object({
             
 
 const updateClientSchema =  vine.object({
-    username: vine.string().trim().optional(),
-    street: vine.string().trim().optional(),
+    username: vine.string().trim().maxLength(50).optional(),
+    street: vine.string().trim().maxLength(100).optional(),
     streetNumber: vine.string().optional(), 
     addressID: vine.number().optional(),
-    password: vine.string().optional(), 
-    oldPassword: vine.string().optional(),
+    password: vine.string().maxLength(255).optional(), 
+    oldPassword: vine.string().maxLength(255).optional(),
 }); 
 
 /**

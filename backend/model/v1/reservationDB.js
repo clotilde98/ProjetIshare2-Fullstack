@@ -13,30 +13,6 @@ export const readReservation = async (SQLClient, id) => {
     return rows[0];
 };
 
-export const readMyReservations = async (SQLClient, clientID) => {
-    const query = `
-        SELECT 
-            r.id AS reservation_id,
-            p.id AS postId,
-            p.title,
-            p.street,
-            p.street_number,
-            p.photo,
-            a.city,
-            a.postal_code,
-            c.username AS owner_name,
-            c.photo AS owner_photo
-        FROM Reservation r
-        JOIN Post p ON r.post_id = p.id
-        JOIN Address a ON p.address_id = a.id
-        JOIN Client c ON p.client_id = c.id
-        WHERE r.client_id = $1
-        ORDER BY r.reservation_date DESC
-    `;
-    const {rows} = await SQLClient.query(query, [clientID]);
-    return rows;
-};
-
 export const readReservationsByClientID = async (SQLClient, id) => {
     const {rows} = await SQLClient.query("SELECT * FROM reservation WHERE client_id = $1", [id]);
     return rows;
@@ -50,26 +26,6 @@ export const readReservationByClientIDAndByPostID = async (SQLClient, {clientID,
 export const readReservationsByPostID = async (SQLClient, id) => {
     const {rows} = await SQLClient.query("SELECT * FROM Reservation WHERE post_id = $1", [id]);
     return rows;
-};
-
-export const getReservationWithPostTitle = async (SQLClient, { clientID, postID }) => {
-    const { rows } = await SQLClient.query(
-        `SELECT 
-            r.*, 
-            p.title AS post_title, 
-            reserver.username, 
-            p.client_id AS owner_id
-         FROM Reservation r
-         JOIN Post p 
-            ON r.post_id = p.id
-         JOIN Client reserver 
-            ON r.client_id = reserver.id
-         WHERE r.post_id = $1
-           AND r.client_id = $2`,
-        [postID, clientID]
-    );
-
-    return rows[0];
 };
 
 export const updateReservation = async(SQLClient, {id, clientID,postID, reservationStatus}) => {
@@ -107,13 +63,9 @@ export const deleteReservation = async (SQLClient, id) => {
     return rowCount > 0;
 };
 
+export const getReservations = async (SQLClient, { username, reservationStatus, page, limit}) => {
 
-
-export const getReservations = async (SQLClient, { username, reservationStatus, page = 1, limit = 10 }) => {
-    const pageNum = parseInt(page);
-    const limitNum = parseInt(limit);
-
-    const offset = (pageNum - 1) * limitNum;
+    const offset = (page - 1) * limit;
     
     const conditions = [];
     const values = []; 
@@ -144,8 +96,6 @@ export const getReservations = async (SQLClient, { username, reservationStatus, 
         const limitIndex = values.length + 1;
         const offsetIndex = values.length + 2; 
 
-
-
         const dataQuery = `SELECT 
             r.id, 
             p.title, 
@@ -161,7 +111,7 @@ export const getReservations = async (SQLClient, { username, reservationStatus, 
         ORDER BY r.reservation_date DESC
         LIMIT $${limitIndex} OFFSET $${offsetIndex}`;
 
-        values.push(limitNum);
+        values.push(limit);
         values.push(offset);
         
         const dataResult = await SQLClient.query(dataQuery, values);
@@ -170,6 +120,6 @@ export const getReservations = async (SQLClient, { username, reservationStatus, 
         return { rows, total }; 
 
     } catch (err) {
-        throw new Error(`Erreur SQL dans getReservations : ${err.message}`); 
+        throw new Error(`SQL error in getReservations : ${err.message}`); 
     }
 };

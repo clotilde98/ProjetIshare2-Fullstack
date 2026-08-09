@@ -16,7 +16,7 @@ export const pool = {
     return {
       query: async (queryText, params) => client.query(queryText, params),
       release: () => client.release()
-    };
+    };  
   },
   query: async (queryText, params) => pgPool.query(queryText, params),
   end: () => pgPool.end()

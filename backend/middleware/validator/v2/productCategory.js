@@ -5,7 +5,7 @@ import vine from '@vinejs/vine';
  * @swagger
  * components:
  *   schemas:
- *     CreateProductTypeSchemaV2:
+ *     CreateProductCategorySchemaV2:
  *       type: object
  *       properties:
  *         categoryName:
@@ -14,14 +14,14 @@ import vine from '@vinejs/vine';
 
 
 export const createProductCategorySchema = vine.object({
-    categoryName: vine.string().trim(), 
+    categoryName: vine.string().trim().maxLength(20), 
 }); 
 
 /**
  * @swagger
  * components:
  *   schemas:
- *     UpdateProductTypeSchemaV2:
+ *     UpdateProductCategorySchemaV2:
  *       type: object
  *       properties:
  *         categoryName:
@@ -29,7 +29,7 @@ export const createProductCategorySchema = vine.object({
  */
 
 export const updateProductCategorySchema = vine.object({
-    categoryName: vine.string().trim(),
+    categoryName: vine.string().trim().maxLength(20),
 }); 
 
 

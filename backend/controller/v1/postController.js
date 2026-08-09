@@ -1,5 +1,5 @@
 import { pool } from "../../database/database.js";
-import {createPostCategory, deletePostCategoriesForPostID, getPostswithAllCategories } from '../../model/v1/postCategory.js'
+import {createPostCategory, deletePostCategoriesForPostID } from '../../model/v1/postCategory.js'
 import * as postModel from '../../model/v1/postDB.js';
 import { getUserById } from "../../model/v1/client.js";
 import fs from 'fs/promises';
@@ -10,7 +10,7 @@ import * as uuid from 'uuid'
 import { PAGINATION } from '../../Config/pagination.js';
 import { validatePagination } from '../../Utils/validationPagination.js'
 import { PaginationValidationError } from "../../errors/PaginationValidationError.js"; 
-import { readProductCategoryFromID } from "../../model/v1/productType.js";
+import { readProductCategoryFromID } from "../../model/v1/productCategory.js";
 
 /**
  * @swagger
@@ -18,7 +18,7 @@ import { readProductCategoryFromID } from "../../model/v1/productType.js";
  *   schemas:
  *     Post:
  *       type: object
- *       description: Represents a blog post or article
+ *       description: Represents a blog post
  *       properties:
  *         id:
  *           type: integer
@@ -67,7 +67,7 @@ export const getPost = async (req, res) => {
     try {
         const id = Number(req.params.id);
 
-        if (Number.isNaN(id)) {
+        if (!Number.isInteger(id) || id <= 0) {
             return res.status(400).send("Invalid post ID");
         }
 
@@ -88,29 +88,6 @@ export const getPost = async (req, res) => {
     } catch (err) {
         console.error("Internal server error", err); 
         return res.status(500).send("Internal server error");
-    }
-};
-
-export const getMyPosts = async (req, res) => {
-    try {
-
-        const userID = req.user.id;
-        const posts = await postModel.readMyPosts(pool, userID);
-
-
-        if (posts.length > 0) {
-            for (const post of posts) {
-                post.photo = post.photo
-                ? `/images/${post.photo}.jpeg`
-                : null;
-            }
-            }
-
-        res.status(200).json(posts);
-
-    } catch (err) {
-       console.error("Internal server error", err);
-       return res.status(500).send("Internal server error");
     }
 };
 
@@ -152,10 +129,18 @@ export const getPosts = async (req, res) => {
     try {
         const { city, postStatus, limit, page} = req.query;
 
-        
+        let cleanCity = city ? city.trim() : city;
 
+        if (cleanCity && cleanCity.length > 100) {
+            return res.status(400).send("City name must be 100 characters or less.");
+        }
 
+        const VALID_POST_STATUSES = ['available', 'unavailable'];
 
+        if (postStatus && !VALID_POST_STATUSES.includes(postStatus)) {
+            return res.status(400).send("Invalid post status. Must be 'available' or 'unavailable'.");
+        }
+    
         const limitResult = validatePagination(
           limit,
           PAGINATION.DEFAULT_LIMIT,
@@ -175,7 +160,7 @@ export const getPosts = async (req, res) => {
 
 
         const posts = await postModel.getPosts(pool, {
-            city,
+            cleanCity,
             postStatus,
             page: pageResult, 
             limit: limitResult  
@@ -221,17 +206,17 @@ export const createPost = async (req, res) => {
 
         let userID = req.user.id;
 
-        const user = await getUserById(pool, userID);
-
-        if (!user) {
-            return res.status(401).send("User doesn't exist.");
-        }
-
         const photo = req.file;
 
         if (req.body.providedClientID) {
             if (req.user.isAdmin) {
                 userID = req.body.providedClientID;
+                const providedUser = await getUserById(pool, userID);
+                                
+                if (!providedUser){
+                    return res.status(404).send("Provided client does not exist.");
+                }
+            
             } else {
                 return res.status(403).send("Admin privilege required");
             }
@@ -243,10 +228,10 @@ export const createPost = async (req, res) => {
         if (req.body.categoriesProduct) {
             categoriesProduct = JSON.parse(req.body.categoriesProduct);
             if (!Array.isArray(categoriesProduct) || categoriesProduct.length === 0) {
-                return res.status(400).send("Post category required.");
+                return res.status(400).send("categoriesProduct must be a non-empty array of category IDs.");
             }
         } else {
-            return res.status(400).send("Post category required.")
+            return res.status(400).send("CategoriesProduct is required.")
         }
 
         for (const categoryID of categoriesProduct) {
@@ -313,7 +298,7 @@ export const updatePost = async (req, res) => {
         let userID = req.user.id;
         const postID = Number(req.params.id);
 
-        if (Number.isNaN(postID)) {
+        if (!Number.isInteger(postID) || postID <= 0) {
             return res.status(400).send("Invalid post ID");
         }
         
@@ -338,16 +323,16 @@ export const updatePost = async (req, res) => {
             if (req.body.categoriesProduct) {
                 categoriesProduct = JSON.parse(req.body.categoriesProduct);
                 if (!Array.isArray(categoriesProduct) || categoriesProduct.length === 0) {
-                    return res.status(400).send("Post category required.");
+                    return res.status(400).send("ProductCategories must be a non-empty array of category IDs.");
                 }
             } else {
-                return res.status(400).send("Post category required.")
+                return res.status(400).send("ProductCategories is required.")
             }
 
             for (const categoryID of categoriesProduct) {
                 const category = await readProductCategoryFromID(pool, categoryID);
                 if (!category) {
-                    return res.status(400).send(`Category product with ID ${categoryID} doesn't exist`);
+                    return res.status(400).send(`Product category with ID ${categoryID} doesn't exist`);
                 }
             }
 
@@ -384,7 +369,7 @@ export const deletePost = async (req, res) => {
     try {
         const userID = req.user.id;
         const postID = Number(req.params.id);
-        if (Number.isNaN(postID)) {
+        if (!Number.isInteger(postID) || postID <= 0) {
             return res.status(400).send("Invalid post ID");
         }
 
@@ -411,7 +396,8 @@ export const deleteImageFromPost  = async (req, res) => {
     try {
         const userID = req.user.id; 
         const postID = Number(req.params.id); 
-        if(Number.isNaN(postID)){
+        
+        if (!Number.isInteger(postID) || postID <= 0) {
             return res.status(400).send("Invalid post ID");
         }
         const post = await postModel.readPost(pool, postID); 
@@ -422,14 +408,26 @@ export const deleteImageFromPost  = async (req, res) => {
 
         if (post.client_id === userID || req.user.isAdmin){
             
-            const destFolderImages = './middleware/photo';
-            const imagePath = path.join(destFolderImages, `${post.photo}.jpeg`); 
+            if(post.photo){
+                const destFolderImages = './middleware/photo';
+                const imagePath = path.join(destFolderImages, `${post.photo}.jpeg`); 
+                
+                try {
+                    await fs.unlink(imagePath);
+                } catch (err) {
+                
+                    if (err.code === "ENOENT") {
+                        return res.status(404).send("Image not found");
+                    }
+                    throw err;
+                }
 
-            await fs.unlink(imagePath); 
+                await postModel.deleteImageFromPost(pool, postID); 
 
-            await postModel.deleteImageFromPost(pool, req.params.id); 
-
-            res.status(200).send("The image in the post has been removed.");
+                return res.status(200).send("The image in the post has been removed.");
+            }else{
+                return res.status(404).send("This post has no image"); 
+            }
 
         } else {
             return res.status(403).send("Admin privilege required.");
@@ -466,49 +464,18 @@ export const deleteImageFromPost  = async (req, res) => {
 
 export const searchPostsByCategory = async(req, res) => {
     try {
-         const posts = await postModel.searchPostByCategory(pool, req.query.nameCategory);
-         res.status(200).send(posts);
-    }catch(err){
-        console.error("Internal server error", err); 
-        res.status(500).send("Internal server error");
-    }
-}
+        const {nameCategory} = req.query; 
+      
+        const cleanNameCategory = nameCategory ? nameCategory.trim() : "";
 
-/**
- * @swagger
- * components:
- *   responses:
- *     AllPostsWithCategoriesRead:
- *       description: All posts with their associated categories have been successfully retrieved.
- *       content:
- *         application/json:
- *           schema:
- *             type: array
- *             items:
- *               allOf:
- *                 - $ref: '#/components/schemas/Post'
- *                 - type: object
- *                   properties:
- *                     categories:
- *                       type: string
- *                       description: List of categories associated with the post
- */
-
-export const getPostsWithoutFilters= async(req, res) => {
-    try {
-        const posts = await getPostswithAllCategories(pool); 
-        
-        if (posts.length > 0) {
-            for (const post of posts) {
-                post.photo = post.photo
-                ? `/images/${post.photo}.jpeg`
-                : null;
-            }
+        if (!cleanNameCategory) {
+            return res.status(400).send("Category name is required.");
         }
+
+        const posts = await postModel.searchPostsByCategory(pool, cleanNameCategory);
         res.status(200).send(posts);
     }catch(err){
         console.error("Internal server error", err); 
         res.status(500).send("Internal server error");
     }
-
 }

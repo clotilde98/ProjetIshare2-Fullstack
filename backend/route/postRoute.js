@@ -1,33 +1,24 @@
 import { Router } from 'express';
-import {
-  getPost,
-  getPosts,
-  createPost,
-  updatePost,
-  deletePost,
-  searchPostsByCategory, 
-  deleteImageFromPost
-} from '../controller/v1/postController.js';
-
-import {checkJWT} from '../middleware/identification/jwt.js'
+import {checkJWT} from '../middleware/identification/jwt.js'; 
 import {postValidatorMiddleware} from '../middleware/validation.js';
 import {upload} from '../middleware/upload.js';
 
+export const postRouter = (controller) => {
 const router = Router();
 
-router.post("/", checkJWT, upload.single('photo'), postValidatorMiddleware.createPostValidator, createPost);  
+router.post("/", checkJWT, upload.single('photo'), postValidatorMiddleware.createPostValidator, controller.createPost);  
 
-router.get("/byCategory", checkJWT, searchPostsByCategory); 
+router.get("/byCategory", checkJWT, controller.searchPostsByCategory); 
 
-router.get("/", checkJWT, getPosts); 
+router.get("/", checkJWT, controller.getPosts); 
 
-router.get("/:id", checkJWT, getPost);  
+router.get("/:id", checkJWT, controller.getPost);  
 
-router.patch("/:id", checkJWT, upload.single('photo'), postValidatorMiddleware.updatePostValidator, updatePost);  
+router.patch("/:id", checkJWT, upload.single('photo'), postValidatorMiddleware.updatePostValidator, controller.updatePost);  
 
-router.delete("/:id", checkJWT, deletePost); 
+router.delete("/:id", checkJWT, controller.deletePost); 
 
-router.delete("/:id/image", checkJWT, deleteImageFromPost); 
+router.delete("/:id/image", checkJWT, controller.deleteImageFromPost); 
 
-export default router;
-
+return router;
+}

@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import {checkJWT} from '../middleware/identification/jwt.js'
+import {checkJWT} from '../middleware/identification/jwt.js';
 
 import {
   updateUser,
@@ -10,7 +10,7 @@ import {
   createUserWithAdmin
 } from "../controller/v1/clientController.js";
 
-import {clientValidatorMiddleware} from '../middleware/validation.js';
+import {clientValidatorMiddleware1} from '../middleware/validation.js';
 
 import {mustBeAdmin} from '../middleware/identification/mustBeAdmin.js'
 
@@ -20,9 +20,9 @@ import {upload} from '../middleware/upload.js';
 const router = Router();
 
 
-router.post("/",upload.single('photo'), clientValidatorMiddleware.addClientValidator, createUser); 
+router.post("/",upload.single('photo'), clientValidatorMiddleware1.addClientValidator, createUser); 
 
-router.post("/admin", checkJWT, clientValidatorMiddleware.addClientValidator, createUserWithAdmin); 
+router.post("/admin", checkJWT, clientValidatorMiddleware1.addClientValidator, createUserWithAdmin); 
 
 router.get("/me", checkJWT, getOwnUser);    
 
@@ -32,9 +32,9 @@ router.delete("/", checkJWT, deleteUser);
 
 router.delete("/:id", checkJWT, deleteUser);       
 
-router.patch("/", checkJWT, upload.single("photo"), clientValidatorMiddleware.updateClientValidator , updateUser);  
+router.patch("/", checkJWT, upload.single("photo"), clientValidatorMiddleware1.updateClientValidator , updateUser);  
 
-router.patch("/:id", checkJWT, upload.single("photo"), clientValidatorMiddleware.updateClientValidator , updateUser);  
+router.patch("/:id", checkJWT, upload.single("photo"), clientValidatorMiddleware1.updateClientValidator , updateUser);  
 
 
 export default router;

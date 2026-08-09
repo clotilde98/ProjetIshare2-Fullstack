@@ -1,5 +1,5 @@
 export const readProductCategoryFromID = async (SQLClient, categoryID) => {
-    const query = "SELECT category_id AS id_category, category_name AS name_category FROM Product_category WHERE category_id = $1";
+    const query = "SELECT category_id, category_name FROM Product_category WHERE category_id = $1";
     const { rows } = await SQLClient.query(query, [categoryID]);
     
     if (rows.length === 0) return null;
@@ -7,35 +7,26 @@ export const readProductCategoryFromID = async (SQLClient, categoryID) => {
     return rows[0];
 };
 
-export const createProductType = async (SQLClient, categoryName) => {
-  const { rows } = await SQLClient.query(
-    `
-    INSERT INTO Product_category (category_name)
-    VALUES ($1)
-    RETURNING
-      category_id AS id_category,
-      category_name AS name_category
-    `,
-    [categoryName]
-  );
+export const createProductCategory = async(SQLClient, categoryName) => {
+    const {rows} = await SQLClient.query("INSERT INTO Product_category(category_name) VALUES ($1) RETURNING *",
+    [categoryName]);
+    
+    return rows[0];
+}
 
-  return rows[0];
-};
-
-
-export const updateProductType = async (SQLClient, { categoryID, categoryName }) => {
+export const updateProductCategory = async (SQLClient, { categoryID, categoryName }) => {
     let query = "UPDATE Product_category SET ";
     const querySet = [];
     const queryValues = [];
 
     if (categoryName) {
         queryValues.push(categoryName);
-        querySet.push(`name_category = $${queryValues.length}`);
+        querySet.push(`category_name = $${queryValues.length}`);
     }
 
     if (queryValues.length > 0) {
         queryValues.push(categoryID); 
-        query += `${querySet.join(", ")} WHERE category_id = $${queryValues.length} RETURNING category_id AS id_category, name_category AS category_name`;
+        query += `${querySet.join(", ")} WHERE category_id = $${queryValues.length} RETURNING *`;
 
         const results = await SQLClient.query(query, queryValues);
         return results.rows[0];
@@ -43,13 +34,6 @@ export const updateProductType = async (SQLClient, { categoryID, categoryName })
         throw new Error("No field given (Category name)");
     }
 };
-
-export const deleteProductType = async (SQLClient, categoryID)=> {
-  
-   let query="DELETE FROM Product_category WHERE category_id=$1";
-   const result = await SQLClient.query(query, [categoryID]); 
-   return result.rowCount ; 
-}
 
 export const getCategories = async (SQLClient, { categoryName, page = 1, limit = 10 }) => {
     const pageNum = parseInt(page);
@@ -71,15 +55,15 @@ export const getCategories = async (SQLClient, { categoryName, page = 1, limit =
         FROM Product_category
         ${whereClause}
     `;
-    const totalResult = await SQLClient.query(countQuery, values);
+        const totalResult = await SQLClient.query(countQuery, values);
     const total = parseInt(totalResult.rows[0].count, 10);
     const limitIndex = values.length + 1;
     const offsetIndex = values.length + 2;
     
     const dataQuery = `
         SELECT 
-            category_id AS id_category, 
-            category_name AS name_category
+            category_id, 
+            category_name 
         FROM Product_category
         ${whereClause}
         ORDER BY category_id DESC

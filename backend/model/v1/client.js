@@ -30,7 +30,7 @@ export const getUserById = async (SQLClient, id) => {
      WHERE id = $1`,
     [id]
   );
-  return rows[0] ;
+  return rows[0];
 };
 
 export const getUserByEmail = async (SQLClient, email) => {
@@ -40,7 +40,7 @@ export const getUserByEmail = async (SQLClient, email) => {
      WHERE email = $1`,
     [email]
   );
-  return rows[0] ;
+  return rows[0];
 };
 
 export const getUserByUsernameOrEmail = async (SQLClient, username, email) => {
@@ -126,11 +126,9 @@ export const updateUser = async (SQLClient, id, { username, email, password, pho
 
 
 
-export const getUsers = async (SQLClient, { name, role, page = 1, limit = 10 }) => {
-    const pageNum = parseInt(page);
-    const limitNum = parseInt(limit);
+export const getUsers = async (SQLClient, {name, role, page, limit}) => {
     
-    const offset = (pageNum - 1) * limitNum;
+    const offset = (page - 1) * limit;
     
     const conditions = [];
     const values = []; 
@@ -169,7 +167,7 @@ export const getUsers = async (SQLClient, { name, role, page = 1, limit = 10 }) 
         LIMIT $${limitIndex} OFFSET $${offsetIndex}`; 
 
         
-        values.push(limitNum);
+        values.push(limit);
         values.push(offset);
         
         const dataResult = await SQLClient.query(dataQuery, values);

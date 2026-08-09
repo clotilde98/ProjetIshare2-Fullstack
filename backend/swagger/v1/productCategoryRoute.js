@@ -2,20 +2,20 @@
  * @swagger
  * /productType:
  *   post:
- *     summary: An administrator can create a category type
+ *     summary: An administrator can create a category product
  *     security:
  *       - bearerAuth: []
  *     tags:
- *       - ProductType
+ *       - ProductCategory
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/CreateProductTypeSchema'
+ *             $ref: '#/components/schemas/CreateProductCategorySchema'
  *     responses:
  *       201:
- *         $ref: '#/components/responses/ProductTypeCreated'
+ *         $ref: '#/components/responses/ProductCategoryCreated'
  *       400:
  *         description: ValidationError or Category name required
  *         content: 
@@ -40,7 +40,7 @@
  *     security:
  *       - bearerAuth: []
  *     tags: 
- *       - ProductType
+ *       - ProductCategory
  *     parameters:
  *       - name: nameCategory
  *         in: query
@@ -63,7 +63,11 @@
  *       200:
  *         $ref: '#/components/responses/CategoriesRead'
  *       400: 
- *         $ref: '#/components/responses/PaginationValidationError'
+ *         description: Invalid category name or pagination error
+ *         content: 
+ *           text/plain: 
+ *              schema: 
+ *                  type: string
  *       401:
  *         $ref: '#/components/responses/UnauthorizedError'
  *       500:
@@ -78,7 +82,7 @@
  *     security:
  *       - bearerAuth: []
  *     tags:
- *       - ProductType
+ *       - ProductCategory
  *     parameters:
  *       - name: id
  *         in: path
@@ -90,10 +94,10 @@
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/UpdateProductTypeSchema'
+ *             $ref: '#/components/schemas/UpdateProductCategorySchema'
  *     responses:
  *       200:
- *         $ref: '#/components/responses/ProductTypeUpdated'
+ *         $ref: '#/components/responses/ProductCategoryUpdated'
  *       400:
  *         description: Validation error or category id invalid  
  *         content: 
@@ -118,7 +122,7 @@
  *     security:
  *       - bearerAuth: []
  *     tags: 
- *       - ProductType
+ *       - ProductCategory
  *     parameters:
  *       - name: id
  *         in: path
@@ -133,7 +137,7 @@
  *                 schema:
  *                    type: string 
  *       400:
- *         description: Missing product category ID
+ *         description: Missing or invalid product category ID
  *         content: 
  *            text/plain: 
  *                 schema:

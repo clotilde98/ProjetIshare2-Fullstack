@@ -1,6 +1,7 @@
 import {pool} from "../../database/database.js";
 import * as commentModel from "../../model/v1/comment.js";
 import * as postModel from '../../model/v1/postDB.js'; 
+import * as userModel from "../../model/v1/client.js";
 import { PAGINATION } from '../../Config/pagination.js';
 import {validatePagination} from '../../Utils/validationPagination.js'; 
 import {PaginationValidationError} from "../../errors/PaginationValidationError.js"; 
@@ -22,20 +23,9 @@ import {PaginationValidationError} from "../../errors/PaginationValidationError.
  *           format: date
  *         id_post:
  *           type: integer
- *         id_costumer:
+ *         id_customer:
  *           type: integer
  */
-
-
-export const getCommentsByPostID = async (req, res) => {
-    try {
-        const rows = await commentModel.getCommentsByPostID(pool, {postID: req.params.id})
-        return res.status(200).send({rows});
-    } catch (err) {
-        console.error("Internal server error", err);  
-        return res.status(500).send("Internal server error");
-    }
-}
 
 /**
  * @swagger
@@ -60,6 +50,12 @@ export const createComment = async (req, res) => {
         if (req.body.providedClientID){
             if (req.user.isAdmin){
                 userID = req.body.providedClientID;
+
+                const providedUser = await userModel.getUserById(pool, userID);
+                
+                if (!providedUser){
+                    return res.status(404).send("Provided client does not exist.");
+                }
             } else {
                 return res.status(403).send("Admin privilege required");
             }
@@ -68,17 +64,13 @@ export const createComment = async (req, res) => {
         const post = await postModel.readPost(pool, req.body.idPost);
 
         if (!post){
-            return res.status(400).send("Post doesn't exist.");
+            return res.status(404).send("Post doesn't exist.");
         }
-
-
+        
         const commentCreated = await commentModel.createComment(pool,  { content: req.body.content, postID: req.body.idPost, clientID: userID });
         
-        if (commentCreated) {
-            res.status(201).send({commentCreated});
-        } else {
-            res.status(400).send({ message: "Unable to create comment. Please check if the post ID is correct." }); 
-        } 
+        res.status(201).send({commentCreated});
+        
     } catch (err) {
         console.error("Internal server error", err);  
         return res.status(500).send("Internal server error");
@@ -105,8 +97,12 @@ export const createComment = async (req, res) => {
 export const updateComment = async (req, res) => {
 
     try {
-        let userID = req.user.id;
-        const commentID = req.params.id;
+        let userID = req.user.id; 
+
+        const commentID = Number(req.params.id);
+        if (!Number.isInteger(commentID) || commentID <= 0){
+            return res.status(400).send("Invalid comment ID");
+        }
 
         const comment = await commentModel.getCommentById(pool, commentID);
 
@@ -133,7 +129,10 @@ export const deleteComment = async(req, res) =>{
     try {
 
         let userID = req.user.id;
-        const commentID = req.params.id;
+        const commentID = Number(req.params.id);
+        if (!Number.isInteger(commentID) || commentID <= 0){
+            return res.status(400).send("Invalid comment ID");
+        }
 
         const comment = await commentModel.getCommentById(pool, commentID);
 
@@ -159,7 +158,7 @@ export const deleteComment = async(req, res) =>{
  * components:
  *   responses:
  *     CommentsRead:
- *       description: Comments matching the specified filters successfully retrieved
+ *       description: All the comments that correspond to the given date (optional)
  *       content:
  *         application/json:
  *           schema:

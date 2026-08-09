@@ -1,14 +1,15 @@
 import {pool} from "../../database/database.js";
-import * as typeProductModel from "../../model/v1/productType.js";
+import * as productCategoryModel from "../../model/v1/productCategory.js";
 import { PAGINATION } from '../../Config/pagination.js';
 import { validatePagination } from '../../Utils/validationPagination.js'; 
 import { PaginationValidationError } from "../../errors/PaginationValidationError.js"; 
+import { toNamespacedPath } from "path";
 
 /**
  * @swagger
  * components:
  *   schemas:
- *     Category:
+ *     ProductCategory:
  *       type: object
  *       properties:
  *         idCategory:
@@ -27,16 +28,22 @@ import { PaginationValidationError } from "../../errors/PaginationValidationErro
  *               rows:
  *                 type: array
  *                 items:
- *                   $ref: '#/components/schemas/Category'
+ *                   $ref: '#/components/schemas/ProductCategory'
  *               total:
  *                 type: integer
- *                 description: Total number of posts matching the search criteria
+ *                 description: Total number of categories (or matching the category name provided by the user, if specified)
  */
 
 export const getCategories = async (req, res) => {
   try {
    
     const { nameCategory, page, limit } = req.query;
+
+    let cleanNameCategory = nameCategory ? nameCategory.trim() : nameCategory; 
+
+    if(cleanNameCategory && cleanNameCategory.length > 100){
+        return res.status(400).send("Category name must be 100 characters or less.");
+    }
 
     const limitResult = validatePagination(
           limit,
@@ -55,8 +62,8 @@ export const getCategories = async (req, res) => {
         'page'
         );
 
-    const categories = await typeProductModel.getCategories(pool, {
-      nameCategory, 
+    const categories = await productCategoryModel.getCategories(pool, {
+      cleanNameCategory, 
       page: pageResult, 
       limit: limitResult
     });
@@ -76,7 +83,7 @@ export const getCategories = async (req, res) => {
  * @swagger
  * components:
  *   responses:
- *     ProductTypeCreated:
+ *     ProductCategoryCreated:
  *       description: The requested category of product has been created successfully.
  *       content:
  *         application/json:
@@ -84,24 +91,20 @@ export const getCategories = async (req, res) => {
  *             type: object 
  *             properties: 
  *               productCreated:
- *                  $ref: '#/components/schemas/Category'   
+ *                  $ref: '#/components/schemas/ProductCategory'   
  */
 
-export const createProductType = async (req, res) => {
+export const createProductCategory = async (req, res) => {
     try {
         const { nameCategory } = req.body;
-        
-        if (!nameCategory) {
-             return res.status(400).send("Category name required.");
-        }
 
-        const existingType = await typeProductModel.getCategories(pool, {categoryName : nameCategory});
+        const existingType = await productCategoryModel.getCategories(pool, {categoryName : nameCategory});
         
         if (existingType.rows.length > 0) {
             return res.status(409).send("Type already exists");
         }
 
-        const productCreated = await typeProductModel.createProductType(pool, nameCategory);
+        const productCreated = await productCategoryModel.createProductCategory(pool, nameCategory);
         
         if (productCreated) {
             return res.status(201).send({productCreated});
@@ -118,7 +121,7 @@ export const createProductType = async (req, res) => {
  * @swagger
  * components:
  *   responses:
- *     ProductTypeUpdated:
+ *     ProductCategoryUpdated:
  *       description: The requested type of product is successfully updated
  *       content:
  *         application/json: 
@@ -126,21 +129,28 @@ export const createProductType = async (req, res) => {
  *              type: object 
  *              properties: 
  *                 productUpdated:
- *                   $ref: '#/components/schemas/Category' 
+ *                   $ref: '#/components/schemas/ProductCategory' 
  *             
  */
 
-export const updateProductType = async (req, res) => {
+export const updateProductCategory = async (req, res) => {
     try {
-        const idCategory = parseInt(req.params.id, 10); 
+        const idCategory = Number(req.params.id);
         
-        if (isNaN(idCategory)) {
-            return res.status(400).json({ message: "Category ID invalid" });
+
+        if(!Number.isInteger(idCategory) || idCategory <= 0){
+            return res.status(400).send("Category ID invalid");
+        }
+
+        const nameCategory = req.body.nameCategory;
+
+        const category = await productCategoryModel.getCategories(pool, {categoryName : nameCategory});
+                                        
+        if (category.rows.length > 0){
+            return res.status(404).send("Product category not found.");
         }
         
-        const nameCategory = req.body.nameCategory;
-        
-        const updatedCategory = await typeProductModel.updateProductType(pool, { 
+        const updatedCategory = await productCategoryModel.updateProductCategory(pool, { 
             idCategory: idCategory, 
             nameCategory: nameCategory 
         });
@@ -156,15 +166,19 @@ export const updateProductType = async (req, res) => {
 
 
 
-export const deleteProductType = async (req, res) => {
+export const deleteProductCategory = async (req, res) => {
     try{
-        const idCategory = req.params.id; 
+        const idCategory = Number(req.params.id);
 
         if (!idCategory) {
             return res.status(400).send("Category ID is required");
         }
+
+        if (!Number.isInteger(idCategory) || idCategory <= 0) {
+            return res.status(400).send("Invalid category ID");
+        }
         
-        const deleted = await typeProductModel.deleteTypeProduct(pool, idCategory );
+        const deleted = await productCategoryModel.deleteProductCategory(pool, idCategory);
         
         if (deleted) {
 		    res.status(200).send("Category is deleted");

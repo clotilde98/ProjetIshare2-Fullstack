@@ -39,7 +39,7 @@ import { faker } from '@faker-js/faker';
  *         registration_date: 
  *           type: string
  *           format: date 
- *         is_admin: 
+ *         isadmin: 
  *           type: boolean
  *         address_id: 
  *           type: integer
@@ -64,19 +64,19 @@ import { faker } from '@faker-js/faker';
 
 export const createUser = async (req, res) => {
   try {
-    const {email, password, streetNumber, street, addressID} = req.body;
-    let {username} = req.body;
+    const {username, email, password, streetNumber, street, addressID} = req.body;
+    
     if (!username){
         username = faker.internet.username();
     }   
 
     const photo = req.file;
     let user = await userModel.getUserByEmail(pool, email)
-    const destFolderImages = './middleware/photo';
     
     if (!user){
         let imageName = null;
         if (photo){
+            const destFolderImages = './middleware/photo';
             imageName = uuid.v4();
             await saveImage(photo.buffer, imageName, destFolderImages); 
         }
@@ -95,68 +95,11 @@ export const createUser = async (req, res) => {
               );
               res.status(200).send({ token, user });
     } else {
-      res.status(409).send("User account already exists");
+        res.status(409).send("User account already exists");
     }
-  } catch (err) {
-        console.error("Internal server error", err); 
-        res.status(500).send("Internal server error"); 
-  }
-}
-
-/**
- * @swagger
- * components:
- *   responses:
- *     UserProfileWithoutSensitiveData:
- *       description: User profile successfully retrieved
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               user:
- *                 type: object
- *                 properties:
- *                   id:
- *                     type: integer
- *                   username:
- *                     type: string
- *                   photo:
- *                     type: string
- */
-
-export const getUserById = async (req, res) => {
-    try {
-
-        const clientID = req.params.id;
-
-        const user = await userModel.getProfileById(pool, clientID); 
-
-        if (!user) {
-            return res.status(404).send("User not found.");
-        }
-
-        const photoUrl = user.photo
-        ? `/images/${user.photo}.jpeg`
-        : `/images/unknown_person.jpeg`;
-
-        user.photo = photoUrl;
-
-        delete(user.registration_date);
-        delete(user.isadmin);
-        delete(user.street);
-        delete(user.street_number);
-        delete(user.googleid);
-        delete(user.email);
-        delete(user.address_id);
-
-        res.status(200).json({
-            user
-        });
-
     } catch (err) {
         console.error("Internal server error", err); 
-        return res.status(500).send("Internal server error");
+        res.status(500).send("Internal server error"); 
     }
 }
 
@@ -173,7 +116,7 @@ export const createUserWithAdmin = async (req, res) => {
         createAdminUser = req.body.isAdmin ; 
         
         if (!req.user.isAdmin && createAdminUser) { 
-            return res.status(400).send("Not allowed to create an admin user")
+            return res.status(403).send("Not allowed to create an admin user")
         }
 
         let user = await userModel.getUserByEmail(pool, email)
@@ -221,7 +164,10 @@ export const updateUser = async (req, res) => {
         let userId = req.user.id;
         if (req.params.id){
             if (req.user.isAdmin){
-                userId = parseInt(req.params.id);
+                userId = Number(req.params.id);
+                if (!Number.isInteger(userId) || userId <= 0){
+                    return res.status(400).send("Invalid user ID");
+                }
             } else {
                 return res.status(403).send("Admin privilege required.");
             }
@@ -282,18 +228,20 @@ export const deleteUser = async (req, res) => {
     let userId = null;
     if (req.params.id){
         if (req.user.isAdmin){
-            userId = parseInt(req.params.id);
+            userId = Number(req.params.id);
+            if (!Number.isInteger(userId) || userId <= 0){
+                return res.status(400).send("Invalid user ID");
+            }
+            const currentUser = await userModel.getUserById(pool, userId); 
+
+            if (!currentUser){
+                return res.status(404).send("User not found");
+            }
         } else {
             return res.status(403).send("Admin privilege required.");
         }
     } else {
         userId = req.user.id;
-    }
-
-    const currentUser = await userModel.getUserById(pool, userId); 
-
-    if (!currentUser){
-        return res.status(404).send("User not found");
     }
 
     await userModel.deleteUser(pool, userId);
@@ -322,11 +270,6 @@ export const deleteUser = async (req, res) => {
 export const getOwnUser = async (req, res) => {
     try {
         const clientID = req.user.id;
-        const user = await userModel.getProfileById(pool, clientID);
-
-        if (!user) {
-            return res.status(404).send("User not found.");
-        }
 
         const photoUrl = user.photo
         ? `/images/${user.photo}.jpeg` 
@@ -381,7 +324,7 @@ export const getOwnUser = async (req, res) => {
  *                       type: integer
  *               total:
  *                 type: integer
- *                 description: Total number of users matching the search criteria
+ *                 description: Total number of users matching the search criteria  (name, role)
  *
  *     InvalidRole:
  *       description: Role must be 'admin' or 'user'

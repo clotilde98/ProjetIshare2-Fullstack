@@ -13,45 +13,6 @@ export const createComment = async (SQLClient, { content, postID, clientID }) =>
     return rows[0];
 };
 
-export const getCommentsByPostID = async (SQLClient, {postID, limit, page}) => {
-    const pageNum = parseInt(page); 
-    const limitNum = parseInt(limit); 
-
-    const offset = (pageNum - 1) * limitNum;
-
-    const values = [postID];
-
-    const countQuery = `SELECT COUNT(c.id)
-    FROM Comment c
-    WHERE post_id = $1`
-
-    try {
-        const totalResult = await SQLClient.query(countQuery, values);
-        const total = parseInt(totalResult.rows[0].count, 10);
-
-        const limitIndex = values.length + 1;
-        const offsetIndex = values.length + 2;
-
-        const dataQuery = `
-            SELECT * FROM Comment 
-            WHERE post_id = $1  
-            LIMIT $${limitIndex} OFFSET $${offsetIndex}`;
-
-        values.push(limitNum);
-        values.push(offset);
-
-        const { rows } = await SQLClient.query(dataQuery, values);
-
-        return {
-            rows: rows,
-            total: total
-        };
-
-    } catch (err) {
-        throw new Error(`SQL error in getCommentsByPostID: ${err.message}`);
-    }
-}
-
 export const updateComment = async (SQLClient, { id, content }) => {
     let query = "UPDATE Comment SET ";
     const querySet = [];

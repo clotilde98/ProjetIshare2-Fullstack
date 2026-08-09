@@ -34,13 +34,12 @@ import vine from '@vinejs/vine';
 
 
 export const createPostSchema = vine.object({
-    title: vine.string().trim(),
-    description: vine.string().trim(),
-    street: vine.string().trim(),
+    title: vine.string().maxLength(50).trim(),
+    description: vine.string().maxLength(255).trim(),
+    street: vine.string().maxLength(100).trim(),
     numberOfPlaces: vine.number().positive(),
     streetNumber: vine.number().positive(), 
-    addressID: vine.number().positive(),
-    photo: vine.string().trim().optional(), 
+    addressID: vine.number().positive().withoutDecimals(),
     categoriesProduct: vine.string().trim(),
 }); 
 
@@ -72,14 +71,13 @@ export const createPostSchema = vine.object({
 
 
 export const updatePostSchema = vine.object({
-    title: vine.string().trim().optional(),
-    description: vine.string().trim().optional(),
-    street: vine.string().trim().optional(),
+    title: vine.string().maxLength(50).trim().optional(),
+    description: vine.string().maxLength(255).trim().optional(),
+    street: vine.string().trim().maxLength(100).optional(),
     numberOfPlaces: vine.number().positive().optional(),
     streetNumber: vine.number().positive().optional(),
     postStatus: vine.enum(['available', 'unavailable']).optional(),     
-    addressID: vine.number().positive().optional(),
-    photo: vine.string().trim().optional(), 
+    addressID: vine.number().positive().withoutDecimals().optional(),
     categoriesProduct: vine.string().trim().optional(), 
     
 }); 

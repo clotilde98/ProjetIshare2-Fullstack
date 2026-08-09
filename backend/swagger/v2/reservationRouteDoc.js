@@ -10,6 +10,8 @@
  *     responses:
  *       200:
  *         $ref: '#/components/responses/MyReservationsResponseV2'
+ *       400:
+ *         $ref: '#/components/responses/PaginationValidationError'
  *       401:
  *         $ref: '#/components/responses/UnauthorizedError'
  *       404:
@@ -22,7 +24,7 @@
  * @swagger
  * /reservations/client/{id}:
  *   get:
- *     summary: Only an administrator can see all the reservations a customer has made
+ *     summary: Only an administrator can see all the reservations a user has made
  *     security:
  *       - bearerAuth: []
  *     tags:
@@ -37,7 +39,7 @@
  *       200:
  *         $ref: '#/components/responses/ReservationsResponseV2'
  *       400:
- *         description: Invalid client ID
+ *         description: Invalid client ID or invalid pagination parameters.
  *         content:
  *           text/plain:
  *             schema:
@@ -72,7 +74,7 @@
  *       200:
  *         $ref: '#/components/responses/ReservationsResponseV2'
  *       400:
- *         description: Invalid post ID
+ *         description: Invalid post ID or invalid pagination parameters.
  *         content:
  *           text/plain:
  *             schema:

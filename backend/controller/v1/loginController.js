@@ -58,20 +58,19 @@ export const login = async (req, res) => {
 
 export const loginWithGoogle = async (req, res) => {
     try {
-        const { email, idToken, username, streetNumber, street, addressID} = req.body;
+        const {idToken}= req.body;
         const userInfo = await validateGoogleToken(idToken);
 
-        let user = await userModel.getUserByEmail(pool, email)
+        let user = await userModel.getUserByEmail(pool, userInfo.email)
 
 
         if (!user){
-            user = await createUser(pool, {googleId: userInfo.id, username, email: userInfo.email, streetNumber, street, imageName:null, addressID})
+            user = await createUser(pool, {googleId: userInfo.id, username : userInfo.name, email: userInfo.email, password: null, streetNumber: null, street: null, photo: userInfo.photo, isAdmin: false, addressID: null})
         }
 
         const token = jwt.sign(
             { 
                 id: user.id, 
-                email: payload.email,
                 isAdmin: user.isadmin,
             },
             process.env.JWT_SECRET,

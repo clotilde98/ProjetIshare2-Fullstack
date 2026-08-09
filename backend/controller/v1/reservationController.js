@@ -3,8 +3,8 @@ import {readPost} from '../../model/v1/postDB.js'
 import * as reservationModel from '../../model/v1/reservationDB.js';
 import { PAGINATION } from '../../Config/pagination.js';
 import { validatePagination } from '../../Utils/validationPagination.js'; 
-import { PaginationValidationError } from "../../errors/PaginationValidationError.js"; 
-import {sendNotification} from '../../websocket.js'; 
+import { PaginationValidationError } from "../../errors/PaginationValidationError.js";
+import { getUserById } from "../../model/v1/client.js";  
 
 
 const VALID_STATUS = ['confirmed', 'cancelled', 'withdrawal']; 
@@ -53,12 +53,18 @@ const VALID_STATUS = ['confirmed', 'cancelled', 'withdrawal'];
  *                           type: string
  *               total:
  *                 type: integer
- *                 description: Total number of reservations matching the search criteria
+ *                 description: Total number of reservations matching the search criteria (username, status)
  */
 
 export const getReservations = async (req, res) => { 
     try {
         const { username, status, page, limit } = req.query;
+
+        let cleanUsername = username ?  username.trim() : username; 
+
+        if (cleanUsername && cleanUsername.length > 100) {
+            return res.status(400).send("Username must be 100 characters or less.");
+        }
 
         if (status && !VALID_STATUS.includes(status)) {
             return res.status(400).json({ 
@@ -82,7 +88,7 @@ export const getReservations = async (req, res) => {
             'page');
 
         const args = {
-            username: username,
+            username: cleanUsername,
             reservationStatus: status, 
             page: pageResult, 
             limit: limitResult 
@@ -119,8 +125,8 @@ export const getReservations = async (req, res) => {
 
 export const getReservation = async (req, res) => {
     try {
-        const reservationID = parseInt(req.params.id);
-        if (Number.isNaN(reservationID)) {
+        const reservationID = Number(req.params.id);
+        if (!Number.isInteger(reservationID) || reservationID <= 0) {
             return res.status(400).send("Invalid reservation ID");
         }
 
@@ -176,12 +182,12 @@ export const getReservation = async (req, res) => {
 export const getMyReservations = async (req, res) => {
     try {
         const userID = req.user.id;
-        const reservations = await reservationModel.readMyReservations(pool, userID);
+        const reservations = await reservationModel.readReservationsByClientID(pool, userID);
 
         res.status(200).json({ reservations });
     } catch (err) {
-        console.error("Internal server error", err);
-        res.status(500).send("Erreur : " + err.message);
+        console.error("Internal server error", err); 
+        res.status(500).send("Internal server error"); 
     }
 };
 
@@ -204,8 +210,8 @@ export const getMyReservations = async (req, res) => {
 
 export const getReservationsByClientID = async (req, res) => {
     try {
-        const clientID = parseInt(req.params.id);
-        if (Number.isNaN(clientID)) return res.status(400).send("Invalid client ID");
+        const clientID = Number(req.params.id);
+        if (!Number.isInteger(clientID) || clientID <= 0) return res.status(400).send("Invalid client ID");
 
         const reservations = await reservationModel.readReservationsByClientID(pool, clientID);
         
@@ -219,8 +225,8 @@ export const getReservationsByClientID = async (req, res) => {
 
 export const getReservationsByPostID = async (req, res) => {
     try {
-        const postID = parseInt(req.params.id);
-        if (Number.isNaN(postID)) return res.status(400).send("Invalid post ID");
+        const postID = Number(req.params.id);
+        if (!Number.isInteger(postID) || postID <= 0) return res.status(400).send("Invalid post ID");
 
         const post = await readPost(pool, postID);
         if (!post) return res.status(404).send("Post doesn't exist");
@@ -246,6 +252,12 @@ export const createReservation = async (req, res) => {
         if (req.body.providedClientID) {
             if (req.user.isAdmin) {
                 userID = req.body.providedClientID;
+
+                const providedUser = await getUserById(pool, userID);
+                                                
+                if (!providedUser){
+                        return res.status(404).send("Provided client does not exist.");
+                }
             } else {
                 return res.status(403).send("Admin privilege required");
             }
@@ -273,19 +285,7 @@ export const createReservation = async (req, res) => {
             return res.status(409).send("Reservation already exists");
         }
 
-        const newReservation = await reservationModel.createReservation(pool, userID, postID); 
-
-        const informationPostReservation = await reservationModel.getReservationWithPostTitle(pool, {clientID: userID , postID}); 
-
-        const notification = {
-            type: 'reservation', 
-            message:  `${informationPostReservation.username} has reserved your post "${post.title}"`,
-            postId: postID, 
-            reserverId: userID
-
-        }; 
-
-        sendNotification(informationPostReservation.owner_id, notification);
+        const newReservation = await reservationModel.createReservation(pool, userID, postID);
 
         res.status(201).json({ reservation: newReservation });
 
@@ -318,12 +318,18 @@ export const updateReservation = async (req, res) => {
         if (providedClientID) {
             if (req.user.isAdmin) {
                 userID = providedClientID;
+
+                const providedUser = await getUserById(pool, userID);
+                                                
+                if (!providedUser){
+                        return res.status(404).send("Provided client does not exist.");
+                }
             } else {
                 return res.status(403).send("Admin privilege required");
             }
         }
 
-        if (Number.isNaN(reservationID)) return res.status(400).send("Invalid reservation ID");
+        if (!Number.isInteger(reservationID) || reservationID <= 0) return res.status(400).send("Invalid reservation ID");
 
 
         const reservation = await reservationModel.readReservation(pool, reservationID);
@@ -363,7 +369,8 @@ export const deleteReservation = async (req, res) => {
     try {
         const reservationID = Number(req.params.id);
 
-        if (Number.isNaN(reservationID)) return res.status(400).send("Invalid reservation ID");
+        if (!Number.isInteger(reservationID) || reservationID <= 0) return res.status(400).send("Invalid reservation ID");
+
 
         const reservation = await reservationModel.readReservation(pool, reservationID);
         if (!reservation) return res.status(404).send("Reservation not found");

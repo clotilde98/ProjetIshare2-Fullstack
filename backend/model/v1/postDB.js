@@ -79,13 +79,8 @@ export const readPost = async (SQLClient, id) => {
     return rows[0];
 };
 
-export const readMyPosts = async (SQLClient, clientID) => {
-    const {rows} = await SQLClient.query("SELECT * FROM Post WHERE client_id = $1", [clientID]);
-    return rows;
-}
-
-export const searchPostByCategory = async (SQLClient,  categoryName) => {
-    const query = "SELECT * FROM Post p INNER JOIN Post_category pc ON p.id = pc.post_id INNER JOIN Product_category cp ON cp.category_id = pc.category_id WHERE cp.category_name=$1";
+export const searchPostsByCategory = async (SQLClient,  categoryName) => {
+    const query = "SELECT * FROM Post p INNER JOIN Post_category pc ON p.id = pc.post_id INNER JOIN Product_category prc ON prc.category_id = pc.category_id WHERE prc.category_name=$1";
     const {rows} = await SQLClient.query(query, [categoryName]);
     return rows;
 };
@@ -106,10 +101,8 @@ export const getAllCategoriesFromPostID = async (SQLClient, id) => {
 
 
 export const getPosts = async (SQLClient, {city, postStatus, page, limit}) => {
-    const pageNum = parseInt(page);
-    const limitNum = parseInt(limit);
     
-    const offset = (pageNum - 1) * limitNum;
+    const offset = (page - 1) * limit;
     
     const conditions = [];
     const values = [];
@@ -118,6 +111,7 @@ export const getPosts = async (SQLClient, {city, postStatus, page, limit}) => {
         values.push(`%${city}%`);
         conditions.push(`LOWER(a.city) LIKE LOWER($${values.length})`);
     }
+    
 
     if (postStatus) {
         values.push(postStatus);
@@ -166,7 +160,7 @@ export const getPosts = async (SQLClient, {city, postStatus, page, limit}) => {
             JOIN Address a ON p.address_id = a.id
             JOIN Client c ON p.client_id = c.id 
             INNER JOIN Post_category pc ON pc.post_id = p.id
-            INNER JOIN Product_category cp ON cp.category_id = pc.category_id
+            INNER JOIN Product_category prc ON prc.category_id = pc.category_id
             ${whereClause}
             GROUP BY 
                 p.id, 
@@ -181,7 +175,7 @@ export const getPosts = async (SQLClient, {city, postStatus, page, limit}) => {
             LIMIT $${limitIndex} OFFSET $${offsetIndex}
         `;
 
-        values.push(limitNum);
+        values.push(limit);
         values.push(offset);
         
         const { rows } = await SQLClient.query(dataQuery, values);

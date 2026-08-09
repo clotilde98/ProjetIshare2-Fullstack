@@ -12,7 +12,7 @@ export const importPostalData = async (req, res) => {
     const totalCount = await addressModel.importPostalData(client);
     await client.query('COMMIT');
 
-    const message = `Importation réussie de ${totalCount} villes et codes postaux.`;
+    const message = `Ìmport of ${totalCount} cities and postal codes successful`;
     res.status(200).send(message);
   } catch (err) {
     if (client) await client.query('ROLLBACK');
@@ -22,18 +22,6 @@ export const importPostalData = async (req, res) => {
     if (client) address.release();
   }
 };
-
-
-
-export const getAddressByID = async (req, res) => {
-  try {
-    const id = req.params.id;
-    const address = await addressModel.getAddressByID(pool, {id})
-    return res.status(200).send({address});
-  } catch (err) {
-      console.error("Internal server error", err); 
-      res.status(500).send("Internal server error");   
-  }};
 
 /**
  * @swagger
@@ -46,7 +34,7 @@ export const getAddressByID = async (req, res) => {
  *           type: integer
  *         city:
  *           type: string
- *         postalCode:
+ *         postal_code:
  *           type: string
  *   responses: 
  *     ReadAllCities:

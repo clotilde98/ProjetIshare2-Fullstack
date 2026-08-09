@@ -14,7 +14,7 @@
  *           schema:
  *             $ref: '#/components/schemas/CreateReservationSchema'
  *     responses:
- *       200:
+ *       201:
  *         $ref: '#/components/responses/ReservationResponse'
  *       400:
  *         $ref: '#/components/responses/ValidationError'
@@ -69,7 +69,7 @@
  *       200:
  *         $ref: '#/components/responses/AllReservations'
  *       400:
- *         description: Bad status, non-existent status in the choices
+ *         description: Bad status, non-existent status in the choices, invalid username pr invalid pagination
  *         content: 
  *            text/plain: 
  *                 schema:
@@ -96,8 +96,6 @@
  *         $ref: '#/components/responses/MyReservationsResponse'
  *       401:
  *         $ref: '#/components/responses/UnauthorizedError'
- *       404:
- *         $ref: '#/components/responses/ObjectNotFound'
  *       500:
  *         description: Server error
  */
@@ -106,7 +104,7 @@
  * @swagger
  * /reservations/client/{id}:
  *   get:
- *     summary: Only an administrator can see all the reservations a customer has made
+ *     summary: Only an administrator can see all the reservations a user has made
  *     security:
  *       - bearerAuth: []
  *     tags:

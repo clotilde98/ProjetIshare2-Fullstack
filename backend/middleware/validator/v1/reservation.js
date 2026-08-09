@@ -15,8 +15,8 @@ import vine from '@vinejs/vine';
 
 
 export const createReservationSchema = vine.object({
-    postID: vine.number().positive(),
-    providedClientID: vine.number().positive().optional()
+    postID: vine.number().positive().withoutDecimals(),
+    providedClientID: vine.number().positive().withoutDecimals().optional()
 }); 
 
 /**
@@ -26,6 +26,10 @@ export const createReservationSchema = vine.object({
  *     UpdateReservationSchema:
  *       type: object
  *       properties:
+ *         postID:
+ *           type: integer
+ *         providedClientID:
+ *           type: integer
  *         reservationStatus:
  *           type: string
  *           enum:
@@ -34,8 +38,9 @@ export const createReservationSchema = vine.object({
  *             - withdrawal
  */
 
-
 export const updateReservationSchema = vine.object({
+    postID: vine.number().positive().withoutDecimals().optional(),
+    providedClientID: vine.number().positive().withoutDecimals().optional(),
     reservationStatus: vine.enum(['confirmed', 'cancelled','withdrawal']).optional(), 
 });
 

@@ -21,7 +21,7 @@ import vine from '@vinejs/vine';
 
 
 export const createCommentSchema = vine.object({
-    content: vine.string().trim(), 
+    content: vine.string().trim().maxLength(300), 
     postID : vine.number().positive(),
     clientID: vine.number().positive().optional()
 }); 
@@ -30,7 +30,7 @@ export const createCommentSchema = vine.object({
  * @swagger
  * components:
  *   schemas:
- *     UpdateCommentSchema:
+ *     UpdateCommentSchemaV2:
  *       type: object
  *       properties:
  *         content:

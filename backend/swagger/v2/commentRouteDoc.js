@@ -88,6 +88,10 @@
  *         $ref: "#/components/responses/ValidationError"
  *       401:
  *         $ref: "#/components/responses/UnauthorizedError"
+ *       403: 
+ *         $ref: "#/components/responses/AccessDeniedError"
+ *       404: 
+ *         $ref: "#/components/responses/ObjectNotFound"   
  *       500:
  *         description: Server error
  */
@@ -96,7 +100,7 @@
  * @swagger
  * /comments/{id}:
  *   patch:
- *     summary: An administrator updates a comment
+ *     summary: An user updates his comment or an administrator updates a comment
  *     security:
  *       - bearerAuth: []
  *     tags:
@@ -112,12 +116,16 @@
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/UpdateCommentSchema'
+ *             $ref: '#/components/schemas/UpdateCommentSchemaV2'
  *     responses:
  *       200:
  *         $ref: '#/components/responses/CommentUpdatedV2'
  *       400:
- *         $ref: '#/components/responses/ValidationError'
+ *         description: Invalid user ID or validation error (body)
+ *         content: 
+ *           text/plain: 
+ *               schema:
+ *                  type: string
  *       401:
  *         $ref: '#/components/responses/UnauthorizedError'
  *       403:

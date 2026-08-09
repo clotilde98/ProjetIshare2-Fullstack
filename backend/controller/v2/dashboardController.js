@@ -5,38 +5,38 @@ import * as dashboardModel from "../../model/v1/dashboardModel.js";
  * @swagger
  * components:
  *   schemas:
- *     DashboardStats:
+ *     DashboardStatsV2:
  *       type: object
  *       properties:
- *         totalAnnonces:
+ *         totalPosts:
  *           type: integer
  *           description: Total number of posts
- *         totalReservation:
+ *         totalReservations:
  *           type: integer
  *           description: Total number of reservations
- *         totalRetraits:
+ *         totalWithdrawals:
  *           type: integer
  *           description: Total number of withdrawals
- *         utilisateursActifs:
+ *         activeUsers:
  *           type: integer
  *           description: Total number of active users
  *
  *   responses:
- *     AllStatReaded:
+ *     AllStatReadedV2:
  *       description: All stats are obtained
  *       content:
  *         application/json:
  *           schema:
- *             $ref: "#/components/schemas/DashboardStats"
+ *             $ref: "#/components/schemas/DashboardStatsV2"
  */
 
 export const getAllStats = async (req, res) => {
     try {
         const [
-            totalAnnonces, 
+            totalPosts, 
             totalReservations, 
-            totalRetraits, 
-            utilisateursActifs 
+            totalWithdrawals, 
+            activeUsers 
         ] = await Promise.all([
             dashboardModel.getTotalPosts(pool),
             dashboardModel.getTotalReservations(pool),
@@ -45,10 +45,10 @@ export const getAllStats = async (req, res) => {
         ]);
 
         res.status(200).json({
-            totalAnnonces: totalAnnonces,
+            totalPosts: totalPosts,
             totalReservations: totalReservations,
-            totalRetraits: totalRetraits, 
-            utilisateursActifs: utilisateursActifs,
+            totalWithdrawals: totalWithdrawals, 
+            activeUsers: activeUsers,
         });
 
     } catch (err) {

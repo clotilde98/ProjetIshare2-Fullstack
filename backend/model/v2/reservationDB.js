@@ -1,8 +1,6 @@
 export const readReservationsByClientID = async (SQLClient, {id, page, limit}) => {
-    const pageNum = parseInt(page);
-    const limitNum = parseInt(limit);
     
-    const offset = (pageNum - 1) * limitNum;
+    const offset = (page - 1) * limit;
 
     const values = [id]; 
 
@@ -12,7 +10,7 @@ export const readReservationsByClientID = async (SQLClient, {id, page, limit}) =
     const total = parseInt(totalResult.rows[0].count, 10);
 
     const dataQuery = `SELECT * FROM Reservation WHERE client_id = $1 ORDER BY reservation_date DESC LIMIT $2 OFFSET $3`; 
-    values.push(limitNum); 
+    values.push(limit); 
     values.push(offset); 
 
     const {rows} = await SQLClient.query(dataQuery, values); 
@@ -23,10 +21,8 @@ export const readReservationsByClientID = async (SQLClient, {id, page, limit}) =
 };
 
 export const readReservationsByPostID = async (SQLClient, {id, page, limit}) => {
-    const pageNum = parseInt(page);
-    const limitNum = parseInt(limit);
-
-    const offset = (pageNum - 1) * limitNum;
+    
+    const offset = (page - 1) * limit;
 
     const values = [id]; 
 
@@ -37,7 +33,7 @@ export const readReservationsByPostID = async (SQLClient, {id, page, limit}) => 
 
     const dataQuery = `SELECT * FROM Reservation WHERE post_id = $1 ORDER BY reservation_date DESC LIMIT $2 OFFSET $3`; 
 
-    values.push(limitNum); 
+    values.push(limit); 
     values.push(offset);
 
     const {rows} = await SQLClient.query(dataQuery, values); 

@@ -1,5 +1,5 @@
 import {pool} from "../../database/database.js";
-import * as productTypeModel from "../../model/v2/productType.js";
+import * as productCategoryModel from "../../model/v2/productCategory.js";
 import { PAGINATION } from '../../Config/pagination.js';
 import { validatePagination } from '../../Utils/validationPagination.js'
 import {PaginationValidationError} from "../../errors/PaginationValidationError.js"; 
@@ -8,7 +8,7 @@ import {PaginationValidationError} from "../../errors/PaginationValidationError.
  * @swagger
  * components:
  *   schemas:
- *     CategoryV2:
+ *     ProductCategoryV2:
  *       type: object
  *       properties:
  *         categoryId:
@@ -27,16 +27,22 @@ import {PaginationValidationError} from "../../errors/PaginationValidationError.
  *               rows:
  *                 type: array
  *                 items:
- *                   $ref: '#/components/schemas/CategoryV2'
+ *                   $ref: '#/components/schemas/ProductCategoryV2'
  *               total:
  *                 type: integer
- *                 description: Total number of categories matching the search category name
+ *                 description: Total number of categories (or matching the category name provided by the user, if specified)
  */
 
 export const getCategories = async (req, res) => {
   try {
    
     const { categoryName, page, limit } = req.query;
+
+    let cleanNameCategory = categoryName ? categoryName.trim() : categoryName; 
+
+    if(cleanNameCategory && cleanNameCategory.length > 100){
+        return res.status(400).send("Category name must be 100 characters or less.");
+    }
 
     const limitResult = validatePagination(
           limit,
@@ -55,8 +61,8 @@ export const getCategories = async (req, res) => {
         'page'
         );
 
-    const categories = await productTypeModel.getCategories(pool, {
-      categoryName, 
+    const categories = await productCategoryModel.getCategories(pool, {
+      cleanNameCategory, 
       page: pageResult, 
       limit: limitResult
     });
@@ -66,7 +72,7 @@ export const getCategories = async (req, res) => {
     if (err instanceof PaginationValidationError) {
         return res.status(400).json({ error: err.message }); 
     }
-    console.error(`Internal server error " ${err}`); 
+    console.error("Internal server error", err); 
     res.status(500).send(err.message); 
   }
 };
@@ -76,36 +82,32 @@ export const getCategories = async (req, res) => {
  * @swagger
  * components:
  *   responses:
- *     ProductTypeCreatedV2:
+ *     ProductCategoryCreatedV2:
  *       description: The requested category of product has been created successfully.
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/CategoryV2'   
+ *             $ref: '#/components/schemas/ProductCategoryV2'   
  */
 
-export const createProductType = async (req, res) => {
+export const createProductCategory = async (req, res) => {
     try {
         const { categoryName } = req.body;
-        
-        if (!categoryName) {
-             return res.status(400).send("Category name required.");
-        }
 
-        const existingType = await productTypeModel.getCategories(pool, {categoryName});
+        const existingType = await productCategoryModel.getCategories(pool, {categoryName});
         
         if (existingType.rows.length > 0) {
             return res.status(409).send("Type already exists");
         }
 
-        const productCreated = await productTypeModel.createProductType(pool, categoryName);
+        const productCreated = await productCategoryModel.createProductCategory(pool, categoryName);
         
         if (productCreated) {
             return res.status(201).send({productCreated});
         } 
         
     } catch(err) {
-        console.error(`Internal server error " ${err}`); 
+        console.error("Internal server error", err); 
         res.status(500).send(err.message); 
     }
 };
@@ -114,26 +116,32 @@ export const createProductType = async (req, res) => {
  * @swagger
  * components:
  *   responses:
- *     ProductTypeUpdatedV2:
+ *     ProductCategoryUpdatedV2:
  *       description: The requested type of product is successfully updated
  *       content:
  *         application/json: 
  *              schema: 
- *                $ref: '#/components/schemas/CategoryV2'
+ *                $ref: '#/components/schemas/ProductCategoryV2'
  *             
  */
 
-export const updateProductType = async (req, res) => {
+export const updateProductCategory = async (req, res) => {
     try {
-        const categoryID = parseInt(req.params.id, 10); 
+        const categoryID = Number(req.params.id);
         
-        if (isNaN(categoryID)) {
-            return res.status(400).json({ message: "Category ID invalid" });
+        if (!Number.isInteger(categoryID) || categoryID <= 0) {
+            return res.status(400).send("Invalid category ID");
         }
         
-        const categoryName = req.body.categoryName;
+        const nameCategory = req.body.nameCategory;
         
-        const updatedCategory = await productTypeModel.updateTypeProduct(pool, { 
+        const category = await productCategoryModel.getCategories(pool, {categoryName : nameCategory});
+                                                
+        if (category.rows.length > 0){
+            return res.status(404).send("Product category not found.");
+        }
+        
+        const updatedCategory = await productCategoryModel.updateProductCategory(pool, { 
             categoryID: categoryID, 
             categoryName: categoryName 
         });
@@ -142,31 +150,7 @@ export const updateProductType = async (req, res) => {
         
 
     } catch (err) {
-        console.error(`Internal server error " ${err}`); 
+        console.error("Internal server error", err); 
         return res.status(500).send(err.message); 
     }
 };
-
-
-
-export const deleteProductType = async (req, res) => {
-    try{
-        const categoryID = req.params.id; 
-
-        if (!categoryID) {
-            return res.status(400).send("Category ID is required");
-        }
-        
-        const deleted = await productTypeModel.deleteTypeProduct(pool, categoryID);
-        
-        if (deleted) {
-		    res.status(200).send("Category is deleted");
-        } else {
-            res.status(404).send("Category not found");
-        }
-
-    }catch(err){
-        console.error(`Internal server error " ${err}`); 
-        res.status(500).send(err.message);
-    }
-}

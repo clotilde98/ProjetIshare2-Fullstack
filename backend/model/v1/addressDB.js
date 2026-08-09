@@ -42,10 +42,3 @@ export const getAllCities = async (SQLClient) => {
     return rows;
 };
 
-
-export const getAddressByID = async (SQLClient, {id}) => {
-    const { rows } = await SQLClient.query(
-  `SELECT * FROM Address WHERE id = $1`, [id]  );
-    return rows[0];
-};
-

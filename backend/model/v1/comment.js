@@ -20,11 +20,6 @@ export const createComment = async (SQLClient, { content, postID, clientID }) =>
     return rows[0];
 };
 
-export const getCommentsByPostID = async (SQLClient, {postID}) => {
-    const {rows} = await SQLClient.query("SELECT id, content, post_id AS id_post, client_id AS id_customer FROM Comment WHERE post_id = $1", [postID])
-    return rows;
-}
-
 export const updateComment = async (SQLClient, { id, content }) => {
     let query = "UPDATE Comment SET ";
     const querySet = [];
@@ -51,11 +46,9 @@ export const updateComment = async (SQLClient, { id, content }) => {
 };
 
 
-export const getComments = async (SQLClient, { commentDate, page = 1, limit = 10 }) => {
-    const pageNum = parseInt(page);
-    const limitNum = parseInt(limit);
+export const getComments = async (SQLClient, { commentDate, page, limit}) => {
     
-    const offset = (pageNum - 1) * limitNum;
+    const offset = (page - 1) * limit;
     const conditions = [];
     const values = [];
 
@@ -89,7 +82,7 @@ export const getComments = async (SQLClient, { commentDate, page = 1, limit = 10
         ORDER BY c.date DESC, c.id DESC
         LIMIT $${limitIndex} OFFSET $${offsetIndex}`;
 
-        values.push(limitNum);
+        values.push(limit);
         values.push(offset);
         
         const dataResult = await SQLClient.query(dataQuery, values);

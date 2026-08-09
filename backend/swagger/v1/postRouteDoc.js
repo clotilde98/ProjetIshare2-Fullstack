@@ -52,6 +52,12 @@
  *     responses:
  *       200:
  *         $ref: '#/components/responses/AllPostByCategory'
+ *       400: 
+ *         description: missing category name
+ *         content: 
+ *           text/plain: 
+ *               schema:
+ *                  type: string
  *       401:
  *         $ref: '#/components/responses/UnauthorizedError'
  *       500:
@@ -70,13 +76,13 @@
  *     parameters:
  *       - in: query
  *         name: city
- *         required: true
+ *         required: false
  *         schema:
  *           type: string
  *
  *       - in: query
  *         name: postStatus
- *         required: true
+ *         required: false
  *         schema:
  *           type: string
  *
@@ -96,7 +102,11 @@
  *       200:
  *         $ref: '#/components/responses/AllPostsRead'
  *       400: 
- *         $ref: '#/components/responses/PaginationValidationError'
+ *         description: Invalid city name/post status or invalid pagination
+ *         content: 
+ *           text/plain: 
+ *               schema:
+ *                  type: string
  *       401:
  *         $ref: '#/components/responses/UnauthorizedError'
  *       500:
@@ -164,7 +174,11 @@
  *       200:
  *         $ref: '#/components/responses/PostUptated'
  *       400:
- *         $ref: '#/components/responses/ValidationError'
+ *         description:  Invalid post ID, error with product categories, or validation error
+ *         content: 
+ *            text/plain: 
+ *                 schema:
+ *                    type: string 
  *       401:
  *         $ref: '#/components/responses/UnauthorizedError'
  *       403:
@@ -198,7 +212,11 @@
  *                 schema:
  *                    type: string 
  *       400:
- *         $ref: '#/components/responses/ValidationError'
+ *         description:  Invalid post ID
+ *         content: 
+ *            text/plain: 
+ *                 schema:
+ *                    type: string 
  *       401:
  *         $ref: '#/components/responses/UnauthorizedError'
  *       403:
@@ -232,7 +250,11 @@
  *             schema:
  *               type: string
  *       400:
- *         $ref: '#/components/responses/ValidationError'
+ *         description:  Invalid post ID
+ *         content: 
+ *            text/plain: 
+ *                 schema:
+ *                    type: string 
  *       401:
  *         $ref: '#/components/responses/UnauthorizedError'
  *       403:

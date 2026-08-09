@@ -2,11 +2,11 @@
  * @swagger
  * /users/:
  *   post:
- *     summary: Add a customer
+ *     summary: Add a user
  *     security:
  *       - bearerAuth: []
  *     tags:
- *       - Customer
+ *       - User
  *     requestBody:
  *       required: true
  *       content:
@@ -34,11 +34,11 @@
  * @swagger
  * /users/admin:
  *   post:
- *     summary: Add a new customer (admin only)
+ *     summary: Add a new user (admin only)
  *     security:
  *       - bearerAuth: []
  *     tags:
- *       - Customer
+ *       - User
  *     requestBody:
  *       required: true
  *       content:
@@ -56,6 +56,10 @@
  *         $ref: '#/components/responses/UserAdded'
  *       400:
  *         $ref: '#/components/responses/ValidationError'
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       403:
+ *         $ref: '#/components/responses/AccessDeniedError'
  *       409:
  *         $ref: '#/components/responses/ObjectCompetingEdition'
  *       500:
@@ -70,14 +74,12 @@
  *     security:
  *       - bearerAuth: []
  *     tags:
- *       - Customer
+ *       - User
  *     responses:
  *        200:
  *         $ref: '#/components/responses/UserAccount' 
  *        401:
  *         $ref: '#/components/responses/UnauthorizedError'
- *        404:
- *         $ref: '#/components/responses/UserAccount'
  *        500:
  *         description: Server error
  */
@@ -90,12 +92,16 @@
  *     security:
  *       - bearerAuth: []
  *     tags:
- *       - Customer
+ *       - User
  *     responses:
  *       200:
  *         $ref: '#/components/responses/ReadAllUsers'
  *       400:
- *         $ref: '#/components/responses/InvalidRole'
+ *         description: Invalid role filter or invalid pagination
+ *         content:
+ *           text/plain:
+ *             schema:
+ *               type: string
  *       401:
  *         $ref: '#/components/responses/UnauthorizedError'
  *       403:
@@ -110,7 +116,7 @@
  *   delete:
  *     summary: User deletes their own account
  *     tags:
- *       - Customer
+ *       - User
  *     security:
  *       - bearerAuth: []
  *     responses:
@@ -120,6 +126,12 @@
  *            text/plain: 
  *                 schema:
  *                    type: string 
+ *       400: 
+ *         description: Invalid user ID
+ *         content: 
+ *           text/plain: 
+ *               schema:
+ *                  type: string
  *       401:
  *         $ref: '#/components/responses/UnauthorizedError'
  *       404:
@@ -132,9 +144,9 @@
  * @swagger
  * /users/{id}:
  *   delete:
- *     summary: A user wants to delete their account, or only an administrator can delete an account.
+ *     summary: only an administrator can delete an account with user id 
  *     tags:
- *       - Customer
+ *       - User
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -149,7 +161,13 @@
  *         content: 
  *            text/plain: 
  *                 schema:
- *                    type: string 
+ *                    type: string
+ *       400: 
+ *         description: Invalid user ID
+ *         content: 
+ *           text/plain: 
+ *               schema:
+ *                  type: string
  *       401:
  *         $ref: '#/components/responses/UnauthorizedError'
  *       403:
@@ -168,7 +186,7 @@
  *     security:
  *       - bearerAuth: []
  *     tags:
- *       - Customer
+ *       - User
  *     requestBody:
  *       required: true
  *       content:
@@ -187,7 +205,7 @@
  *       400:
  *         $ref: '#/components/responses/ValidationError'
  *       401:
- *         description: Invalid or expired JWT OR current password incorrect 
+ *         description: Invalid or expired JWT OR old password is missing/incorrect 
  *         content: 
  *            text/Plain: 
  *                schema: 
@@ -208,7 +226,7 @@
  *     security:
  *       - bearerAuth: []
  *     tags:
- *       - Customer
+ *       - User
  *     parameters:
  *       - name: id
  *         in: path
@@ -230,10 +248,14 @@
  *     responses:
  *       200:
  *         $ref: '#/components/responses/UserAccount'
- *       400:
- *         $ref: '#/components/responses/ValidationError'
+ *       400: 
+ *         description: Invalid user ID or validation error (body)
+ *         content: 
+ *           text/plain: 
+ *               schema:
+ *                  type: string
  *       401:
- *         description: Invalid or expired JWT OR current password incorrect
+ *         description: Invalid or expired JWT OR old password is missing/incorrect
  *         content:
  *           text/plain:
  *             schema:
@@ -245,5 +267,3 @@
  *       500:
  *         description: Server error
  */
-
-
